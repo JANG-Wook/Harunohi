@@ -1,0 +1,11 @@
+# 의존성·빌드 산출물
+node_modules
+dist
+build
+
+# OS / 에디터
+.DS_Store
+*.log
+
+# 로컬 도구 (Claude Code 등)
+.claude

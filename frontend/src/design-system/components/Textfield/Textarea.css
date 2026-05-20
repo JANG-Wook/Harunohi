@@ -1,0 +1,18 @@
+/* 브라우저 기본 resize 핸들 아이콘 숨김 — resize 기능은 유지 */
+.ax-textarea::-webkit-resizer {
+  display: none;
+}
+
+/* placeholder 색상 */
+.ax-textarea::placeholder {
+  color: var(--color-label-assistive);
+}
+
+/* 네이티브 스크롤바 숨김 — 커스텀 오버레이 스크롤바 사용 */
+.ax-textarea {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ax-textarea::-webkit-scrollbar {
+  display: none;
+}

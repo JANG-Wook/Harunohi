@@ -1,0 +1,8 @@
+.ax-category-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ax-category-scroll::-webkit-scrollbar {
+  display: none;
+}

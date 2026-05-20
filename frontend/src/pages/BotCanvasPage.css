@@ -1,0 +1,38 @@
+/* 봇 빌더 페이지 레이아웃 — 3 패널 (단계 목록 · 캔버스 · 응답 설정) */
+
+.bot-canvas {
+  display: flex;
+  height: 100%;
+  background: var(--color-bg-normal-alternative);
+}
+
+/* React Flow 캔버스 자체도 같은 work-area 배경 위에 도트 그리드 */
+.bot-canvas__flow .react-flow {
+  background: var(--color-bg-normal-alternative);
+}
+
+.bot-canvas__flow {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+/* React Flow 컨트롤·미니맵에 토큰 적용 */
+.bot-canvas__flow .react-flow__controls {
+  box-shadow: 0px 4px 6px -1px rgba(23, 23, 23, 0.06),
+    0px 2px 4px -2px rgba(23, 23, 23, 0.06);
+  border-radius: var(--spacing-10);
+  overflow: hidden;
+}
+
+.bot-canvas__flow .react-flow__controls-button {
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+  color: var(--color-label-normal);
+  width: 32px;
+  height: 32px;
+}
+
+.bot-canvas__flow .react-flow__controls-button:hover {
+  background: var(--color-fill-alternative);
+}

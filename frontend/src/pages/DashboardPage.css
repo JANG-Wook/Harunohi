@@ -1,0 +1,92 @@
+/* 대시보드 페이지 스타일 — 봇 목록 + 봇 생성 모달 */
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-32);
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-20);
+}
+
+/* 봇 생성 ghost 카드 — DS 의 Card 컴포넌트는 썸네일 기반이라 토큰으로 직접 구현 */
+.dashboard__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-20);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-line-solid-normal);
+  border-radius: var(--spacing-12);
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-family: inherit;
+  color: var(--color-label-alternative);
+}
+
+.dashboard__card:hover {
+  border-color: var(--color-primary-normal);
+  color: var(--color-label-normal);
+  box-shadow: 0px 4px 6px -1px rgba(23, 23, 23, 0.06),
+    0px 2px 4px -2px rgba(23, 23, 23, 0.06);
+}
+
+.dashboard__card--ghost {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+/* 봇 생성 모달 — DS 에 폼 입력형 모달이 없어 토큰으로 직접 구현 */
+.dashboard__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 1000;
+}
+
+.dashboard__modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: 0px 16px 24px -6px rgba(23, 23, 23, 0.08),
+    0px 6px 10px -4px rgba(23, 23, 23, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard__modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.dashboard__modal-body {
+  padding: var(--spacing-20);
+}
+
+.dashboard__modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+}

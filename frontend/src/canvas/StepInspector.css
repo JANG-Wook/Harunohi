@@ -1,0 +1,61 @@
+/* 우측 응답 설정 패널 컨테이너 */
+
+.step-inspector {
+  width: 460px;
+  flex-shrink: 0;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-line-solid-normal);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.step-inspector--empty {
+  padding: var(--spacing-32) var(--spacing-20);
+  text-align: center;
+  justify-content: center;
+}
+
+.step-inspector__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.step-inspector__head-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+
+.step-inspector__letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary-normal);
+  color: #ffffff;
+  border-radius: var(--spacing-6);
+  font-size: var(--font-size-caption-1);
+  font-weight: 600;
+}
+
+.step-inspector__name-field {
+  padding: var(--spacing-16) var(--spacing-20) 0;
+}
+
+.step-inspector__footer {
+  margin-top: auto;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}
+
+.step-inspector__footer > * {
+  width: 100%;
+}

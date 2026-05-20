@@ -1,0 +1,45 @@
+/* 챗봇 메시지 미리보기 — 폰 프레임 박스 */
+
+.chat-msg-preview {
+  width: 360px;
+  overflow: hidden;
+  border-radius: var(--spacing-24);
+  box-shadow:
+    0 0 0 1px var(--color-line-solid-normal),
+    var(--shadow-normal-large, 0 16px 24px -6px rgba(23, 23, 23, 0.08), 0 6px 10px -4px rgba(23, 23, 23, 0.08));
+  background: var(--color-bg-normal);
+  flex-shrink: 0;
+}
+
+/* compact 모드 — ChatRoom 의 chrome(상태바·헤더·입력창) 숨김 */
+/* ChatRoom 루트의 자식 구성: 1) ChatStatusBar 2) ChatHeader 3) scroll wrapper 4) ChatInput */
+.chat-msg-preview--compact > div > :nth-child(1),
+.chat-msg-preview--compact > div > :nth-child(2),
+.chat-msg-preview--compact > div > :nth-child(4) {
+  display: none !important;
+}
+
+/* compact 모드 — 폰 프레임 카드 wrapper 자체를 시각적으로 제거 */
+/* 캔버스에서는 step-node 가 외곽 카드 역할을 하므로 중첩 카드 느낌 제거 */
+.chat-msg-preview--compact {
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* ChatRoom 루트(자식 div)의 자체 배경도 투명화 — step-node 배경을 그대로 노출 */
+/* 또한 height: 100% 도 풀어 콘텐츠 크기에 맞게 자동 확장 */
+.chat-msg-preview--compact > div {
+  background-color: transparent !important;
+  height: auto !important;
+}
+
+/* ChatRoom 의 스크롤 영역(:nth-child(3))과 내부 scroll wrapper 의 강제 높이 / 스크롤 해제 */
+.chat-msg-preview--compact > div > :nth-child(3) {
+  flex: none !important;
+}
+
+.chat-msg-preview--compact .chat-room-scroll {
+  height: auto !important;
+  overflow-y: visible !important;
+}

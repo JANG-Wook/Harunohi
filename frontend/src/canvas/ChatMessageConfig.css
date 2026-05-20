@@ -1,0 +1,211 @@
+/* 챗봇 메시지 응답 설정 패널 스타일 — HailMary ChatMessagePage 우측 패널 발췌 */
+
+.cmc {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-24);
+}
+
+.cmc__title {
+  font-size: var(--font-size-headline-2);
+  line-height: var(--line-height-headline-2);
+  letter-spacing: var(--letter-spacing-headline-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  margin: 0 0 var(--spacing-32);
+  padding-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--color-line-solid-normal);
+}
+
+.cmc__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+/* Switch row */
+.cmc-switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+
+.cmc-switch-row__label {
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-body-2);
+}
+
+/* Numbered section (icon chip + vertical rail + body) */
+.cmc-section {
+  display: flex;
+  gap: var(--spacing-12);
+}
+
+.cmc-section__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cmc-section__chip {
+  width: var(--spacing-24);
+  height: var(--spacing-24);
+  border-radius: var(--radius-full);
+  background: var(--color-fill-normal);
+  color: var(--color-label-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cmc-section__line {
+  width: 2px;
+  flex: 1;
+  margin-top: var(--spacing-4);
+  background: var(--color-line-alternative);
+  border-radius: var(--radius-full);
+}
+
+.cmc-section__body {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: var(--spacing-4);
+}
+
+/* Section card */
+.cmc-card {
+  margin-top: var(--spacing-12);
+  border: 1px solid var(--color-line-alternative);
+  border-radius: var(--spacing-12);
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+
+/* Field group (label + control) */
+.cmc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.cmc-field__label {
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-label-alternative);
+  letter-spacing: var(--letter-spacing-label-2);
+}
+
+/* Check block */
+.cmc-check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.cmc-check__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.cmc-check__label {
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-label-1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cmc-check__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+/* File upload */
+.cmc-file {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.cmc-file__caption {
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-assistive);
+  letter-spacing: var(--letter-spacing-caption-1);
+}
+
+/* Quick button item */
+.cmc-quick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.cmc-quick__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.cmc-quick__remove {
+  margin: calc(-1 * var(--spacing-8));
+}
+
+.cmc-quick__label {
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-label-1);
+}
+
+/* Form options */
+.cmc-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.cmc-option-row {
+  display: flex;
+  gap: var(--spacing-8);
+  align-items: center;
+}
+
+.cmc-option-row__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cmc-option-row__remove {
+  margin: calc(-1 * var(--spacing-8));
+}
+
+/* 캐로셀 탭 닫기 */
+.cmc-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  color: var(--color-label-alternative);
+  cursor: pointer;
+}
+
+.cmc-tab-close:hover {
+  background: var(--color-fill-alternative);
+  color: var(--color-label-normal);
+}

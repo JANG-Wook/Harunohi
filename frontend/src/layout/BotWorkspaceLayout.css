@@ -1,0 +1,49 @@
+/* 봇 작업 화면 레이아웃 — 와이어프레임 §4 사양 (디자인 시스템 컴포넌트로 구성) */
+
+.bot-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg-normal-alternative);
+}
+
+.bot-workspace__topbar {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-24);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-line-solid-normal);
+  gap: var(--spacing-16);
+}
+
+.bot-workspace__left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-width: 0;
+}
+
+.bot-workspace__id {
+  font-size: var(--font-size-caption-1);
+  color: var(--color-label-assistive);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  padding: var(--spacing-2) var(--spacing-6);
+  background: var(--color-fill-alternative);
+  border-radius: var(--spacing-4);
+}
+
+.bot-workspace__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.bot-workspace__body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}

@@ -1,0 +1,669 @@
+/* ============================================================
+   AX_1 Design System — tokens.css
+   Figma: Foundation_Typography (node: 156:54083)
+         Foundation_Token_Color  (node: 156:46510)
+   ⚠️ 이 파일을 수정하면 tokens.js도 반드시 동기화할 것
+   ============================================================ */
+
+/* ── 기본 리셋 ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+
+:root {
+
+  /* --------------------------------------------------
+     Font Family
+     -------------------------------------------------- */
+  --font-family-base: 'Pretendard JP Variable', 'Pretendard JP', sans-serif;
+
+  /* --------------------------------------------------
+     Font Weights
+     -------------------------------------------------- */
+  --font-weight-bold:     700;
+  --font-weight-semibold: 600;
+  --font-weight-medium:   500;
+  --font-weight-regular:  400;
+
+  /* --------------------------------------------------
+     Typography Scale — Font Size
+     -------------------------------------------------- */
+  --font-size-display-1:  56px;
+  --font-size-display-2:  40px;
+  --font-size-display-3:  36px;
+  --font-size-title-1:    32px;
+  --font-size-title-2:    28px;
+  --font-size-title-3:    24px;
+  --font-size-heading-1:  22px;
+  --font-size-heading-2:  20px;
+  --font-size-headline-1: 18px;
+  --font-size-headline-2: 17px;
+  --font-size-body-1:     16px;
+  --font-size-body-2:     15px;
+  --font-size-label-1:    14px;
+  --font-size-label-2:    13px;
+  --font-size-caption-1:  12px;
+  --font-size-caption-2:  11px;
+
+  /* --------------------------------------------------
+     Typography Scale — Line Height
+     -------------------------------------------------- */
+  --line-height-display-1:       1.286;
+  --line-height-display-2:       1.3;
+  --line-height-display-3:       1.334;
+  --line-height-title-1:         1.375;
+  --line-height-title-2:         1.358;
+  --line-height-title-3:         1.334;
+  --line-height-heading-1:       1.364;
+  --line-height-heading-2:       1.4;
+  --line-height-headline-1:      1.445;
+  --line-height-headline-2:      1.412;
+  --line-height-body-1-normal:   1.5;
+  --line-height-body-1-reading:  1.625;
+  --line-height-body-2-normal:   1.467;
+  --line-height-body-2-reading:  1.6;
+  --line-height-label-1-normal:  1.429;
+  --line-height-label-1-reading: 1.571;
+  --line-height-label-2:         1.385;
+  --line-height-caption-1:       1.334;
+  --line-height-caption-2:       1.273;
+
+  /* --------------------------------------------------
+     Typography Scale — Letter Spacing
+     -------------------------------------------------- */
+  --letter-spacing-display-1:  -0.0319em;
+  --letter-spacing-display-2:  -0.0282em;
+  --letter-spacing-display-3:  -0.027em;
+  --letter-spacing-title-1:    -0.0253em;
+  --letter-spacing-title-2:    -0.0236em;
+  --letter-spacing-title-3:    -0.023em;
+  --letter-spacing-heading-1:  -0.0194em;
+  --letter-spacing-heading-2:  -0.012em;
+  --letter-spacing-headline-1: -0.002em;
+  --letter-spacing-headline-2:  0em;
+  --letter-spacing-body-1:      0.0057em;
+  --letter-spacing-body-2:      0.0096em;
+  --letter-spacing-label-1:     0.0145em;
+  --letter-spacing-label-2:     0.0194em;
+  --letter-spacing-caption-1:   0.0252em;
+  --letter-spacing-caption-2:   0.0311em;
+
+  /* --------------------------------------------------
+     Semantic Colors — Label
+     -------------------------------------------------- */
+  --color-label-strong:      #000000;
+  --color-label-normal:      #171719;
+  --color-label-neutral:     rgba(46, 47, 51, 0.88);
+  --color-label-alternative: rgba(55, 56, 60, 0.61);
+  --color-label-assistive:   rgba(55, 56, 60, 0.28);
+  --color-label-disable:     rgba(55, 56, 60, 0.16);
+
+  /* --------------------------------------------------
+     Semantic Colors — Background
+     -------------------------------------------------- */
+  --color-bg-normal:                  #FFFFFF;
+  --color-bg-normal-alternative:      #F7F7F8;
+  --color-bg-elevated:                #FFFFFF;
+  --color-bg-elevated-alternative:    #F7F7F8;
+  --color-bg-transparent:             rgba(255, 255, 255, 0.08);
+  --color-bg-transparent-alternative: rgba(255, 255, 255, 0.28);
+
+  /* --------------------------------------------------
+     Semantic Colors — Line (경계선)
+     -------------------------------------------------- */
+  --color-line-normal:           rgba(112, 115, 124, 0.22);
+  --color-line-strong:           rgba(112, 115, 124, 0.52);
+  --color-line-neutral:          rgba(112, 115, 124, 0.16);
+  --color-line-alternative:      rgba(112, 115, 124, 0.08);
+  --color-line-solid-normal:     #E1E2E4;
+  --color-line-solid-neutral:    #EAEBEC;
+  --color-line-solid-alternative: #F4F4F5;
+
+  /* --------------------------------------------------
+     Semantic Colors — Fill (배경 채움)
+     -------------------------------------------------- */
+  --color-fill-normal:      rgba(112, 115, 124, 0.08);
+  --color-fill-alternative: rgba(112, 115, 124, 0.05);
+  --color-fill-strong:      rgba(112, 115, 124, 0.16);
+
+  /* --------------------------------------------------
+     Semantic Colors — Interaction
+     -------------------------------------------------- */
+  --color-interaction-inactive: #989BA2;
+  --color-interaction-disable:  #F4F4F5;
+
+  /* --------------------------------------------------
+     Atomic Colors — Cool Neutral (컴포넌트 전용)
+     -------------------------------------------------- */
+  --color-cool-neutral-30: #46474C;
+
+  /* --------------------------------------------------
+     Atomic Colors — Status (컴포넌트 전용)
+     -------------------------------------------------- */
+  --color-atomic-green-60:  #1ED45A;
+  --color-atomic-orange-60: #FFA938;
+  --color-atomic-red-60:    #FF6363;
+
+  /* --------------------------------------------------
+     Semantic Colors — Primary (브랜드)
+     -------------------------------------------------- */
+  --color-primary-normal: #0066FF;
+  --color-primary-strong: #005EEB;
+  --color-primary-heavy:  #0054D1;
+
+  /* --------------------------------------------------
+     Semantic Colors — Status
+     -------------------------------------------------- */
+  --color-status-positive:   #00BF40;
+  --color-status-cautionary: #FF9200;
+  --color-status-negative:   #FF4242;
+
+  /* --------------------------------------------------
+     Semantic Colors — Accent Background
+     -------------------------------------------------- */
+  --color-accent-bg-red-orange: #FF5E00;
+  --color-accent-bg-lime:       #58CF04;
+  --color-accent-bg-cyan:       #00BDDE;
+  --color-accent-bg-light-blue: #00AEFF;
+  --color-accent-bg-violet:     #6541F2;
+  --color-accent-bg-purple:     #CB59FF;
+  --color-accent-bg-pink:       #F553DA;
+
+  /* --------------------------------------------------
+     Semantic Colors — Accent Foreground
+     -------------------------------------------------- */
+  --color-accent-fg-red:        #E52222;
+  --color-accent-fg-red-orange: #F55A00;
+  --color-accent-fg-orange:     #D17600;
+  --color-accent-fg-lime:       #429E00;
+  --color-accent-fg-green:      #009632;
+  --color-accent-fg-cyan:       #0098B2;
+  --color-accent-fg-light-blue: #008DCF;
+  --color-accent-fg-blue:       #005EEB;
+  --color-accent-fg-violet:     #5B37ED;
+  --color-accent-fg-purple:     #AD36E3;
+  --color-accent-fg-pink:       #E846CD;
+
+  /* --------------------------------------------------
+     Semantic Colors — Inverse (다크 배경용)
+     -------------------------------------------------- */
+  --color-inverse-primary:    #3385FF;
+  --color-inverse-background: #1B1C1E;
+  --color-inverse-label:      #F7F7F8;
+
+  /* --------------------------------------------------
+     Semantic Colors — Static / Material
+     -------------------------------------------------- */
+  --color-static-white:    #FFFFFF;
+  --color-static-black:    #000000;
+  --color-material-dimmer: rgba(23, 25, 25, 0.52);
+
+  /* --------------------------------------------------
+     Platform Colors — iOS System (iOS 전용)
+     iOS 네이티브 시스템 색상으로 토큰 시스템 외부 스펙
+     -------------------------------------------------- */
+  --color-ios-fill-secondary:   rgba(120, 120, 128, 0.16);
+  --color-ios-glass-background: rgba(245, 245, 245, 0.60);
+  --color-ios-accent-primary:   #0088FF;
+
+  /* --------------------------------------------------
+     Shadow — Normal (방향성 그림자)
+     카드, 드롭다운, 툴팁 등 레이어 구분에 사용
+     -------------------------------------------------- */
+  --shadow-normal-xsmall:
+    0px 1px 2px -1px rgba(23, 23, 23, 0.10);
+
+  --shadow-normal-small:
+    0px 4px 6px -1px rgba(23, 23, 23, 0.06),
+    0px 2px 4px -2px rgba(23, 23, 23, 0.06);
+
+  --shadow-normal-medium:
+    0px 10px 15px -3px rgba(23, 23, 23, 0.07),
+    0px 4px 6px  -2px rgba(23, 23, 23, 0.07);
+
+  --shadow-normal-large:
+    0px 16px 24px -6px rgba(23, 23, 23, 0.08),
+    0px 6px  10px -4px rgba(23, 23, 23, 0.08);
+
+  --shadow-normal-xlarge:
+    0px 24px 38px -10px rgba(23, 23, 23, 0.12),
+    0px 10px 15px -5px  rgba(23, 23, 23, 0.10);
+
+  /* --------------------------------------------------
+     Shadow — Spread (확산 그림자)
+     모달, 바텀시트 등 전체 오버레이 강조에 사용
+     -------------------------------------------------- */
+  --shadow-spread-small:
+    0px 0px 60px 0px rgba(23, 23, 23, 0.10);
+
+  --shadow-spread-medium:
+    0px 15px 75px 0px rgba(23, 23, 23, 0.16);
+
+  /* --------------------------------------------------
+     Shadow — Component (컴포넌트 전용 그림자)
+     -------------------------------------------------- */
+  --shadow-segment-knob:
+    0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+
+  --shadow-switch-ios-knob:
+    0px 3px 8px 0px rgba(0, 0, 0, 0.12),
+    0px 3px 1px 0px rgba(0, 0, 0, 0.04);
+
+  --shadow-text-overlay:
+    0px 0px 12px rgba(0, 0, 0, 0.16);
+
+  --shadow-page-indicator-text:
+    0px 0px 6px rgba(0, 0, 0, 0.08);
+
+  /* --------------------------------------------------
+     Border Radius
+     원형/필 모양에 사용 (alias)
+     -------------------------------------------------- */
+  --radius-full: 9999px;
+
+  /* --------------------------------------------------
+     Layout — Screen & Container
+     Web Desktop: 1440px viewport, 1100px container, 20px padding
+     Web Mobile : 375px viewport, 335px content,    20px padding
+     -------------------------------------------------- */
+  --screen-desktop-width:    1440px;
+  --screen-desktop-height:   960px;
+  --screen-mobile-width:     375px;
+  --screen-mobile-height:    635px;
+
+  --container-max-width:      1100px;   /* lg: 1200px+ */
+  --container-max-width-xl:   1440px;   /* xl: 1600px+ */
+  --layout-padding-horizontal: 20px;
+
+  /* --------------------------------------------------
+     Breakpoints
+     xs: 0~767px    모바일
+     sm: 768~991px  태블릿 세로
+     md: 992~1199px 태블릿 가로
+     lg: 1200~1599px 데스크톱
+     xl: 1600px+    와이드 데스크톱
+     -------------------------------------------------- */
+  --breakpoint-xs: 0px;
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 992px;
+  --breakpoint-lg: 1200px;
+  --breakpoint-xl: 1600px;
+
+  /* --------------------------------------------------
+     Spacing Scale (4px 기반)
+     0.5·1·2px — 시각 보정용 / 4px — 기본 단위
+     -------------------------------------------------- */
+  /* --------------------------------------------------
+     Aspect Ratio — Vertical (세로 기준)
+     -------------------------------------------------- */
+  /* --------------------------------------------------
+     Safe Area — Status Bar
+     -------------------------------------------------- */
+  /* --------------------------------------------------
+     Gradient — Solid (방향성 페이드)
+     색상은 사용 시 지정. currentColor = 부모 색상 상속
+     -------------------------------------------------- */
+  /* --------------------------------------------------
+     Interaction Overlay Opacity
+     color: --color-label-normal (#171719), 커스터마이징 가능
+     -------------------------------------------------- */
+  /* --------------------------------------------------
+     Divider
+     -------------------------------------------------- */
+  --divider-thickness-normal: 1px;
+  --divider-thickness-thick:  12px;
+
+  --interaction-opacity-normal-hovered: 0.05;
+  --interaction-opacity-normal-focused: 0.08;
+  --interaction-opacity-normal-pressed: 0.12;
+
+  --interaction-opacity-light-hovered:  0.04;
+  --interaction-opacity-light-focused:  0.06;
+  --interaction-opacity-light-pressed:  0.09;
+
+  --interaction-opacity-strong-hovered: 0.08;
+  --interaction-opacity-strong-focused: 0.12;
+  --interaction-opacity-strong-pressed: 0.18;
+
+  --gradient-solid-top:    linear-gradient(to top,    transparent, currentColor);
+  --gradient-solid-right:  linear-gradient(to right,  transparent, currentColor);
+  --gradient-solid-bottom: linear-gradient(to bottom, transparent, currentColor);
+  --gradient-solid-left:   linear-gradient(to left,   transparent, currentColor);
+
+  /* --------------------------------------------------
+     Gradient — Multiple (색→색 전환)
+     -------------------------------------------------- */
+  --gradient-multiple-top:    linear-gradient(to top,    currentColor, transparent);
+  --gradient-multiple-right:  linear-gradient(to right,  currentColor, transparent);
+  --gradient-multiple-bottom: linear-gradient(to bottom, currentColor, transparent);
+  --gradient-multiple-left:   linear-gradient(to left,   currentColor, transparent);
+
+  /* --------------------------------------------------
+     Gradient — Mask (요소 경계 마스크 크기)
+     -------------------------------------------------- */
+  --gradient-mask-size-xsmall: 24px;
+  --gradient-mask-size-small:  32px;
+  --gradient-mask-size-medium: 40px;
+  --gradient-mask-size-xlarge: 56px;
+  --gradient-mask-size-large:  64px;
+
+  --safe-area-status-ios:     44px;
+  --safe-area-status-android: 36px;
+  --safe-area-bottom-ios:     34px;
+  --safe-area-bottom-android: 14px;
+
+  --ratio-vertical-1-1: 1 / 1;
+  --ratio-vertical-3-4: 3 / 4;
+  --ratio-vertical-2-3: 2 / 3;
+  --ratio-vertical-1-2: 1 / 2;
+
+  /* --------------------------------------------------
+     Aspect Ratio — Horizontal (가로 기준)
+     -------------------------------------------------- */
+  --ratio-horizontal-1-1:      1 / 1;
+  --ratio-horizontal-5-4:      5 / 4;
+  --ratio-horizontal-4-3:      4 / 3;
+  --ratio-horizontal-3-2:      3 / 2;
+  --ratio-horizontal-16-10:    16 / 10;
+  --ratio-horizontal-golden:   1.618 / 1;
+  --ratio-horizontal-16-9:     16 / 9;
+  --ratio-horizontal-2-1:      2 / 1;
+  --ratio-horizontal-21-9:     21 / 9;
+  --ratio-horizontal-4-5:      4 / 5;
+  --ratio-horizontal-3-4:      3 / 4;
+  --ratio-horizontal-2-3:      2 / 3;
+  --ratio-horizontal-10-16:    10 / 16;
+  --ratio-horizontal-golden-v: 1 / 1.618;
+  --ratio-horizontal-9-16:     9 / 16;
+  --ratio-horizontal-1-2:      1 / 2;
+  --ratio-horizontal-9-21:     9 / 21;
+
+  /* --------------------------------------------------
+     Icon Size
+     -------------------------------------------------- */
+  --icon-size:           24px;  /* SVG 실제 크기 */
+  --icon-container-size: 64px;  /* 터치 영역 */
+
+  /* --------------------------------------------------
+     Spacing Scale (4px 기반)
+     0.5·1·2px — 시각 보정용 / 4px — 기본 단위
+     -------------------------------------------------- */
+  --spacing-0-5: 0.5px;
+  --spacing-1:   1px;
+  --spacing-2:   2px;
+  --spacing-3:   3px;
+  --spacing-4:   4px;
+  --spacing-5:   5px;
+  --spacing-6:   6px;
+  --spacing-7:   7px;
+  --spacing-8:   8px;
+  --spacing-10:  10px;
+  --spacing-12:  12px;
+  --spacing-14:  14px;
+  --spacing-16:  16px;
+  --spacing-20:  20px;
+  --spacing-24:  24px;
+  --spacing-32:  32px;
+  --spacing-40:  40px;
+  --spacing-48:  48px;
+  --spacing-56:  56px;
+
+}
+
+/* ============================================================
+   Dark Mode — color tokens only
+   Typography, Spacing, Shadow, Layout 토큰은 변경 없음
+   ============================================================ */
+
+/* data-theme="dark" 수동 강제 다크 */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-label-strong:      #ffffff;
+  --color-label-normal:      #f7f7f8;
+  --color-label-neutral:     rgba(194, 196, 200, 0.88);
+  --color-label-alternative: rgba(174, 176, 182, 0.61);
+  --color-label-assistive:   rgba(174, 176, 182, 0.28);
+  --color-label-disable:     rgba(152, 155, 162, 0.16);
+
+  --color-bg-normal:                  #1b1c1e;
+  --color-bg-normal-alternative:      #0f0f10;
+  --color-bg-elevated:                #212225;
+  --color-bg-elevated-alternative:    #141415;
+  --color-bg-transparent:             rgba(33, 34, 37, 0.61);
+  --color-bg-transparent-alternative: rgba(33, 34, 37, 0.61);
+
+  --color-line-normal:            rgba(112, 115, 124, 0.32);
+  --color-line-strong:            rgba(194, 196, 200, 0.52);
+  --color-line-neutral:           rgba(112, 115, 124, 0.28);
+  --color-line-alternative:       rgba(112, 115, 124, 0.22);
+  --color-line-solid-normal:      #37383c;
+  --color-line-solid-neutral:     #333438;
+  --color-line-solid-alternative: #2e2f33;
+
+  --color-fill-normal:      rgba(112, 115, 124, 0.22);
+  --color-fill-alternative: rgba(112, 115, 124, 0.12);
+  --color-fill-strong:      rgba(112, 115, 124, 0.28);
+
+  --color-interaction-inactive: #5a5c63;
+  --color-interaction-disable:  #2e2f33;
+
+  --color-atomic-green-60:  #1ed45a;
+  --color-atomic-orange-60: #ffa938;
+  --color-atomic-red-60:    #ff6363;
+
+  --color-primary-normal: #3385ff;
+  --color-primary-strong: #1a75ff;
+  --color-primary-heavy:  #0066ff;
+
+  --color-status-positive:   #1ed45a;
+  --color-status-cautionary: #ffa938;
+  --color-status-negative:   #ff6363;
+
+  --color-accent-bg-red-orange: #ff7b2e;
+  --color-accent-bg-lime:       #6be016;
+  --color-accent-bg-cyan:       #28d0ed;
+  --color-accent-bg-light-blue: #3dc2ff;
+  --color-accent-bg-violet:     #7d5ef7;
+  --color-accent-bg-purple:     #d478ff;
+  --color-accent-bg-pink:       #fa73e3;
+
+  --color-accent-fg-red:        #ff6363;
+  --color-accent-fg-red-orange: #ff7b2e;
+  --color-accent-fg-orange:     #ff9200;
+  --color-accent-fg-lime:       #58cf04;
+  --color-accent-fg-green:      #1ed45a;
+  --color-accent-fg-cyan:       #00bdde;
+  --color-accent-fg-light-blue: #00aeff;
+  --color-accent-fg-blue:       #4f95ff;
+  --color-accent-fg-violet:     #9e86fc;
+  --color-accent-fg-purple:     #d478ff;
+  --color-accent-fg-pink:       #fa73e3;
+
+  --color-inverse-primary:    #0066ff;
+  --color-inverse-background: #ffffff;
+  --color-inverse-label:      #171719;
+
+  --color-material-dimmer: rgba(23, 23, 25, 0.74);
+}
+
+/* OS 다크모드 자동 적용 (data-theme="light"로 강제 라이트 시 무시) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-label-strong:      #ffffff;
+    --color-label-normal:      #f7f7f8;
+    --color-label-neutral:     rgba(194, 196, 200, 0.88);
+    --color-label-alternative: rgba(174, 176, 182, 0.61);
+    --color-label-assistive:   rgba(174, 176, 182, 0.28);
+    --color-label-disable:     rgba(152, 155, 162, 0.16);
+
+    --color-bg-normal:                  #1b1c1e;
+    --color-bg-normal-alternative:      #0f0f10;
+    --color-bg-elevated:                #212225;
+    --color-bg-elevated-alternative:    #141415;
+    --color-bg-transparent:             rgba(33, 34, 37, 0.61);
+    --color-bg-transparent-alternative: rgba(33, 34, 37, 0.61);
+
+    --color-line-normal:            rgba(112, 115, 124, 0.32);
+    --color-line-strong:            rgba(194, 196, 200, 0.52);
+    --color-line-neutral:           rgba(112, 115, 124, 0.28);
+    --color-line-alternative:       rgba(112, 115, 124, 0.22);
+    --color-line-solid-normal:      #37383c;
+    --color-line-solid-neutral:     #333438;
+    --color-line-solid-alternative: #2e2f33;
+
+    --color-fill-normal:      rgba(112, 115, 124, 0.22);
+    --color-fill-alternative: rgba(112, 115, 124, 0.12);
+    --color-fill-strong:      rgba(112, 115, 124, 0.28);
+
+    --color-interaction-inactive: #5a5c63;
+    --color-interaction-disable:  #2e2f33;
+
+    --color-atomic-green-60:  #1ed45a;
+    --color-atomic-orange-60: #ffa938;
+    --color-atomic-red-60:    #ff6363;
+
+    --color-primary-normal: #3385ff;
+    --color-primary-strong: #1a75ff;
+    --color-primary-heavy:  #0066ff;
+
+    --color-status-positive:   #1ed45a;
+    --color-status-cautionary: #ffa938;
+    --color-status-negative:   #ff6363;
+
+    --color-accent-bg-red-orange: #ff7b2e;
+    --color-accent-bg-lime:       #6be016;
+    --color-accent-bg-cyan:       #28d0ed;
+    --color-accent-bg-light-blue: #3dc2ff;
+    --color-accent-bg-violet:     #7d5ef7;
+    --color-accent-bg-purple:     #d478ff;
+    --color-accent-bg-pink:       #fa73e3;
+
+    --color-accent-fg-red:        #ff6363;
+    --color-accent-fg-red-orange: #ff7b2e;
+    --color-accent-fg-orange:     #ff9200;
+    --color-accent-fg-lime:       #58cf04;
+    --color-accent-fg-green:      #1ed45a;
+    --color-accent-fg-cyan:       #00bdde;
+    --color-accent-fg-light-blue: #00aeff;
+    --color-accent-fg-blue:       #4f95ff;
+    --color-accent-fg-violet:     #9e86fc;
+    --color-accent-fg-purple:     #d478ff;
+    --color-accent-fg-pink:       #fa73e3;
+
+    --color-inverse-primary:    #0066ff;
+    --color-inverse-background: #ffffff;
+    --color-inverse-label:      #171719;
+
+    --color-material-dimmer: rgba(23, 23, 25, 0.74);
+  }
+}
+
+/* --------------------------------------------------
+   Global — Input Placeholder
+   인라인 스타일로 제어 불가한 ::placeholder 색상
+   -------------------------------------------------- */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-label-assistive);
+  opacity: 1; /* Firefox 기본값 보정 */
+}
+
+/* --------------------------------------------------
+   Animation — Keyframes
+   인라인 스타일에서 animation-name으로 참조
+   -------------------------------------------------- */
+@keyframes ax-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ── Sidebar 스크롤바 ─────────────────────────────────────────
+   얇고 subtle한 스크롤바. 트랙은 투명, 썸은 line-neutral.
+   ---------------------------------------------------------- */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-neutral) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-line-neutral);
+  border-radius: 2px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-label-assistive);
+}
+
+.chat-room-scroll {
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-neutral) transparent;
+}
+.chat-room-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-room-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-room-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-line-neutral);
+  border-radius: 2px;
+}
+.chat-room-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-label-assistive);
+}
+
+.chatroom-fullwidth-btn {
+  width: 100%;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-neutral) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-line-neutral);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-label-assistive);
+}
+
+.chat-msg-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-label-alternative);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-2);
+  transition: background-color 0.15s, color 0.15s;
+}
+.chat-msg-tab-close:hover {
+  color: var(--color-label-normal);
+  background-color: var(--color-fill-normal);
+}
+
+.ds-fullwidth {
+  width: 100%;
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}

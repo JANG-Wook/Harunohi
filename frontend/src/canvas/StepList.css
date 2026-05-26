@@ -60,3 +60,32 @@
   align-items: center;
   justify-content: center;
 }
+
+/* 호버 시 우측에 나타나는 단계 설정 버튼 */
+.step-list__item-action {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: var(--spacing-6);
+  cursor: pointer;
+  color: var(--color-label-alternative);
+  padding: 0;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+  font-family: inherit;
+}
+
+.step-list__item:hover .step-list__item-action,
+.step-list__item--active .step-list__item-action {
+  opacity: 1;
+}
+
+.step-list__item-action:hover {
+  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
+  color: var(--color-status-negative);
+}

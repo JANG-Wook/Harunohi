@@ -47,3 +47,60 @@
   min-height: 0;
   overflow: hidden;
 }
+
+/* 저장되지 않은 변경 사항 표시 점 */
+.bot-workspace__dirty-dot {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-primary-normal);
+  margin-left: var(--spacing-2);
+}
+
+/* 이탈 가드 모달 — DashboardPage 봇 생성 모달과 동일 패턴 */
+.bot-workspace__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 1000;
+}
+
+.bot-workspace__modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: 0px 16px 24px -6px rgba(23, 23, 23, 0.08),
+    0px 6px 10px -4px rgba(23, 23, 23, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.bot-workspace__modal-head {
+  padding: var(--spacing-20) var(--spacing-20) var(--spacing-12);
+}
+
+.bot-workspace__modal-body {
+  padding: 0 var(--spacing-20) var(--spacing-20);
+}
+
+.bot-workspace__modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}
+
+/* 저장 토스트 — 화면 하단 중앙 고정 */
+.bot-workspace__toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--spacing-32);
+  transform: translateX(-50%);
+  z-index: 1100;
+}

@@ -48,6 +48,44 @@
   gap: var(--spacing-8);
 }
 
+/* 저장된 봇 카드 — 아이콘 + 이름 + 단계 수 + 호버 시 삭제 버튼 */
+.dashboard__card--bot {
+  position: relative;
+}
+
+.dashboard__card--bot .dashboard__card-icon {
+  color: var(--color-primary-normal);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 호버 시 노출되는 삭제 버튼 — DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */
+.dashboard__card-delete {
+  position: absolute;
+  top: var(--spacing-10);
+  right: var(--spacing-10);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--spacing-6);
+  color: var(--color-label-alternative);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.dashboard__card--bot:hover .dashboard__card-delete {
+  opacity: 1;
+}
+
+.dashboard__card-delete:hover {
+  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
+  color: var(--color-status-negative);
+}
+
 /* 봇 생성 모달 — DS 에 폼 입력형 모달이 없어 토큰으로 직접 구현 */
 .dashboard__modal-backdrop {
   position: fixed;

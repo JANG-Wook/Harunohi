@@ -5,7 +5,13 @@
 
 import { useMemo } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
-import { PH, sampleDescFor, samplePlaceholderFor, sampleTimePlaceholderFor } from '../lib/chatMessageDefaults.js'
+import {
+  PH,
+  defaultPerModeExtras,
+  sampleDescFor,
+  samplePlaceholderFor,
+  sampleTimePlaceholderFor,
+} from '../lib/chatMessageDefaults.js'
 import chatbotImg from '/T1_parksy/Chatbot img.png'
 import chatbotBanner from '/T1_parksy/Chatbot Banner.png'
 import './ChatMessagePreview.css'
@@ -16,7 +22,11 @@ const botAvatar = '/T1_parksy/bot-avatar.svg'
 const DEFAULT_HEIGHT = '780px'
 
 export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, compact = false }) {
-  const { cfg, mode, texts, quickList, carouselCards, form } = config
+  const { cfg, mode, texts, carouselCards, form } = config
+
+  /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) */
+  const modeExtras = config.perMode?.[mode] ?? defaultPerModeExtras()
+  const { quickList, messageBannerOn, quickButtonOn } = modeExtras
 
   const isCarousel = mode === 'carousel'
 
@@ -77,11 +87,22 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         accordionOn: cfg.accordionOn,
         mainOn: cfg.mainOn,
         subOn: cfg.subOn,
-        messageBannerOn: cfg.messageBannerOn,
-        quickButtonOn: cfg.quickButtonOn,
+        messageBannerOn,
+        quickButtonOn,
       },
     ],
-    [cfg, texts, quickPreview, mode, isCarousel, carouselPreview, form, compact],
+    [
+      cfg,
+      texts,
+      quickPreview,
+      mode,
+      isCarousel,
+      carouselPreview,
+      form,
+      compact,
+      messageBannerOn,
+      quickButtonOn,
+    ],
   )
 
   return (

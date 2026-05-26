@@ -11,13 +11,11 @@
   box-shadow: 0px 1px 2px -1px rgba(23, 23, 23, 0.10);
 }
 
-/* 선택 상태 — border 두께를 1px 그대로 유지해 레이아웃 이동 방지 */
-/* 강조는 옅은 primary 외곽 ring(box-shadow)으로 표현 */
+/* 선택 상태 — Textfield 포커스 컨벤션 따름 */
+/* outline 2px (primary 43% 투명도) + offset -1px 로 border 위에 겹침. 레이아웃 이동 없음 */
 .step-node--selected {
-  border-color: var(--color-primary-normal);
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--color-primary-normal) 22%, transparent),
-    0px 1px 2px -1px rgba(23, 23, 23, 0.10);
+  outline: 2px solid color-mix(in srgb, var(--color-primary-normal) 43%, transparent);
+  outline-offset: -1px;
 }
 
 .step-node__handle {

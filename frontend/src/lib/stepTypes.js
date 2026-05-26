@@ -8,21 +8,9 @@ import { createDefaultMessageConfig } from './chatMessageDefaults.js'
 let stepSeq = 0
 export const nextStepId = () => `step_${Date.now().toString(36)}_${stepSeq++}`
 
-/** 인덱스 → 알파벳 라벨 (A, B, ..., Z, AA, AB, ...) */
-export function letterForIndex(index) {
-  let n = index
-  let result = ''
-  do {
-    result = String.fromCharCode(65 + (n % 26)) + result
-    n = Math.floor(n / 26) - 1
-  } while (n >= 0)
-  return result
-}
-
-export function createEmptyStep(index) {
+export function createEmptyStep() {
   return {
     id: nextStepId(),
-    letter: letterForIndex(index),
     name: '새 단계',
     status: 'warning',
     messageConfig: createDefaultMessageConfig(),

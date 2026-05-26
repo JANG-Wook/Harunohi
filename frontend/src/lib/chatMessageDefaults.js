@@ -45,6 +45,19 @@ export const sampleDescFor = (type) => FORM_TYPES.find((t) => t.value === type)?
 export const samplePlaceholderFor = (type) => FORM_TYPES.find((t) => t.value === type)?.samplePlaceholder ?? ''
 export const sampleTimePlaceholderFor = (type) => FORM_TYPES.find((t) => t.value === type)?.sampleTimePlaceholder ?? ''
 
+/** 버튼 연결 — type=null 이면 미선택, 'bot'은 targetStepId, 'url'은 url 사용 */
+export function defaultLink() {
+  return { type: null, targetStepId: '', url: '' }
+}
+
+/** 연결 완성 여부 (negative 상태 판정에 사용) */
+export function isLinkComplete(link) {
+  if (!link) return false
+  if (link.type === 'bot') return !!link.targetStepId
+  if (link.type === 'url') return !!(link.url && link.url.trim())
+  return false
+}
+
 export function defaultCarouselCard(id) {
   return {
     id,
@@ -59,13 +72,29 @@ export function defaultCarouselCard(id) {
     body: '',
     mainLabel: '',
     subLabel: '',
+    mainLink: defaultLink(),
+    subLink: defaultLink(),
     imageFile: '',
+  }
+}
+
+/** 모드별 message-level 부가 설정 (배너 + 퀵 버튼)의 기본값 */
+export function defaultPerModeExtras() {
+  return {
+    messageBannerOn: false,
+    bannerFile: '',
+    quickButtonOn: false,
+    quickList: [
+      { id: 1, label: '', link: defaultLink() },
+      { id: 2, label: '', link: defaultLink() },
+    ],
   }
 }
 
 /** 새 단계의 메시지 설정 기본값 — 모든 토글 ON 으로 시작 */
 export function createDefaultMessageConfig() {
   return {
+    // 메시지 본문 토글 (모든 모드에 적용)
     cfg: {
       messageOn: true,
       imageOn: true,
@@ -76,8 +105,6 @@ export function createDefaultMessageConfig() {
       buttonOn: true,
       mainOn: true,
       subOn: true,
-      messageBannerOn: false,
-      quickButtonOn: false,
     },
     mode: 'single',
     texts: {
@@ -86,13 +113,10 @@ export function createDefaultMessageConfig() {
       accordion: '',
       mainLabel: '',
       subLabel: '',
+      mainLink: defaultLink(),
+      subLink: defaultLink(),
     },
     imageFile: '',
-    bannerFile: '',
-    quickList: [
-      { id: 1, label: '' },
-      { id: 2, label: '' },
-    ],
     carouselCards: [defaultCarouselCard(1), defaultCarouselCard(2)],
     activeCardIdx: 0,
     form: {
@@ -101,6 +125,14 @@ export function createDefaultMessageConfig() {
       guideText: samplePlaceholderFor('textfield'),
       timeGuideText: sampleTimePlaceholderFor('textfield'),
       options: defaultFormOptionsFor('textfield'),
+    },
+    // 모드별 메시지 레벨 부가 설정 (배너, 퀵 버튼) — 단일/캐로셀/입력폼/RAG/분기 각각 독립
+    perMode: {
+      single: defaultPerModeExtras(),
+      carousel: defaultPerModeExtras(),
+      inputForm: defaultPerModeExtras(),
+      rag: defaultPerModeExtras(),
+      branch: defaultPerModeExtras(),
     },
   }
 }

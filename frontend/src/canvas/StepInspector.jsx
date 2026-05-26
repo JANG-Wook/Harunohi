@@ -1,13 +1,12 @@
-// 우측 응답 설정 패널 — 단계의 이름 + ChatMessageConfig 를 묶음
+// 우측 응답 설정 패널 — 단계의 이름(inline 편집) + ChatMessageConfig 묶음
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
-import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import ChatMessageConfig from './ChatMessageConfig.jsx'
 import './StepInspector.css'
 
-export default function StepInspector({ step, onChange, onClose, onDelete }) {
+export default function StepInspector({ step, onChange, onClose, onDelete, availableSteps = [] }) {
   if (!step) {
     return (
       <aside className="step-inspector step-inspector--empty">
@@ -23,12 +22,21 @@ export default function StepInspector({ step, onChange, onClose, onDelete }) {
   return (
     <aside className="step-inspector">
       <header className="step-inspector__head">
-        <div className="step-inspector__head-title">
-          <span className="step-inspector__letter">{step.letter}</span>
-          <Typography variant="headline-2" weight="semibold" as="span">
-            {step.name}
-          </Typography>
-        </div>
+        {/* 단계 이름 inline 편집 — DS 에 "inline editable heading" 컴포넌트가 없어 토큰으로 직접 구현 */}
+        {/* 호버/포커스 시 우측에 펜슬 아이콘 노출로 편집 가능 어포던스 제공 */}
+        <label className="step-inspector__head-edit">
+          <input
+            type="text"
+            className="step-inspector__head-input"
+            value={step.name}
+            onChange={(e) => patch({ name: e.target.value })}
+            placeholder="단계 이름"
+            aria-label="단계 이름"
+          />
+          <span className="step-inspector__head-edit-icon" aria-hidden="true">
+            <Icon name="pencil" size={14} />
+          </span>
+        </label>
         <IconButtonNormal
           icon={<Icon name="close" size={18} />}
           size="small"
@@ -37,18 +45,10 @@ export default function StepInspector({ step, onChange, onClose, onDelete }) {
         />
       </header>
 
-      <div className="step-inspector__name-field">
-        <Textfield
-          heading="단계 이름"
-          placeholder="단계 이름"
-          value={step.name}
-          onChange={(e) => patch({ name: e.target.value })}
-        />
-      </div>
-
       <ChatMessageConfig
         config={step.messageConfig}
         onChange={(nextConfig) => patch({ messageConfig: nextConfig })}
+        availableSteps={availableSteps}
       />
 
       <div className="step-inspector__footer">

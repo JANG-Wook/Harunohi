@@ -77,6 +77,14 @@
   padding-bottom: var(--spacing-4);
 }
 
+/* 캐로셀 그룹 — 안쪽 섹션들이 자체 rail 을 또 갖기 때문에
+   body 에 flex column gap 으로 sections 정렬 */
+.cmc-carousel-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
 /* Section card */
 .cmc-card {
   margin-top: var(--spacing-12);

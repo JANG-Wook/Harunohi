@@ -26,28 +26,62 @@
   border-bottom: 1px solid var(--color-line-solid-alternative);
 }
 
-.step-inspector__head-title {
+/* 단계 이름 inline 편집 영역 — input + 호버 시 펜슬 아이콘 */
+.step-inspector__head-edit {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
-  min-width: 0;
+  gap: var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-8);
+  margin: calc(-1 * var(--spacing-4)) calc(-1 * var(--spacing-8));
+  border-radius: var(--spacing-6);
+  cursor: text;
+  transition: background 120ms ease;
 }
 
-.step-inspector__letter {
+.step-inspector__head-edit:hover {
+  background: var(--color-fill-alternative);
+}
+
+.step-inspector__head-edit:focus-within {
+  background: var(--color-fill-alternative);
+  outline: 2px solid color-mix(in srgb, var(--color-primary-normal) 43%, transparent);
+  outline-offset: -1px;
+}
+
+.step-inspector__head-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+  letter-spacing: var(--letter-spacing-heading-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  padding: 0;
+  outline: none;
+}
+
+.step-inspector__head-input::placeholder {
+  color: var(--color-label-assistive);
+}
+
+/* 펜슬 아이콘 — 상시 노출 (편집 가능 어포던스). 호버/포커스 시 색 강조 */
+.step-inspector__head-edit-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: var(--color-primary-normal);
-  color: #ffffff;
-  border-radius: var(--spacing-6);
-  font-size: var(--font-size-caption-1);
-  font-weight: 600;
+  color: var(--color-label-assistive);
+  transition: color 120ms ease;
+  flex-shrink: 0;
 }
 
-.step-inspector__name-field {
-  padding: var(--spacing-16) var(--spacing-20) 0;
+.step-inspector__head-edit:hover .step-inspector__head-edit-icon,
+.step-inspector__head-edit:focus-within .step-inspector__head-edit-icon {
+  color: var(--color-label-normal);
 }
 
 .step-inspector__footer {

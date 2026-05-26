@@ -1,7 +1,7 @@
 // 챗봇 메시지 응답 설정 패널 — HailMary ChatMessagePage 우측 패널의 controlled 버전
 // config 와 onChange(nextConfig) 두 prop 만 받는다.
 
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import Checkbox from '../design-system/components/Checkbox/Checkbox.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
@@ -19,15 +19,30 @@ import {
   PH,
   defaultCarouselCard,
   defaultFormOptionsFor,
+  defaultLink,
+  defaultPerModeExtras,
+  isLinkComplete,
   sampleDescFor,
   samplePlaceholderFor,
   sampleTimePlaceholderFor,
 } from '../lib/chatMessageDefaults.js'
 import './ChatMessageConfig.css'
 
+const LINK_TYPE_OPTIONS = [
+  { value: 'bot', label: '봇 응답' },
+  { value: 'url', label: 'URL' },
+]
+
 /* ── 보조 컴포넌트 ─────────────────────────────────────────── */
 
-function MenuSelect({ value, onChange, options, placeholder = '값' }) {
+function MenuSelect({
+  value,
+  onChange,
+  options,
+  placeholder = '값',
+  status = 'normal',
+  disabled = false,
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const selected = options.find((o) => o.value === value)
@@ -46,10 +61,12 @@ function MenuSelect({ value, onChange, options, placeholder = '값' }) {
       <Select
         placeholder={placeholder}
         value={selected?.label ?? ''}
-        onClick={() => setOpen((v) => !v)}
+        onClick={disabled ? undefined : () => setOpen((v) => !v)}
         forceFocused={open}
+        status={status}
+        disabled={disabled}
       />
-      {open && (
+      {open && !disabled && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 30 }}>
           <Menu
             items={options.map((o) => ({
@@ -64,6 +81,57 @@ function MenuSelect({ value, onChange, options, placeholder = '값' }) {
         </div>
       )}
     </div>
+  )
+}
+
+/* 버튼 연결 응답 편집기 — 연결 종류(봇/URL) + 종류별 추가 입력 */
+function LinkEditor({ link, onChange, availableSteps, isEnabled }) {
+  const safeLink = link ?? defaultLink()
+  const complete = isLinkComplete(safeLink)
+  const showNegative = isEnabled && !complete
+  const noSteps = !availableSteps || availableSteps.length === 0
+
+  const setType = (newType) => {
+    // 종류 변경 시 기존 값 초기화 (서로 다른 모델)
+    onChange({ type: newType, targetStepId: '', url: '' })
+  }
+
+  return (
+    <>
+      <FieldGroup label="연결응답">
+        <MenuSelect
+          value={safeLink.type ?? ''}
+          onChange={setType}
+          options={LINK_TYPE_OPTIONS}
+          placeholder="연결 종류 선택"
+          status={showNegative && !safeLink.type ? 'negative' : 'normal'}
+        />
+      </FieldGroup>
+
+      {safeLink.type === 'bot' && (
+        <FieldGroup label="연결할 단계">
+          <MenuSelect
+            value={safeLink.targetStepId}
+            onChange={(id) => onChange({ ...safeLink, targetStepId: id })}
+            options={availableSteps}
+            placeholder={noSteps ? '연결할 수 있는 응답이 없습니다.' : '단계 선택'}
+            disabled={noSteps}
+            status={showNegative ? 'negative' : 'normal'}
+          />
+        </FieldGroup>
+      )}
+
+      {safeLink.type === 'url' && (
+        <FieldGroup label="URL">
+          <Textfield
+            placeholder="https://..."
+            value={safeLink.url ?? ''}
+            onChange={(e) => onChange({ ...safeLink, url: e.target.value })}
+            status={showNegative ? 'negative' : 'normal'}
+          />
+        </FieldGroup>
+      )}
+    </>
   )
 }
 
@@ -86,6 +154,22 @@ function NumberedSection({ icon, children }) {
         <div className="cmc-section__line" />
       </div>
       <div className="cmc-section__body">{children}</div>
+    </section>
+  )
+}
+
+/* 캐로셀 그룹 외곽 rail — 이미지·텍스트·버튼 3개 섹션을 묶어
+   "캐로셀 카드 단위 설정"임을 시각적으로 구분 */
+function CarouselGroupRail({ children }) {
+  return (
+    <section className="cmc-section cmc-carousel-group">
+      <div className="cmc-section__rail">
+        <div className="cmc-section__chip">
+          <Icon name="thumbnail" size={14} />
+        </div>
+        <div className="cmc-section__line" />
+      </div>
+      <div className="cmc-section__body cmc-carousel-group__body">{children}</div>
     </section>
   )
 }
@@ -131,7 +215,16 @@ function FileUploadCard({ value, onChange }) {
   )
 }
 
-function QuickButtonItem({ index, label, onLabelChange, onRemove }) {
+function QuickButtonItem({
+  index,
+  label,
+  link,
+  onLabelChange,
+  onLinkChange,
+  onRemove,
+  availableSteps,
+  isEnabled,
+}) {
   return (
     <div className="cmc-quick">
       <div className="cmc-quick__head">
@@ -152,17 +245,24 @@ function QuickButtonItem({ index, label, onLabelChange, onRemove }) {
           onChange={(e) => onLabelChange(e.target.value)}
         />
       </FieldGroup>
-      <FieldGroup label="연결응답">
-        <Select placeholder="값" />
-      </FieldGroup>
+      <LinkEditor
+        link={link}
+        onChange={onLinkChange}
+        availableSteps={availableSteps}
+        isEnabled={isEnabled}
+      />
     </div>
   )
 }
 
 /* ── 메인 컴포넌트 ─────────────────────────────────────────── */
 
-export default function ChatMessageConfig({ config, onChange }) {
-  const { cfg, mode, texts, imageFile, bannerFile, quickList, carouselCards, activeCardIdx, form } = config
+export default function ChatMessageConfig({ config, onChange, availableSteps = [] }) {
+  const { cfg, mode, texts, imageFile, carouselCards, activeCardIdx, form } = config
+
+  /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) — 단일/캐로셀/입력폼/RAG/분기 독립 */
+  const modeExtras = config.perMode?.[mode] ?? defaultPerModeExtras()
+  const { bannerFile, quickList } = modeExtras
 
   /* 상태 갱신 헬퍼 — 단일 onChange 로 모든 변경을 흘려보낸다 */
   const update = (patch) => onChange({ ...config, ...patch })
@@ -170,16 +270,30 @@ export default function ChatMessageConfig({ config, onChange }) {
   const setText = (key, v) => update({ texts: { ...texts, [key]: v } })
   const setForm = (patch) => update({ form: { ...form, ...patch } })
 
+  /* 현재 모드의 부가 설정에 patch 를 적용 */
+  const updateModeExtras = (patch) =>
+    update({
+      perMode: {
+        ...(config.perMode ?? {}),
+        [mode]: { ...modeExtras, ...patch },
+      },
+    })
+
   const toggle = (key) => () => setCfg({ [key]: !cfg[key] })
   const setMode = (v) => update({ mode: v })
   const setActiveCardIdx = (v) => update({ activeCardIdx: v })
 
   const setImageFile = (v) => update({ imageFile: v })
-  const setBannerFile = (v) => update({ bannerFile: v })
+  const setBannerFile = (v) => updateModeExtras({ bannerFile: v })
+  const toggleMessageBanner = () => updateModeExtras({ messageBannerOn: !modeExtras.messageBannerOn })
+  const toggleQuickButton = () => updateModeExtras({ quickButtonOn: !modeExtras.quickButtonOn })
 
   const isCarousel = mode === 'carousel'
   const isInputForm = mode === 'inputForm'
   const isPending = mode === 'rag' || mode === 'branch'
+
+  /* 캐로셀 모드에선 카드 단위 섹션(이미지·텍스트·버튼)을 외곽 rail 로 묶음 */
+  const CardWrapper = isCarousel ? CarouselGroupRail : Fragment
 
   /* 캐로셀 활성 카드와 단일 모드 cfg/texts 를 통합한 활성 객체 */
   const activeCard = isCarousel ? carouselCards[activeCardIdx] : { ...cfg, ...texts }
@@ -187,6 +301,16 @@ export default function ChatMessageConfig({ config, onChange }) {
   const updateActiveCard = (patch) =>
     update({
       carouselCards: carouselCards.map((c, i) => (i === activeCardIdx ? { ...c, ...patch } : c)),
+    })
+
+  /* 버튼 연결 setter — 캐로셀이면 활성 카드, 아니면 texts 에 저장 */
+  const setLink = (linkKey) => (nextLink) => {
+    if (isCarousel) updateActiveCard({ [linkKey]: nextLink })
+    else update({ texts: { ...texts, [linkKey]: nextLink } })
+  }
+  const updateQuickLink = (id, nextLink) =>
+    updateModeExtras({
+      quickList: quickList.map((it) => (it.id === id ? { ...it, link: nextLink } : it)),
     })
 
   /* 자식 체크박스 토글 — 형제가 모두 OFF 면 부모 스위치도 OFF */
@@ -231,11 +355,17 @@ export default function ChatMessageConfig({ config, onChange }) {
     update({ carouselCards: nextCards, activeCardIdx: nextIdx })
   }
 
-  /* 퀵 버튼 관리 */
-  const addQuick = () => update({ quickList: [...quickList, { id: Date.now(), label: '' }] })
-  const removeQuick = (id) => update({ quickList: quickList.filter((it) => it.id !== id) })
+  /* 퀵 버튼 관리 — 모드별 quickList 에 기록 */
+  const addQuick = () =>
+    updateModeExtras({
+      quickList: [...quickList, { id: Date.now(), label: '', link: defaultLink() }],
+    })
+  const removeQuick = (id) =>
+    updateModeExtras({ quickList: quickList.filter((it) => it.id !== id) })
   const updateQuick = (id, label) =>
-    update({ quickList: quickList.map((it) => (it.id === id ? { ...it, label } : it)) })
+    updateModeExtras({
+      quickList: quickList.map((it) => (it.id === id ? { ...it, label } : it)),
+    })
 
   /* 입력 폼 관리 */
   const changeFormType = (newType) =>
@@ -321,6 +451,8 @@ export default function ChatMessageConfig({ config, onChange }) {
               </div>
             )}
 
+            {/* 2~4. 카드 단위 섹션 — 캐로셀 모드면 외곽 rail 로 묶임 */}
+            <CardWrapper>
             {/* 2. Image */}
             {!isInputForm && (
               <NumberedSection icon="image">
@@ -476,9 +608,12 @@ export default function ChatMessageConfig({ config, onChange }) {
                           onChange={(e) => setCardText('mainLabel')(e.target.value)}
                         />
                       </FieldGroup>
-                      <FieldGroup label="연결응답">
-                        <Select placeholder="값" />
-                      </FieldGroup>
+                      <LinkEditor
+                        link={activeCard.mainLink}
+                        onChange={setLink('mainLink')}
+                        availableSteps={availableSteps}
+                        isEnabled={activeCard.buttonOn && activeCard.mainOn}
+                      />
                     </CheckBlock>
 
                     <CheckBlock
@@ -493,33 +628,47 @@ export default function ChatMessageConfig({ config, onChange }) {
                           onChange={(e) => setCardText('subLabel')(e.target.value)}
                         />
                       </FieldGroup>
-                      <FieldGroup label="연결응답">
-                        <Select placeholder="값" />
-                      </FieldGroup>
+                      <LinkEditor
+                        link={activeCard.subLink}
+                        onChange={setLink('subLink')}
+                        availableSteps={availableSteps}
+                        isEnabled={activeCard.buttonOn && activeCard.subOn}
+                      />
                     </CheckBlock>
                   </SectionCard>
                 )}
               </NumberedSection>
             )}
+            </CardWrapper>
 
             {/* 6. Message Banner */}
             <NumberedSection icon="megaphone">
-              <SwitchRow label="메시지 배너" active={cfg.messageBannerOn} onChange={toggle('messageBannerOn')} />
-              {cfg.messageBannerOn && <FileUploadCard value={bannerFile} onChange={setBannerFile} />}
+              <SwitchRow
+                label="메시지 배너"
+                active={modeExtras.messageBannerOn}
+                onChange={toggleMessageBanner}
+              />
+              {modeExtras.messageBannerOn && (
+                <FileUploadCard value={bannerFile} onChange={setBannerFile} />
+              )}
             </NumberedSection>
 
             {/* 7. Quick Button */}
             <NumberedSection icon="thunder">
-              <SwitchRow label="퀵 버튼" active={cfg.quickButtonOn} onChange={toggle('quickButtonOn')} />
-              {cfg.quickButtonOn && (
+              <SwitchRow label="퀵 버튼" active={modeExtras.quickButtonOn} onChange={toggleQuickButton} />
+              {modeExtras.quickButtonOn && (
                 <SectionCard>
                   {quickList.map((item, idx) => (
                     <QuickButtonItem
                       key={item.id}
                       index={idx}
                       label={item.label}
+                      link={item.link}
                       onLabelChange={(v) => updateQuick(item.id, v)}
+                      onLinkChange={(nextLink) => updateQuickLink(item.id, nextLink)}
                       onRemove={() => removeQuick(item.id)}
+                      availableSteps={availableSteps}
+                      isEnabled={modeExtras.quickButtonOn}
                     />
                   ))}
                   <div style={{ display: 'flex' }}>

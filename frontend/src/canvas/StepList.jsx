@@ -5,7 +5,7 @@ import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import './StepList.css'
 
-export default function StepList({ steps, selectedId, onSelect, onAdd }) {
+export default function StepList({ steps, selectedId, onSelect, onAdd, onDelete }) {
   return (
     <aside className="step-list">
       <div className="step-list__head">
@@ -57,8 +57,20 @@ export default function StepList({ steps, selectedId, onSelect, onAdd }) {
                 <Icon name={statusIcon} size={16} />
               </span>
               <Typography variant="label-1-normal" weight="medium" as="span">
-                {step.letter}. {step.name}
+                {step.name}
               </Typography>
+              {/* 단계 삭제 버튼 — 호버 시 노출. DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */}
+              <button
+                type="button"
+                className="step-list__item-action"
+                aria-label="단계 삭제"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete?.(step.id)
+                }}
+              >
+                <Icon name="close" size={14} />
+              </button>
             </li>
           )
         })}

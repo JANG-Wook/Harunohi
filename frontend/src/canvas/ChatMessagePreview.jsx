@@ -8,6 +8,7 @@ import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import {
   PH,
   defaultPerModeExtras,
+  getImageUrl,
   sampleDescFor,
   samplePlaceholderFor,
   sampleTimePlaceholderFor,
@@ -22,11 +23,11 @@ const botAvatar = '/T1_parksy/bot-avatar.svg'
 const DEFAULT_HEIGHT = '780px'
 
 export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, compact = false }) {
-  const { cfg, mode, texts, carouselCards, form } = config
+  const { cfg, mode, texts, imageFile, carouselCards, form } = config
 
   /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) */
   const modeExtras = config.perMode?.[mode] ?? defaultPerModeExtras()
-  const { quickList, messageBannerOn, quickButtonOn } = modeExtras
+  const { quickList, messageBannerOn, quickButtonOn, bannerFile } = modeExtras
 
   const isCarousel = mode === 'carousel'
 
@@ -43,7 +44,7 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         body: c.body.trim() || PH.body,
         mainButton: c.mainLabel.trim() || PH.mainLabel,
         subButton: c.subLabel.trim() || PH.subLabel,
-        imageSrc: chatbotImg,
+        imageSrc: getImageUrl(c.imageFile) || chatbotImg,
         imageOn: c.imageOn,
         textOn: c.textOn,
         buttonOn: c.buttonOn,
@@ -76,8 +77,8 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         mainButton: texts.mainLabel.trim() || PH.mainLabel,
         subButton: texts.subLabel.trim() || PH.subLabel,
         timestamp: '09:41',
-        imageSrc: chatbotImg,
-        bannerSrc: chatbotBanner,
+        imageSrc: getImageUrl(imageFile) || chatbotImg,
+        bannerSrc: getImageUrl(bannerFile) || chatbotBanner,
         quickItems: quickPreview,
         imageOn: cfg.imageOn,
         textOn: cfg.textOn,
@@ -102,6 +103,8 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
       compact,
       messageBannerOn,
       quickButtonOn,
+      imageFile,
+      bannerFile,
     ],
   )
 

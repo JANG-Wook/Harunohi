@@ -12,7 +12,29 @@ export const PH = {
   quickItem: '퀵 버튼',
 }
 
-export const FILE_CAPTION = '* Jpg, Jpeg 형식 지원 (최대 10MB)'
+export const FILE_CAPTION_IMAGE = '* Jpg, Jpeg, Png · 최대 2MB · 정사각형 비율 권장'
+export const FILE_CAPTION_BANNER = '* Jpg, Jpeg, Png · 최대 2MB · 권장 800 × 400 (2:1)'
+export const IMAGE_MAX_SIZE = 2 * 1024 * 1024 // 2MB
+export const IMAGE_ALLOWED_TYPES = ['image/jpeg', 'image/png']
+
+/** 이미지 파일 값에서 url 추출 — 신 포맷 {name, url} / 구 포맷 string 둘 다 처리 */
+export function getImageUrl(file) {
+  if (!file) return ''
+  if (typeof file === 'string') return file
+  return file.url ?? ''
+}
+
+/** 이미지 파일 값에서 표시용 이름 추출 — 구 포맷이거나 이름 없으면 fallback */
+export function getImageName(file) {
+  if (!file) return ''
+  if (typeof file === 'string') return file ? '이미지 파일' : ''
+  return file.name || '이미지 파일'
+}
+
+/** 파일 값이 비어있지 않은지 — UI 분기 용 */
+export function hasImage(file) {
+  return !!getImageUrl(file)
+}
 
 export const ACTION_TYPES = [
   { value: 'single', label: '단일 메시지' },
@@ -45,15 +67,27 @@ export const sampleDescFor = (type) => FORM_TYPES.find((t) => t.value === type)?
 export const samplePlaceholderFor = (type) => FORM_TYPES.find((t) => t.value === type)?.samplePlaceholder ?? ''
 export const sampleTimePlaceholderFor = (type) => FORM_TYPES.find((t) => t.value === type)?.sampleTimePlaceholder ?? ''
 
-/** 버튼 연결 — type=null 이면 미선택, 'bot'은 targetStepId, 'url'은 url 사용 */
+/**
+ * 버튼 연결 — type=null 이면 미선택.
+ *  'bot': targetScenarioId + targetResponseId 사용. targetResponseId 가 'trigger'면 시나리오 시작점으로 점프.
+ *  'url': url 사용.
+ * 호환: 구포맷 { targetStepId } 로 저장된 데이터는 BotCanvasPage 의 마이그레이션에서 새 형태로 변환된다.
+ */
 export function defaultLink() {
-  return { type: null, targetStepId: '', url: '' }
+  return { type: null, targetScenarioId: '', targetResponseId: '', url: '' }
 }
+
+export const LINK_TRIGGER_TARGET = 'trigger'
 
 /** 연결 완성 여부 (negative 상태 판정에 사용) */
 export function isLinkComplete(link) {
   if (!link) return false
-  if (link.type === 'bot') return !!link.targetStepId
+  if (link.type === 'bot') {
+    // 신포맷 우선, 레거시(targetStepId) 도 채워져 있으면 완성으로 간주
+    if (link.targetScenarioId && link.targetResponseId) return true
+    if (link.targetStepId) return true
+    return false
+  }
   if (link.type === 'url') return !!(link.url && link.url.trim())
   return false
 }

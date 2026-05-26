@@ -54,16 +54,54 @@
 }
 
 .dashboard__card--bot .dashboard__card-icon {
-  color: var(--color-primary-normal);
   display: inline-flex;
   align-items: center;
+  /* 색은 상태에 따라 인라인 스타일로 주입 (draft: cautionary, active: positive) */
 }
 
-/* 호버 시 노출되는 삭제 버튼 — DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */
-.dashboard__card-delete {
+/* 상태 배지 + 단계 수 라인 */
+.dashboard__card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* 상태 배지 — DS Chip 은 색 variant 가 없어 토큰으로 직접 구현 */
+.dashboard__card-status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-8);
+  border-radius: var(--spacing-6);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  font-weight: 600;
+}
+
+/* 최초 생성일 / 마지막 수정일 — 카드 하단 메타 정보 */
+.dashboard__card-dates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+/* 호버 시 노출되는 액션 버튼 묶음 — DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */
+.dashboard__card-actions {
   position: absolute;
   top: var(--spacing-10);
   right: var(--spacing-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.dashboard__card--bot:hover .dashboard__card-actions {
+  opacity: 1;
+}
+
+.dashboard__card-action {
   width: 24px;
   height: 24px;
   display: inline-flex;
@@ -73,17 +111,26 @@
   color: var(--color-label-alternative);
   background: transparent;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+  transition: background 120ms ease, color 120ms ease;
 }
 
-.dashboard__card--bot:hover .dashboard__card-delete {
-  opacity: 1;
+.dashboard__card-action--edit:hover {
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+  color: var(--color-primary-normal);
 }
 
-.dashboard__card-delete:hover {
+.dashboard__card-action--delete:hover {
   background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
   color: var(--color-status-negative);
+}
+
+/* 토스트 — 화면 하단 중앙 고정 (BotWorkspaceLayout 토스트와 동일 위치) */
+.dashboard__toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--spacing-32);
+  transform: translateX(-50%);
+  z-index: 1100;
 }
 
 /* 봇 생성 모달 — DS 에 폼 입력형 모달이 없어 토큰으로 직접 구현 */

@@ -1,0 +1,26 @@
+/* 트리거 노드 — 고정 시작 지점 카드 */
+
+.trigger-node {
+  width: 280px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-line-solid-normal);
+  border-radius: var(--spacing-16);
+  padding: var(--spacing-16) var(--spacing-20);
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  box-shadow: 0px 1px 2px -1px rgba(23, 23, 23, 0.10);
+}
+
+.trigger-node__chip {
+  align-self: flex-start;
+  margin-bottom: var(--spacing-4);
+}
+
+.trigger-node__handle {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  background: var(--color-interaction-inactive);
+  border: 2px solid var(--color-bg-elevated);
+}

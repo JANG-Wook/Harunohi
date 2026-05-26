@@ -147,12 +147,51 @@
   gap: var(--spacing-8);
 }
 
+/* Textfield 전체 클릭 가능 영역 */
+.cmc-file__field {
+  cursor: pointer;
+  outline: none;
+}
+
+/* 파일명 말줄임 처리 */
+.cmc-file__field input[readonly] {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* trailingContent 안의 X 버튼 */
+.cmc-file__remove-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  border-radius: var(--spacing-4);
+  cursor: pointer;
+  color: var(--color-label-alternative);
+  padding: 0;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.cmc-file__remove-icon:hover {
+  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
+  color: var(--color-status-negative);
+}
+
 .cmc-file__caption {
   font-size: var(--font-size-caption-1);
   line-height: var(--line-height-caption-1);
   color: var(--color-label-assistive);
   letter-spacing: var(--letter-spacing-caption-1);
 }
+
+.cmc-file__caption--error {
+  color: var(--color-status-negative);
+}
+
 
 /* Quick button item */
 .cmc-quick {

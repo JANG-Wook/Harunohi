@@ -1,26 +1,30 @@
 // 챗봇 메시지 응답 설정 패널 — HailMary ChatMessagePage 우측 패널의 controlled 버전
 // config 와 onChange(nextConfig) 두 prop 만 받는다.
 
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import Checkbox from '../design-system/components/Checkbox/Checkbox.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
-import Menu from '../design-system/components/Menu/Menu.jsx'
-import Select from '../design-system/components/Select/Select.jsx'
 import Switch from '../design-system/components/Switch/Switch.jsx'
 import Tab from '../design-system/components/Tab/Tab.jsx'
 import TextButton from '../design-system/components/TextButton/TextButton.jsx'
 import Textarea from '../design-system/components/Textfield/Textarea.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
+import MenuSelect from './MenuSelect.jsx'
 import {
   ACTION_TYPES,
-  FILE_CAPTION,
+  FILE_CAPTION_BANNER,
+  FILE_CAPTION_IMAGE,
   FORM_TYPES,
+  IMAGE_ALLOWED_TYPES,
+  IMAGE_MAX_SIZE,
   PH,
   defaultCarouselCard,
   defaultFormOptionsFor,
   defaultLink,
   defaultPerModeExtras,
+  getImageName,
+  hasImage,
   isLinkComplete,
   sampleDescFor,
   samplePlaceholderFor,
@@ -35,66 +39,42 @@ const LINK_TYPE_OPTIONS = [
 
 /* ── 보조 컴포넌트 ─────────────────────────────────────────── */
 
-function MenuSelect({
-  value,
+/* 버튼 연결 응답 편집기 — 2단 dropdown(시나리오 → 응답/트리거) + URL 모드
+ *
+ * scenarioOptions: [{ id, name, responses: [{value, label}] }]
+ * currentScenarioId / currentResponseId: 같은 시나리오 안에서 자기 자신은 응답 옵션에서 제외 */
+function LinkEditor({
+  link,
   onChange,
-  options,
-  placeholder = '값',
-  status = 'normal',
-  disabled = false,
+  scenarioOptions = [],
+  currentScenarioId = null,
+  currentResponseId = null,
+  isEnabled,
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const selected = options.find((o) => o.value === value)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <Select
-        placeholder={placeholder}
-        value={selected?.label ?? ''}
-        onClick={disabled ? undefined : () => setOpen((v) => !v)}
-        forceFocused={open}
-        status={status}
-        disabled={disabled}
-      />
-      {open && !disabled && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 30 }}>
-          <Menu
-            items={options.map((o) => ({
-              label: o.label,
-              active: o.value === value,
-              onClick: () => {
-                onChange(o.value)
-                setOpen(false)
-              },
-            }))}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* 버튼 연결 응답 편집기 — 연결 종류(봇/URL) + 종류별 추가 입력 */
-function LinkEditor({ link, onChange, availableSteps, isEnabled }) {
   const safeLink = link ?? defaultLink()
   const complete = isLinkComplete(safeLink)
   const showNegative = isEnabled && !complete
-  const noSteps = !availableSteps || availableSteps.length === 0
 
   const setType = (newType) => {
     // 종류 변경 시 기존 값 초기화 (서로 다른 모델)
-    onChange({ type: newType, targetStepId: '', url: '' })
+    onChange({ type: newType, targetScenarioId: '', targetResponseId: '', url: '' })
   }
+
+  const scenarioSelectOptions = scenarioOptions.map((sc) => ({ value: sc.id, label: sc.name }))
+  const selectedScenario = scenarioOptions.find((sc) => sc.id === safeLink.targetScenarioId) ?? null
+
+  /* 응답 옵션 — 트리거(시작점) + 시나리오 응답들. 같은 시나리오 안의 자기 자신은 제외 */
+  const responseSelectOptions = selectedScenario
+    ? [
+        { value: 'trigger', label: '트리거 (시나리오 시작점)' },
+        ...selectedScenario.responses.filter(
+          (r) => !(selectedScenario.id === currentScenarioId && r.value === currentResponseId),
+        ),
+      ]
+    : []
+
+  const noScenarios = scenarioSelectOptions.length === 0
+  const noResponses = !!selectedScenario && responseSelectOptions.length === 0
 
   return (
     <>
@@ -109,16 +89,41 @@ function LinkEditor({ link, onChange, availableSteps, isEnabled }) {
       </FieldGroup>
 
       {safeLink.type === 'bot' && (
-        <FieldGroup label="연결할 단계">
-          <MenuSelect
-            value={safeLink.targetStepId}
-            onChange={(id) => onChange({ ...safeLink, targetStepId: id })}
-            options={availableSteps}
-            placeholder={noSteps ? '연결할 수 있는 응답이 없습니다.' : '단계 선택'}
-            disabled={noSteps}
-            status={showNegative ? 'negative' : 'normal'}
-          />
-        </FieldGroup>
+        <>
+          <FieldGroup label="시나리오">
+            <MenuSelect
+              value={safeLink.targetScenarioId}
+              onChange={(id) =>
+                onChange({ ...safeLink, targetScenarioId: id, targetResponseId: '' })
+              }
+              options={scenarioSelectOptions}
+              placeholder={noScenarios ? '시나리오가 없습니다.' : '시나리오 선택'}
+              disabled={noScenarios}
+              status={showNegative && !safeLink.targetScenarioId ? 'negative' : 'normal'}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="연결할 응답">
+            <MenuSelect
+              value={safeLink.targetResponseId}
+              onChange={(id) => onChange({ ...safeLink, targetResponseId: id })}
+              options={responseSelectOptions}
+              placeholder={
+                !safeLink.targetScenarioId
+                  ? '시나리오를 먼저 선택하세요.'
+                  : noResponses
+                    ? '연결할 수 있는 응답이 없습니다.'
+                    : '응답 선택'
+              }
+              disabled={!safeLink.targetScenarioId || noResponses}
+              status={
+                showNegative && safeLink.targetScenarioId && !safeLink.targetResponseId
+                  ? 'negative'
+                  : 'normal'
+              }
+            />
+          </FieldGroup>
+        </>
       )}
 
       {safeLink.type === 'url' && (
@@ -199,17 +204,94 @@ function CheckBlock({ checked, onChange, label, children }) {
   )
 }
 
-function FileUploadCard({ value, onChange }) {
+function FileUploadCard({ value, onChange, caption = FILE_CAPTION_IMAGE, required = false }) {
+  const inputRef = useRef(null)
+  const [error, setError] = useState('')
+
+  const trigger = () => inputRef.current?.click()
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일 재선택 허용
+    if (!file) return
+
+    if (!IMAGE_ALLOWED_TYPES.includes(file.type)) {
+      setError('Jpg, Png 파일만 업로드할 수 있어요')
+      return
+    }
+    if (file.size > IMAGE_MAX_SIZE) {
+      setError('파일 크기는 2MB 이하여야 해요')
+      return
+    }
+
+    setError('')
+    const reader = new FileReader()
+    reader.onload = () => onChange({ name: file.name, url: reader.result })
+    reader.onerror = () => setError('파일을 읽지 못했어요')
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemove = (e) => {
+    e.stopPropagation()
+    onChange('')
+    setError('')
+  }
+
+  const fileExists = hasImage(value)
+  const displayName = fileExists ? getImageName(value) : ''
+  /* required + 빈 값이면 negative — 부모 토글이 ON 인데 미입력 상태 시각화 */
+  const showNegative = !!error || (required && !fileExists)
+
   return (
     <SectionCard>
       <div className="cmc-file">
-        <Textfield
-          placeholder="파일을 업로드해 주세요."
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          trailingButton={{ label: '불러오기', variant: 'normal' }}
-        />
-        <span className="cmc-file__caption">{FILE_CAPTION}</span>
+        {/* 클릭 영역 — Textfield 어디든 클릭하면 hidden 파일 input 트리거 */}
+        <div
+          className="cmc-file__field"
+          onClick={trigger}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              trigger()
+            }
+          }}
+        >
+          <Textfield
+            placeholder="파일을 업로드해 주세요."
+            value={displayName}
+            readOnly
+            status={showNegative ? 'negative' : 'normal'}
+            trailingButton={{ label: fileExists ? '변경' : '불러오기', variant: 'normal' }}
+            trailingContent={
+              fileExists ? (
+                <button
+                  type="button"
+                  className="cmc-file__remove-icon"
+                  onClick={handleRemove}
+                  aria-label="이미지 제거"
+                >
+                  <Icon name="close" size={14} />
+                </button>
+              ) : undefined
+            }
+          />
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={handleFile}
+            hidden
+          />
+        </div>
+        <span
+          className={['cmc-file__caption', error && 'cmc-file__caption--error']
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {error || caption}
+        </span>
       </div>
     </SectionCard>
   )
@@ -222,7 +304,9 @@ function QuickButtonItem({
   onLabelChange,
   onLinkChange,
   onRemove,
-  availableSteps,
+  scenarioOptions,
+  currentScenarioId,
+  currentResponseId,
   isEnabled,
 }) {
   return (
@@ -243,12 +327,15 @@ function QuickButtonItem({
           placeholder={PH.quickItem}
           value={label}
           onChange={(e) => onLabelChange(e.target.value)}
+          status={isEnabled && !label?.trim() ? 'negative' : 'normal'}
         />
       </FieldGroup>
       <LinkEditor
         link={link}
         onChange={onLinkChange}
-        availableSteps={availableSteps}
+        scenarioOptions={scenarioOptions}
+        currentScenarioId={currentScenarioId}
+        currentResponseId={currentResponseId}
         isEnabled={isEnabled}
       />
     </div>
@@ -257,7 +344,13 @@ function QuickButtonItem({
 
 /* ── 메인 컴포넌트 ─────────────────────────────────────────── */
 
-export default function ChatMessageConfig({ config, onChange, availableSteps = [] }) {
+export default function ChatMessageConfig({
+  config,
+  onChange,
+  scenarioOptions = [],
+  currentScenarioId = null,
+  currentResponseId = null,
+}) {
   const { cfg, mode, texts, imageFile, carouselCards, activeCardIdx, form } = config
 
   /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) — 단일/캐로셀/입력폼/RAG/분기 독립 */
@@ -461,6 +554,7 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                   <FileUploadCard
                     value={isCarousel ? (activeCard.imageFile ?? '') : imageFile}
                     onChange={isCarousel ? (v) => updateActiveCard({ imageFile: v }) : setImageFile}
+                    required
                   />
                 )}
               </NumberedSection>
@@ -480,6 +574,7 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                       placeholder={PH.title}
                       value={activeCard.title}
                       onChange={(e) => setCardText('title')(e.target.value)}
+                      status={!activeCard.title?.trim() ? 'negative' : 'normal'}
                     />
                   </CheckBlock>
 
@@ -493,6 +588,7 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                       resize="fixed"
                       value={activeCard.body}
                       onChange={(e) => setCardText('body')(e.target.value)}
+                      status={!activeCard.body?.trim() ? 'negative' : 'normal'}
                     />
                   </CheckBlock>
 
@@ -507,6 +603,7 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                         resize="fixed"
                         value={activeCard.accordion}
                         onChange={(e) => setCardText('accordion')(e.target.value)}
+                        status={!activeCard.accordion?.trim() ? 'negative' : 'normal'}
                       />
                     </CheckBlock>
                   )}
@@ -606,12 +703,15 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                           placeholder={PH.mainLabel}
                           value={activeCard.mainLabel}
                           onChange={(e) => setCardText('mainLabel')(e.target.value)}
+                          status={!activeCard.mainLabel?.trim() ? 'negative' : 'normal'}
                         />
                       </FieldGroup>
                       <LinkEditor
                         link={activeCard.mainLink}
                         onChange={setLink('mainLink')}
-                        availableSteps={availableSteps}
+                        scenarioOptions={scenarioOptions}
+                        currentScenarioId={currentScenarioId}
+                        currentResponseId={currentResponseId}
                         isEnabled={activeCard.buttonOn && activeCard.mainOn}
                       />
                     </CheckBlock>
@@ -626,12 +726,15 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                           placeholder={PH.subLabel}
                           value={activeCard.subLabel}
                           onChange={(e) => setCardText('subLabel')(e.target.value)}
+                          status={!activeCard.subLabel?.trim() ? 'negative' : 'normal'}
                         />
                       </FieldGroup>
                       <LinkEditor
                         link={activeCard.subLink}
                         onChange={setLink('subLink')}
-                        availableSteps={availableSteps}
+                        scenarioOptions={scenarioOptions}
+                        currentScenarioId={currentScenarioId}
+                        currentResponseId={currentResponseId}
                         isEnabled={activeCard.buttonOn && activeCard.subOn}
                       />
                     </CheckBlock>
@@ -649,7 +752,12 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                 onChange={toggleMessageBanner}
               />
               {modeExtras.messageBannerOn && (
-                <FileUploadCard value={bannerFile} onChange={setBannerFile} />
+                <FileUploadCard
+                  value={bannerFile}
+                  onChange={setBannerFile}
+                  caption={FILE_CAPTION_BANNER}
+                  required
+                />
               )}
             </NumberedSection>
 
@@ -667,7 +775,9 @@ export default function ChatMessageConfig({ config, onChange, availableSteps = [
                       onLabelChange={(v) => updateQuick(item.id, v)}
                       onLinkChange={(nextLink) => updateQuickLink(item.id, nextLink)}
                       onRemove={() => removeQuick(item.id)}
-                      availableSteps={availableSteps}
+                      scenarioOptions={scenarioOptions}
+                      currentScenarioId={currentScenarioId}
+                      currentResponseId={currentResponseId}
                       isEnabled={modeExtras.quickButtonOn}
                     />
                   ))}

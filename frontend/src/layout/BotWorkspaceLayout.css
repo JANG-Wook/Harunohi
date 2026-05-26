@@ -10,9 +10,9 @@
 .bot-workspace__topbar {
   flex-shrink: 0;
   height: 56px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0 var(--spacing-24);
   background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-line-solid-normal);
@@ -42,6 +42,58 @@
   gap: var(--spacing-8);
 }
 
+/* 중앙 영역 — 버전 셀렉터 + 저장 버튼 한 줄 */
+.bot-workspace__center {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* 버전 셀렉터 — DS 에 trigger+menu 결합 컴포넌트 없어 토큰으로 직접 구현 */
+.bot-workspace__version {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.bot-workspace__version-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6) var(--spacing-10);
+  background: transparent;
+  border: 1px solid var(--color-line-solid-normal);
+  border-radius: var(--spacing-8);
+  font-family: inherit;
+  font-size: var(--font-size-label-1);
+  color: var(--color-label-normal);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.bot-workspace__version-trigger:hover:not(:disabled) {
+  background: var(--color-fill-alternative);
+  border-color: var(--color-line-solid-strong);
+}
+
+.bot-workspace__version-trigger:disabled {
+  cursor: not-allowed;
+  color: var(--color-label-assistive);
+}
+
+.bot-workspace__version-label {
+  font-feature-settings: 'tnum';
+}
+
+.bot-workspace__version-menu {
+  position: absolute;
+  top: calc(100% + var(--spacing-4));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  min-width: 240px;
+}
+
 .bot-workspace__body {
   flex: 1;
   min-height: 0;
@@ -56,7 +108,7 @@
   margin-left: var(--spacing-2);
 }
 
-/* 이탈 가드 모달 — DashboardPage 봇 생성 모달과 동일 패턴 */
+/* 이탈 가드 다이얼로그 backdrop — Alert 컴포넌트를 중앙 배치 */
 .bot-workspace__modal-backdrop {
   position: fixed;
   inset: 0;
@@ -66,34 +118,6 @@
   justify-content: center;
   padding: var(--spacing-20);
   z-index: 1000;
-}
-
-.bot-workspace__modal {
-  width: 100%;
-  max-width: 440px;
-  background: var(--color-bg-elevated);
-  border-radius: var(--spacing-16);
-  box-shadow: 0px 16px 24px -6px rgba(23, 23, 23, 0.08),
-    0px 6px 10px -4px rgba(23, 23, 23, 0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.bot-workspace__modal-head {
-  padding: var(--spacing-20) var(--spacing-20) var(--spacing-12);
-}
-
-.bot-workspace__modal-body {
-  padding: 0 var(--spacing-20) var(--spacing-20);
-}
-
-.bot-workspace__modal-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-8);
-  padding: var(--spacing-16) var(--spacing-20);
-  border-top: 1px solid var(--color-line-solid-alternative);
 }
 
 /* 저장 토스트 — 화면 하단 중앙 고정 */

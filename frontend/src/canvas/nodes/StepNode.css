@@ -36,6 +36,58 @@
   color: var(--color-label-normal);
 }
 
+/* cross-scenario 링크 배지 — 다른 시나리오로 연결된 버튼이 있을 때만 노출 */
+.step-node__cross {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-16);
+  background: color-mix(in srgb, var(--color-primary-normal) 6%, transparent);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+  color: var(--color-primary-normal);
+}
+
+.step-node__cross-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.step-node__cross-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.step-node__cross-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-4);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  min-width: 0;
+}
+
+.step-node__cross-scenario {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-node__cross-sep {
+  color: var(--color-label-assistive);
+  flex-shrink: 0;
+}
+
+.step-node__cross-labels {
+  color: var(--color-label-alternative);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 /* 미리보기 영역 — 챗봇 메시지가 step-node 너비(360px)에 정확히 맞도록 좌우 패딩 없음 */
 /* 상단은 헤더와 시각적 호흡을 위해 약간 띄움 */
 .step-node__preview {

@@ -1,0 +1,84 @@
+/* 시뮬레이터 모달 — DS 에 모달 컴포넌트가 없어 backdrop + 컨테이너를 토큰으로 직접 구현 */
+
+.sim-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-24);
+  z-index: 1200;
+}
+
+.sim-modal {
+  width: 100%;
+  max-width: 720px;
+  height: 100%;
+  /* 대화방 기본 사이즈(ChatMessagePreview 의 780px) + 헤더/패딩 고려해 880px.
+     화면이 더 작으면 24px 여백 확보하며 축소 */
+  max-height: min(880px, calc(100vh - var(--spacing-48)));
+  background: var(--color-bg-normal);
+  border-radius: var(--spacing-16);
+  box-shadow: 0px 24px 32px -8px rgba(23, 23, 23, 0.16),
+    0px 8px 12px -4px rgba(23, 23, 23, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sim-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-14) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+  background: var(--color-bg-elevated);
+}
+
+.sim-modal__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.sim-modal__bot {
+  color: var(--color-label-alternative);
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+}
+
+.sim-modal__head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+/* "재시작" 버튼 — DS Button 의 size=tiny 같은 변형이 없어 토큰으로 직접 구현 */
+.sim-modal__restart {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-10);
+  background: transparent;
+  border: 1px solid var(--color-line-solid-normal);
+  border-radius: var(--spacing-6);
+  color: var(--color-label-normal);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  transition: background 120ms ease;
+}
+.sim-modal__restart:hover {
+  background: var(--color-fill-alternative);
+}
+
+.sim-modal__body {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-16);
+  padding: var(--spacing-16);
+  min-height: 0;
+  background: var(--color-bg-normal);
+}

@@ -11,6 +11,7 @@ import IconButtonOutlined from '../design-system/components/IconButton/IconButto
 import Menu from '../design-system/components/Menu/Menu.jsx'
 import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
+import SimulatorModal from '../simulator/SimulatorModal.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import './BotWorkspaceLayout.css'
 
@@ -37,6 +38,7 @@ export default function BotWorkspaceLayout() {
   const saverRef = useRef(null)
   const versionLoaderRef = useRef(null)
   const publisherRef = useRef(null)
+  const simulatorPayloadRef = useRef(null)
   const registerSaver = useCallback((fn) => {
     saverRef.current = fn
   }, [])
@@ -45,6 +47,18 @@ export default function BotWorkspaceLayout() {
   }, [])
   const registerPublisher = useCallback((fn) => {
     publisherRef.current = fn
+  }, [])
+  const registerSimulatorPayload = useCallback((fn) => {
+    simulatorPayloadRef.current = fn
+  }, [])
+
+  /* 시뮬레이터 모달 상태 + 열 때 현재 봇의 시나리오 스냅샷 */
+  const [simulatorOpen, setSimulatorOpen] = useState(false)
+  const [simulatorScenarios, setSimulatorScenarios] = useState([])
+  const handleOpenSimulator = useCallback(() => {
+    const scs = simulatorPayloadRef.current?.() ?? []
+    setSimulatorScenarios(scs)
+    setSimulatorOpen(true)
   }, [])
 
   /* 버전 목록 + 현재 선택 (자식에서 보고) */
@@ -155,9 +169,16 @@ export default function BotWorkspaceLayout() {
       registerVersionLoader,
       setVersionInfo,
       registerPublisher,
+      registerSimulatorPayload,
       setBotStatus,
     }),
-    [registerSaver, registerVersionLoader, setVersionInfo, registerPublisher],
+    [
+      registerSaver,
+      registerVersionLoader,
+      setVersionInfo,
+      registerPublisher,
+      registerSimulatorPayload,
+    ],
   )
 
   return (
@@ -227,6 +248,7 @@ export default function BotWorkspaceLayout() {
             size="small"
             leadingIcon={<Icon name="play" size={16} />}
             label="시뮬레이터"
+            onClick={handleOpenSimulator}
           />
           <Button
             variant="solid"
@@ -292,6 +314,14 @@ export default function BotWorkspaceLayout() {
           />
         </div>
       )}
+
+      {/* 시뮬레이터 모달 — Phase 1 (단일 메시지 + 버튼 클릭 흐름) */}
+      <SimulatorModal
+        isOpen={simulatorOpen}
+        onClose={() => setSimulatorOpen(false)}
+        scenarios={simulatorScenarios}
+        botName={decodeURIComponent(botId ?? '')}
+      />
     </div>
   )
 }

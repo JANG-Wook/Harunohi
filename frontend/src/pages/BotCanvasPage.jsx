@@ -446,6 +446,11 @@ function CanvasInner() {
     }
   }, [botId])
 
+  /* 시뮬레이터 페이로드 getter — 저장 안 한 변경분도 즉시 시뮬 가능하도록 최신 stateRef 반환 */
+  const getSimulatorPayload = useCallback(() => {
+    return stateRef.current.scenarios
+  }, [])
+
   const handleLoadVersion = useCallback(
     (versionId) => {
       const target = stateRef.current.versions.find((v) => v.id === versionId)
@@ -486,6 +491,11 @@ function CanvasInner() {
     layoutCtx?.registerPublisher?.(handlePublish)
     return () => layoutCtx?.registerPublisher?.(null)
   }, [handlePublish, layoutCtx])
+
+  useEffect(() => {
+    layoutCtx?.registerSimulatorPayload?.(getSimulatorPayload)
+    return () => layoutCtx?.registerSimulatorPayload?.(null)
+  }, [getSimulatorPayload, layoutCtx])
 
   useEffect(() => {
     layoutCtx?.setBotStatus?.(botStatus)
@@ -715,7 +725,7 @@ function CanvasInner() {
           nodeTypes={nodeTypes}
           fitView
           nodesConnectable={false}
-          edgesUpdatable={false}
+          edgesReconnectable={false}
           defaultEdgeOptions={{
             type: 'smoothstep',
             animated: false,

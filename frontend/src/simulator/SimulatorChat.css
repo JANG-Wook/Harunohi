@@ -1,0 +1,12 @@
+/* 시뮬레이터 좌측 챗 영역 — ChatRoom 컨테이너 사이징.
+   입력창은 노출 — 사용자가 자유 발화 가능 (현 단계는 발화만 기록, 매칭은 추후 TEI 기반). */
+
+.sim-chat {
+  display: flex;
+  width: 360px; /* ChatRoom 자체 너비와 동일 */
+  height: 100%;
+  background: var(--color-bg-normal);
+  border-radius: var(--spacing-16);
+  overflow: hidden;
+  border: 1px solid var(--color-line-solid-alternative);
+}

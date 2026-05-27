@@ -1,0 +1,103 @@
+// 시뮬레이터 모달 — 좌측 챗 영역 + 우측 사이드 패널 + 헤더(재시작·닫기)
+//
+// 외부에서 isOpen, scenarios, botName 을 받아 열고, 닫힘은 onClose 콜백.
+// DS 에 모달/스플릿 컴포넌트가 없어 backdrop 과 레이아웃은 토큰으로 직접 구현.
+
+import { useEffect, useMemo, useState } from 'react'
+import Icon from '../design-system/components/Icon/Icon.jsx'
+import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
+import Typography from '../design-system/components/Typography/Typography.jsx'
+import { createSession, clickButton, restart, sendUtterance } from '../lib/simulatorRuntime.js'
+import SimulatorChat from './SimulatorChat.jsx'
+import SimulatorSidePanel from './SimulatorSidePanel.jsx'
+import './SimulatorModal.css'
+
+export default function SimulatorModal({ isOpen, onClose, scenarios, botName }) {
+  /* 시뮬레이터 세션 — 모달 열릴 때 scenarios 로 초기화 */
+  const [session, setSession] = useState(() => createSession(scenarios ?? []))
+
+  // 열릴 때마다 세션 새로 시작 — 항상 깨끗한 상태로 진입
+  useEffect(() => {
+    if (isOpen) setSession(createSession(scenarios ?? []))
+    // scenarios 가 바뀌어도(빌더 편집 중) 재진입 시점 기준이므로 의존성에 둠
+  }, [isOpen, scenarios])
+
+  /* Esc 닫기 + 배경 스크롤 잠금 */
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [isOpen, onClose])
+
+  const handleClickButton = (label, link) => {
+    setSession((prev) => clickButton(prev, label, link))
+  }
+  const handleSendUtterance = (text) => {
+    setSession((prev) => sendUtterance(prev, text))
+  }
+  const handleRestart = () => setSession(restart(session))
+
+  // 봇명 표시는 props 우선, 없으면 시나리오 이름으로 fallback
+  const headerName = useMemo(() => botName || '챗봇 미리보기', [botName])
+
+  if (!isOpen) return null
+
+  return (
+    <div
+      className="sim-modal__backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        className="sim-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="시뮬레이터"
+      >
+        <header className="sim-modal__head">
+          <div className="sim-modal__title">
+            <Icon name="play" size={16} color="var(--color-primary-normal)" />
+            <Typography variant="headline-2" weight="semibold" as="span">
+              시뮬레이터
+            </Typography>
+            <span className="sim-modal__bot">— {headerName}</span>
+          </div>
+          <div className="sim-modal__head-actions">
+            <button
+              type="button"
+              className="sim-modal__restart"
+              onClick={handleRestart}
+              aria-label="대화 재시작"
+            >
+              <Icon name="refresh" size={14} />
+              <span>재시작</span>
+            </button>
+            <IconButtonNormal
+              icon={<Icon name="close" size={18} />}
+              onClick={onClose}
+              aria-label="시뮬레이터 닫기"
+            />
+          </div>
+        </header>
+
+        <div className="sim-modal__body">
+          <SimulatorChat
+            session={session}
+            onClickButton={handleClickButton}
+            onSendUtterance={handleSendUtterance}
+            botName={headerName}
+          />
+          <SimulatorSidePanel session={session} />
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -8,9 +8,18 @@ import Icon from '../design-system/components/Icon/Icon.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { isStepComplete } from '../lib/stepTypes.js'
+import VariableAddModal from './VariableAddModal.jsx'
 import './ScenarioPanel.css'
 
 export default function ScenarioPanel({
+  // 변수 (봇 전역)
+  variables = [],
+  onAddVariable,
+  onDeleteVariable,
+  // 등록 API (봇 전역)
+  apis = [],
+  onAddApi,
+  onSelectApi,
   // 시나리오
   scenarios,
   currentScenarioId,
@@ -29,6 +38,8 @@ export default function ScenarioPanel({
   triggerSelected,
   onSelectTrigger,
 }) {
+  /* 변수 추가 모달 — null 이면 닫힘 */
+  const [variableModalOpen, setVariableModalOpen] = useState(false)
   /* 이름 변경 중인 시나리오 id — null 이면 모두 보기 모드 */
   const [renamingId, setRenamingId] = useState(null)
   const [renameValue, setRenameValue] = useState('')
@@ -97,6 +108,93 @@ export default function ScenarioPanel({
 
   return (
     <aside className="scenario-panel">
+      {/* ── 변수 섹션 (봇 전역, 위계상 최상위) ─────────────────── */}
+      <div className="scenario-panel__section scenario-panel__section--variables">
+        <div className="scenario-panel__head">
+          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
+            변수
+          </Typography>
+          <button
+            type="button"
+            className="scenario-panel__action scenario-panel__action--add"
+            onClick={() => setVariableModalOpen(true)}
+            aria-label="변수 추가"
+          >
+            <Icon name="plus" size={14} />
+          </button>
+        </div>
+        {variables.length === 0 ? (
+          <div className="scenario-panel__empty">
+            <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
+              아직 등록된 변수가 없어요.
+            </Typography>
+          </div>
+        ) : (
+          <ul className="scenario-panel__variables">
+            {variables.map((v) => {
+              const displayKey = v.displayName?.trim() || v.originalKey
+              return (
+                <li key={v.id} className="scenario-panel__variable">
+                  <span className="scenario-panel__variable-key">
+                    {`{{$${displayKey}}}`}
+                  </span>
+                  <span className="scenario-panel__variable-value" title={v.sampleValue}>
+                    {v.sampleValue || '—'}
+                  </span>
+                  <button
+                    type="button"
+                    className="scenario-panel__action scenario-panel__action--delete scenario-panel__variable-delete"
+                    aria-label="변수 삭제"
+                    onClick={() => onDeleteVariable?.(v.id)}
+                  >
+                    <Icon name="close" size={12} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* ── API 섹션 (봇 전역, 변수 다음) ─────────────────────── */}
+      <div className="scenario-panel__section scenario-panel__section--apis">
+        <div className="scenario-panel__head">
+          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
+            API
+          </Typography>
+          <button
+            type="button"
+            className="scenario-panel__action scenario-panel__action--add"
+            onClick={() => onAddApi?.()}
+            aria-label="API 추가"
+          >
+            <Icon name="plus" size={14} />
+          </button>
+        </div>
+        {apis.length === 0 ? (
+          <div className="scenario-panel__empty">
+            <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
+              아직 등록된 API 가 없어요.
+            </Typography>
+          </div>
+        ) : (
+          <ul className="scenario-panel__apis">
+            {apis.map((a) => (
+              <li
+                key={a.id}
+                className="scenario-panel__api"
+                onClick={() => onSelectApi?.(a.id)}
+              >
+                <span className="scenario-panel__api-method">{a.method}</span>
+                <span className="scenario-panel__api-name" title={a.url}>
+                  {a.name || '(이름 없음)'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {/* ── 시나리오 섹션 ──────────────────────────────────────── */}
       <div className="scenario-panel__section scenario-panel__section--scenarios">
         <div className="scenario-panel__head">
@@ -276,6 +374,18 @@ export default function ScenarioPanel({
           })}
         </ul>
       </div>
+
+      {/* 변수 추가 모달 — DS 에 폼 모달이 없어 토큰 + Textfield/Button 으로 직접 구현 */}
+      {variableModalOpen && (
+        <VariableAddModal
+          existing={variables}
+          onCancel={() => setVariableModalOpen(false)}
+          onSubmit={(payload) => {
+            onAddVariable?.(payload)
+            setVariableModalOpen(false)
+          }}
+        />
+      )}
 
       {/* 시나리오 삭제 확인 다이얼로그 — 응답 개수와 이름 목록을 함께 보여줌 */}
       {deleteTarget && (

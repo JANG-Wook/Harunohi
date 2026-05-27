@@ -57,14 +57,30 @@ export default function SimulatorSidePanel({ session }) {
         </div>
       )}
 
-      {/* Phase 2/3 예약 자리 — 메모리, 이벤트 로그 */}
-      <div className="sim-side__section sim-side__section--reserved">
-        <Typography variant="caption-1" color="var(--color-label-assistive)" as="div">
-          🧠 메모리 (Phase 2)
-        </Typography>
-        <Typography variant="caption-1" color="var(--color-label-assistive)" as="div">
-          📜 이벤트 로그 (Phase 3)
-        </Typography>
+      {/* 메모리 — 현재 세션의 변수 값 */}
+      <div className="sim-side__section">
+        <div className="sim-side__head">
+          <Icon name="documentText" size={14} color="var(--color-label-assistive)" />
+          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-assistive)" as="span">
+            메모리
+          </Typography>
+        </div>
+        {Object.keys(session.memory ?? {}).length === 0 ? (
+          <Typography variant="caption-1" color="var(--color-label-assistive)" as="div">
+            저장된 변수가 없습니다.
+          </Typography>
+        ) : (
+          <ul className="sim-side__memory">
+            {Object.entries(session.memory).map(([k, v]) => (
+              <li key={k} className="sim-side__memory-row">
+                <span className="sim-side__memory-key">{`{{$${k}}}`}</span>
+                <span className="sim-side__memory-value" title={String(v ?? '')}>
+                  {String(v ?? '') || '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </aside>
   )

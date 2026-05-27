@@ -1,0 +1,123 @@
+/* API 응답 트리 viewer — JSON 트리 + 변수 등록 버튼 */
+
+.resp-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12);
+  background: var(--color-bg-normal-alternative);
+  border: 1px solid var(--color-line-solid-alternative);
+  border-radius: var(--spacing-10);
+  margin: 0 var(--spacing-16);
+}
+
+.resp-tree__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.resp-tree__status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--spacing-4);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  font-weight: 600;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+.resp-tree__status--ok {
+  color: var(--color-status-positive);
+  background: color-mix(in srgb, var(--color-status-positive) 12%, transparent);
+}
+.resp-tree__status--fail {
+  color: var(--color-status-negative);
+  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
+}
+
+.resp-tree__error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-8) var(--spacing-10);
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-6);
+}
+
+.resp-tree__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-6);
+  padding: var(--spacing-8);
+}
+
+.resp-tree__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--spacing-4);
+  transition: background 120ms ease;
+}
+.resp-tree__row:hover {
+  background: var(--color-fill-alternative);
+}
+
+.resp-tree__row--group {
+  font-weight: 600;
+  color: var(--color-label-neutral);
+}
+
+.resp-tree__key {
+  color: var(--color-primary-normal);
+  flex-shrink: 0;
+}
+
+.resp-tree__type {
+  color: var(--color-label-assistive);
+  font-size: var(--font-size-caption-1);
+}
+
+.resp-tree__value {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-label-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resp-tree__empty {
+  color: var(--color-label-assistive);
+  font-style: italic;
+}
+
+/* 변수로 등록 버튼 — 호버 시 노출. DS 에 24px 타이트 버튼 없어 토큰으로 직접 구현 */
+.resp-tree__register {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px var(--spacing-8);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  font-family: inherit;
+  background: transparent;
+  border: 1px solid var(--color-primary-normal);
+  border-radius: var(--spacing-4);
+  color: var(--color-primary-normal);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease;
+}
+.resp-tree__row:hover .resp-tree__register {
+  opacity: 1;
+}
+.resp-tree__register:hover {
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+}

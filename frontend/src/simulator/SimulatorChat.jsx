@@ -6,13 +6,16 @@
 import { useMemo } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import { getImageUrl, hasImage, PH } from '../lib/chatMessageDefaults.js'
+import { interpolate, interpolateLink } from '../lib/templateEngine.js'
 import './SimulatorChat.css'
 
 const botAvatar = '/T1_parksy/bot-avatar.svg'
 
 /** 응답(step) 의 messageConfig → ChatRoom 봇 메시지 객체로 변환.
- *  ChatMessagePreview 의 매핑 로직과 같은 규약 (PH placeholder, perMode extras, mode 등). */
-function responseToChatMessage(messageId, response, { disabled, timestamp }) {
+ *  ChatMessagePreview 의 매핑 로직과 같은 규약 + 변수 치환 적용. */
+function responseToChatMessage(messageId, response, { disabled, timestamp, variables = [] }) {
+  // 짧은 헬퍼 — 모든 텍스트 필드에 변수 치환
+  const I = (s) => interpolate(s, variables)
   const cfg = response.messageConfig
   if (!cfg || !cfg.cfg?.messageOn) {
     // 메시지 토글이 꺼진 응답 — 안내만 표시
@@ -36,13 +39,13 @@ function responseToChatMessage(messageId, response, { disabled, timestamp }) {
   const { cfg: c, texts = {}, imageFile, mode, carouselCards = [], form } = cfg
   const perMode = cfg.perMode?.[mode]
 
-  // 캐로셀 카드 → ChatRoom 캐로셀 카드 형식으로 매핑
+  // 캐로셀 카드 → ChatRoom 캐로셀 카드 형식으로 매핑 (텍스트는 모두 변수 치환)
   const cards = carouselCards.map((card) => ({
     id: card.id,
-    title: card.title?.trim() || PH.title,
-    body: card.body?.trim() || PH.body,
-    mainButton: card.mainLabel?.trim() || PH.mainLabel,
-    subButton: card.subLabel?.trim() || PH.subLabel,
+    title: I(card.title?.trim()) || PH.title,
+    body: I(card.body?.trim()) || PH.body,
+    mainButton: I(card.mainLabel?.trim()) || PH.mainLabel,
+    subButton: I(card.subLabel?.trim()) || PH.subLabel,
     imageSrc: getImageUrl(card.imageFile) || undefined,
     imageOn: card.imageOn && hasImage(card.imageFile),
     textOn: card.textOn,
@@ -59,11 +62,11 @@ function responseToChatMessage(messageId, response, { disabled, timestamp }) {
     botName: response.name || '챗봇',
     avatarSrc: botAvatar,
     mode,
-    title: texts.title?.trim() || PH.title,
-    body: texts.body?.trim() || PH.body,
-    accordionText: texts.accordion?.trim() || PH.accordion,
-    mainButton: texts.mainLabel?.trim() || PH.mainLabel,
-    subButton: texts.subLabel?.trim() || PH.subLabel,
+    title: I(texts.title?.trim()) || PH.title,
+    body: I(texts.body?.trim()) || PH.body,
+    accordionText: I(texts.accordion?.trim()) || PH.accordion,
+    mainButton: I(texts.mainLabel?.trim()) || PH.mainLabel,
+    subButton: I(texts.subLabel?.trim()) || PH.subLabel,
     imageSrc: getImageUrl(imageFile) || undefined,
     imageOn: c.imageOn && hasImage(imageFile),
     textOn: c.textOn,
@@ -74,7 +77,7 @@ function responseToChatMessage(messageId, response, { disabled, timestamp }) {
     mainOn: c.mainOn,
     subOn: c.subOn,
     carouselCards: cards,
-    quickItems: (perMode?.quickList ?? []).map((q) => q.label?.trim() || PH.quickItem),
+    quickItems: (perMode?.quickList ?? []).map((q) => I(q.label?.trim()) || PH.quickItem),
     quickButtonOn: !!perMode?.quickButtonOn,
     messageBannerOn: !!perMode?.messageBannerOn,
     bannerSrc: getImageUrl(perMode?.bannerFile) || undefined,
@@ -89,8 +92,9 @@ function responseToChatMessage(messageId, response, { disabled, timestamp }) {
 }
 
 /** session.history → ChatRoom messages 배열.
- *  ChatRoom 은 user/bot 두 타입만 인식. 시스템 안내는 user 타입에 시각 구분 텍스트로 변환. */
-function buildChatRoomMessages(session) {
+ *  ChatRoom 은 user/bot 두 타입만 인식. 시스템 안내는 user 타입에 시각 구분 텍스트로 변환.
+ *  variables 는 봇 메시지 텍스트 치환에 사용. */
+function buildChatRoomMessages(session, variables) {
   // 마지막 bot 이벤트가 활성. 그 이전 bot 메시지는 disabled.
   let lastBotIdx = -1
   for (let i = session.history.length - 1; i >= 0; i--) {
@@ -106,6 +110,7 @@ function buildChatRoomMessages(session) {
       return responseToChatMessage(`bot-${idx}`, ev.response, {
         disabled: idx !== lastBotIdx || session.ended,
         timestamp: '',
+        variables,
       })
     }
     if (ev.kind === 'user-click') {
@@ -119,8 +124,14 @@ function buildChatRoomMessages(session) {
   })
 }
 
-export default function SimulatorChat({ session, onClickButton, onSendUtterance, botName = '챗봇' }) {
-  const messages = useMemo(() => buildChatRoomMessages(session), [session])
+export default function SimulatorChat({
+  session,
+  variables = [],
+  onClickButton,
+  onSendUtterance,
+  botName = '챗봇',
+}) {
+  const messages = useMemo(() => buildChatRoomMessages(session, variables), [session, variables])
 
   /** ChatRoom 의 onMessageAction → 활성 응답의 (label, link) 를 추출해 runtime clickButton 호출 */
   const handleAction = (messageId, action) => {
@@ -157,7 +168,8 @@ export default function SimulatorChat({ session, onClickButton, onSendUtterance,
       // form-submit 등 — Phase 1 에서는 지원 안 함
       return
     }
-    onClickButton(label, link)
+    // URL 링크는 url 필드에 변수 치환 적용 후 전달 (사용자가 {{$도메인}}/path 같은 패턴 활용 가능)
+    onClickButton(interpolate(label, variables), interpolateLink(link, variables))
   }
 
   return (

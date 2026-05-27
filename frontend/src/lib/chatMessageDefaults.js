@@ -42,6 +42,15 @@ export const ACTION_TYPES = [
   { value: 'inputForm', label: '입력 폼 메시지' },
   { value: 'rag', label: 'RAG 메시지' },
   { value: 'branch', label: '분기 연결' },
+  { value: 'api', label: 'API 호출' },
+]
+
+export const HTTP_METHODS = [
+  { value: 'GET',    label: 'GET - 조회, 데이터를 가져올 때' },
+  { value: 'POST',   label: 'POST - 등록, 데이터를 새로 만들거나 작업을 요청할 때' },
+  { value: 'PUT',    label: 'PUT - 수정, 데이터를 통째로 바꿀 때' },
+  { value: 'PATCH',  label: 'PATCH - 부분 수정, 데이터 일부만 바꿀 때' },
+  { value: 'DELETE', label: 'DELETE - 삭제, 데이터를 지울 때' },
 ]
 
 export const FORM_TYPES = [
@@ -125,6 +134,31 @@ export function defaultPerModeExtras() {
   }
 }
 
+/** 응답이 들고 있는 API 참조 — 등록된 API 의 id + 호출 후 진행할 응답 링크.
+ *  실제 method/URL/headers/body 는 bot.apis 의 해당 엔트리에 보관. */
+export function defaultApiConfig() {
+  return {
+    apiId: '',           // bot.apis 의 entry id (없으면 미선택 상태)
+    nextLink: defaultLink(),
+  }
+}
+
+/** 봇 레벨 등록 API 엔트리 — 한 번 등록하고 여러 응답에서 재사용.
+ *  id, name, description, method, url, headers, body 는 정의 정보.
+ *  lastTestResult 는 마지막 테스트 결과 (변수 등록 UI 표시용). */
+export function defaultApiEntry(id) {
+  return {
+    id,
+    name: '새 API',
+    description: '',
+    method: 'POST',
+    url: '',
+    headers: [{ id: 1, key: '', value: '' }],
+    body: '',
+    lastTestResult: null,
+  }
+}
+
 /** 새 단계의 메시지 설정 기본값 — 모든 토글 ON 으로 시작 */
 export function createDefaultMessageConfig() {
   return {
@@ -167,6 +201,9 @@ export function createDefaultMessageConfig() {
       inputForm: defaultPerModeExtras(),
       rag: defaultPerModeExtras(),
       branch: defaultPerModeExtras(),
+      api: defaultPerModeExtras(),
     },
+    // API 호출 설정 (mode === 'api' 일 때 사용). 다른 모드에선 무시.
+    api: defaultApiConfig(),
   }
 }

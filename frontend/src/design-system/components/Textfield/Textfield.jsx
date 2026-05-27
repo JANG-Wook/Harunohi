@@ -111,25 +111,25 @@ export default function Textfield({
     display:       'flex',
     alignItems:    'center',
     gap:           'var(--spacing-4)',
-    fontSize:      'var(--font-size-label-1)',
+    fontSize:      'var(--font-size-body-2)',
     fontWeight:    'var(--font-weight-semibold)',
-    lineHeight:    'var(--line-height-label-1-normal)',
-    letterSpacing: 'var(--letter-spacing-label-1)',
+    lineHeight:    'var(--line-height-body-2-normal)',
+    letterSpacing: 'var(--letter-spacing-body-2)',
     color:         'var(--color-label-neutral)',
   }
 
   const requiredStyle = {
     color:      'var(--color-status-negative)',
-    fontSize:   'var(--font-size-label-1)',
+    fontSize:   'var(--font-size-body-2)',
     fontWeight: 'var(--font-weight-semibold)',
     lineHeight: 1,
   }
 
   const descriptionStyle = {
-    fontSize:      'var(--font-size-caption-1)',
+    fontSize:      'var(--font-size-label-1)',
     fontWeight:    'var(--font-weight-regular)',
-    lineHeight:    'var(--line-height-caption-1)',
-    letterSpacing: 'var(--letter-spacing-caption-1)',
+    lineHeight:    'var(--line-height-label-1-normal)',
+    letterSpacing: 'var(--letter-spacing-label-1)',
     color: status === 'negative' && !disabled
       ? 'var(--color-status-negative)'
       : 'var(--color-label-alternative)',

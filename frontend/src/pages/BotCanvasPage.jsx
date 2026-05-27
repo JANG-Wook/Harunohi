@@ -14,6 +14,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
+import ApiEditModal from '../canvas/ApiEditModal.jsx'
 import ScenarioPanel from '../canvas/ScenarioPanel.jsx'
 import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
@@ -95,12 +96,14 @@ function scenarioPayload(sc, nodes) {
 }
 
 /** 버전 전체 직렬화 — 현재 시나리오의 위치는 nodes 에서 끌어오고 나머지는 그대로 */
-function versionPayload(scenarios, currentScenarioId, nodes) {
+function versionPayload(scenarios, currentScenarioId, nodes, variables = [], apis = []) {
   return {
     scenarios: scenarios.map((sc) =>
       sc.id === currentScenarioId ? scenarioPayload(sc, nodes) : sc,
     ),
     currentScenarioId,
+    variables,
+    apis,
   }
 }
 
@@ -199,9 +202,12 @@ function findIncomingLinks(targetScenarioId, scenarios) {
   return result
 }
 
-/** 레거시 버전(steps[]) → 시나리오 1개로 감싸기 */
+/** 레거시 버전(steps[]) → 시나리오 1개로 감싸기 + variables/apis 필드 보장 */
 function migrateLegacyVersion(v) {
-  if (Array.isArray(v.scenarios)) return v
+  // variables 필드가 없는 버전(이전 포맷)에 빈 배열 보강 — Phase 2A 도입 마이그레이션
+  const variables = Array.isArray(v.variables) ? v.variables : []
+  const apis = Array.isArray(v.apis) ? v.apis : []
+  if (Array.isArray(v.scenarios)) return { ...v, variables, apis }
   const responses = Array.isArray(v.steps) ? v.steps : []
   const positions = v.positions ?? {}
   // 레거시 위치 객체에 'trigger' 키가 있을 수 있어 분리
@@ -221,6 +227,65 @@ function migrateLegacyVersion(v) {
     savedAt: v.savedAt,
     scenarios: [defaultSc],
     currentScenarioId: defaultSc.id,
+    variables,
+    apis,
+  }
+}
+
+/** Phase 2B 인라인 API config (response.messageConfig.api 가 method/url/... 가짐) →
+ *  Phase 2B-3 등록 API + 응답은 apiId 만 참조 형태로 마이그레이션. */
+function migrateInlineApisToRegistry(version) {
+  if (!Array.isArray(version.scenarios)) return version
+  const existingApis = Array.isArray(version.apis) ? [...version.apis] : []
+  const existingVariables = Array.isArray(version.variables) ? [...version.variables] : []
+  let nextApiSeq = existingApis.length
+
+  const nextScenarios = version.scenarios.map((sc) => ({
+    ...sc,
+    responses: (sc.responses ?? []).map((r) => {
+      const cfg = r.messageConfig
+      if (!cfg || cfg.mode !== 'api') return r
+      const api = cfg.api
+      if (!api) return r
+      // 이미 신포맷 (apiId 존재) 이면 통과
+      if (api.apiId !== undefined && api.method === undefined) return r
+      // 인라인 method/url 이 있으면 새 API 엔트리로 추출
+      if (api.method || api.url) {
+        const newId = `api_legacy_${version.id}_${nextApiSeq++}`
+        existingApis.push({
+          id: newId,
+          name: r.name ? `${r.name} API` : '이전 API',
+          description: '',
+          method: api.method ?? 'POST',
+          url: api.url ?? '',
+          headers: api.headers ?? [{ id: 1, key: '', value: '' }],
+          body: api.body ?? '',
+          lastTestResult: api.lastTestResult ?? null,
+        })
+        // 이 응답을 sourceId 로 갖는 변수들을 새 API id 로 재연결
+        for (let i = 0; i < existingVariables.length; i++) {
+          const v = existingVariables[i]
+          if (v.sourceType === 'api' && v.sourceId === r.id) {
+            existingVariables[i] = { ...v, sourceApiId: newId, sourceId: newId }
+          }
+        }
+        return {
+          ...r,
+          messageConfig: {
+            ...cfg,
+            api: { apiId: newId, nextLink: api.nextLink ?? null },
+          },
+        }
+      }
+      return r
+    }),
+  }))
+
+  return {
+    ...version,
+    scenarios: nextScenarios,
+    apis: existingApis,
+    variables: existingVariables,
   }
 }
 
@@ -230,8 +295,10 @@ function loadFromStorage(botId) {
     if (!raw) return { versions: [], currentVersionId: null, status: 'draft' }
     const parsed = JSON.parse(raw)
     if (parsed && Array.isArray(parsed.versions)) {
-      // 시나리오 마이그레이션(steps→scenarios) 후 링크 마이그레이션(targetStepId→{scenarioId,responseId})
-      const versions = parsed.versions.map((v) => migrateVersionLinks(migrateLegacyVersion(v)))
+      // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API 마이그레이션
+      const versions = parsed.versions.map((v) =>
+        migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))),
+      )
       return {
         versions,
         currentVersionId:
@@ -241,14 +308,16 @@ function loadFromStorage(botId) {
     }
     // 더 오래된 포맷 — versions 자체가 없고 steps 만 있음
     if (parsed && Array.isArray(parsed.steps)) {
-      const legacy = migrateVersionLinks(
-        migrateLegacyVersion({
-          id: `v_${Date.now()}_legacy`,
-          savedAt: new Date().toISOString(),
-          steps: parsed.steps,
-          positions: parsed.positions ?? {},
-          triggerTargetStepId: parsed.triggerTargetStepId ?? null,
-        }),
+      const legacy = migrateInlineApisToRegistry(
+        migrateVersionLinks(
+          migrateLegacyVersion({
+            id: `v_${Date.now()}_legacy`,
+            savedAt: new Date().toISOString(),
+            steps: parsed.steps,
+            positions: parsed.positions ?? {},
+            triggerTargetStepId: parsed.triggerTargetStepId ?? null,
+          }),
+        ),
       )
       return { versions: [legacy], currentVersionId: legacy.id, status: 'draft' }
     }
@@ -307,6 +376,15 @@ function CanvasInner() {
   )
   const [selectedId, setSelectedId] = useState(null)
 
+  /* 봇 변수 — 전역 (버전 단위로 스냅샷). 시뮬레이터 변수 치환의 단일 출처 */
+  const [variables, setVariables] = useState(initialVersion?.variables ?? [])
+
+  /* 봇 등록 API — 응답에서 apiId 로 참조 (한 번 등록, 여러 응답 재사용) */
+  const [apis, setApis] = useState(initialVersion?.apis ?? [])
+
+  /* API 편집/등록 모달 — null 이면 닫힘, 객체면 { api, isNew } */
+  const [editingApi, setEditingApi] = useState(null)
+
   const currentScenario = useMemo(
     () => scenarios.find((s) => s.id === currentScenarioId) ?? scenarios[0] ?? null,
     [scenarios, currentScenarioId],
@@ -329,6 +407,8 @@ function CanvasInner() {
           positions: initialScenarios[0]?.positions ?? {},
           triggerPosition: initialScenarios[0]?.triggerPosition,
         }),
+        initialVersion?.variables ?? [],
+        initialVersion?.apis ?? [],
       ),
     ),
   )
@@ -385,8 +465,8 @@ function CanvasInner() {
   )
 
   const currentSnapshot = useMemo(
-    () => JSON.stringify(versionPayload(scenarios, currentScenarioId, nodes)),
-    [scenarios, currentScenarioId, nodes],
+    () => JSON.stringify(versionPayload(scenarios, currentScenarioId, nodes, variables, apis)),
+    [scenarios, currentScenarioId, nodes, variables, apis],
   )
   const isDirty = currentSnapshot !== savedSnapshot
 
@@ -397,6 +477,8 @@ function CanvasInner() {
     versions,
     currentVersionId,
     botStatus,
+    variables,
+    apis,
   })
   stateRef.current = {
     scenarios,
@@ -405,6 +487,8 @@ function CanvasInner() {
     versions,
     currentVersionId,
     botStatus,
+    variables,
+    apis,
   }
 
   const handleSave = useCallback(() => {
@@ -414,8 +498,10 @@ function CanvasInner() {
       nodes: n,
       versions: vs,
       botStatus: bs,
+      variables: vars,
+      apis: aps,
     } = stateRef.current
-    const payload = versionPayload(scs, curScId, n)
+    const payload = versionPayload(scs, curScId, n, vars, aps)
     const newVersion = {
       id: nextVersionId(),
       savedAt: new Date().toISOString(),
@@ -446,9 +532,14 @@ function CanvasInner() {
     }
   }, [botId])
 
-  /* 시뮬레이터 페이로드 getter — 저장 안 한 변경분도 즉시 시뮬 가능하도록 최신 stateRef 반환 */
+  /* 시뮬레이터 페이로드 getter — 저장 안 한 변경분도 즉시 시뮬 가능하도록 최신 stateRef 반환.
+     변수/등록 API 도 함께 전달해 메시지·URL 치환 + API 실행에 사용. */
   const getSimulatorPayload = useCallback(() => {
-    return stateRef.current.scenarios
+    return {
+      scenarios: stateRef.current.scenarios,
+      variables: stateRef.current.variables,
+      apis: stateRef.current.apis,
+    }
   }, [])
 
   const handleLoadVersion = useCallback(
@@ -460,6 +551,8 @@ function CanvasInner() {
       const targetSc = targetScs.find((s) => s.id === targetCurId) ?? targetScs[0] ?? null
       setScenarios(targetScs)
       setCurrentScenarioId(targetCurId)
+      setVariables(target.variables ?? [])
+      setApis(target.apis ?? [])
       setNodes(
         buildAllNodes(targetSc?.responses ?? [], {
           positions: targetSc?.positions ?? {},
@@ -468,7 +561,11 @@ function CanvasInner() {
       )
       setSelectedId(null)
       setCurrentVersionId(target.id)
-      setSavedSnapshot(JSON.stringify(versionPayload(targetScs, targetCurId, [])))
+      setSavedSnapshot(
+        JSON.stringify(
+          versionPayload(targetScs, targetCurId, [], target.variables ?? [], target.apis ?? []),
+        ),
+      )
     },
     [setNodes],
   )
@@ -655,6 +752,103 @@ function CanvasInner() {
     setScenarios((prev) => prev.map((s) => (s.id === scId ? { ...s, name } : s)))
   }, [])
 
+  /* 변수 CRUD — Phase 2A: 수동 추가, 2B: API 응답에서 자동 등록 */
+  const handleAddVariable = useCallback((payload) => {
+    // payload: { originalKey, displayName?, sampleValue?, sourceType?, sourceId?, sourcePath? }
+    setVariables((prev) => {
+      // 중복 originalKey 면 sampleValue/sourcePath 만 업데이트 (재테스트 시 최신화)
+      const idx = prev.findIndex((v) => v.originalKey === payload.originalKey)
+      if (idx >= 0) {
+        const next = [...prev]
+        next[idx] = {
+          ...next[idx],
+          sampleValue: payload.sampleValue ?? next[idx].sampleValue,
+          sourcePath: payload.sourcePath ?? next[idx].sourcePath,
+        }
+        return next
+      }
+      return [
+        ...prev,
+        {
+          id: `var_${Date.now().toString(36)}_${prev.length}`,
+          originalKey: payload.originalKey,
+          displayName: payload.displayName ?? '',
+          sampleValue: payload.sampleValue ?? '',
+          sourceType: payload.sourceType ?? 'manual',
+          sourceId: payload.sourceId ?? null,
+          sourcePath: payload.sourcePath ?? null,
+          valueType: 'string',
+        },
+      ]
+    })
+  }, [])
+
+  const handleDeleteVariable = useCallback((id) => {
+    setVariables((prev) => prev.filter((v) => v.id !== id))
+  }, [])
+
+  /* 등록 API CRUD — 봇 전역.
+     handleAddApi 는 신규 draft 를 모달에 띄울 뿐 bot.apis 에는 안 넣음.
+     handleSubmitApi 가 호출되어야 비로소 추가됨. */
+  const handleAddApi = useCallback(() => {
+    const id = `api_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
+    setEditingApi({
+      api: {
+        id,
+        name: '새 API',
+        description: '',
+        method: 'POST',
+        url: '',
+        headers: [{ id: 1, key: '', value: '' }],
+        body: '',
+        lastTestResult: null,
+      },
+      isNew: true,
+    })
+    return id
+  }, [])
+
+  const handleOpenApiForEdit = useCallback(
+    (id) => {
+      const found = apis.find((a) => a.id === id)
+      if (found) setEditingApi({ api: found, isNew: false })
+    },
+    [apis],
+  )
+
+  /** 모달의 등록/저장 버튼 — draft 를 bot.apis 에 반영 */
+  const handleSubmitApi = useCallback((draft) => {
+    setApis((prev) => {
+      const exists = prev.some((a) => a.id === draft.id)
+      return exists ? prev.map((a) => (a.id === draft.id ? draft : a)) : [...prev, draft]
+    })
+    setEditingApi(null)
+  }, [])
+
+  const handleDeleteApi = useCallback((id) => {
+    setApis((prev) => prev.filter((a) => a.id !== id))
+    // 해당 API 를 참조하던 응답들의 apiId 를 비움
+    setScenarios((prev) =>
+      prev.map((sc) => ({
+        ...sc,
+        responses: sc.responses.map((r) => {
+          const cfg = r.messageConfig
+          if (cfg?.mode === 'api' && cfg.api?.apiId === id) {
+            return {
+              ...r,
+              messageConfig: { ...cfg, api: { ...cfg.api, apiId: '' } },
+            }
+          }
+          return r
+        }),
+      })),
+    )
+    // 해당 API 소스인 변수들도 정리 (sourceApiId 비우기)
+    setVariables((prev) =>
+      prev.map((v) => (v.sourceApiId === id ? { ...v, sourceApiId: null } : v)),
+    )
+  }, [])
+
   const handleDeleteScenario = useCallback(
     (scId) => {
       setScenarios((prev) => {
@@ -700,6 +894,12 @@ function CanvasInner() {
   return (
     <div className="bot-canvas">
       <ScenarioPanel
+        variables={variables}
+        onAddVariable={handleAddVariable}
+        onDeleteVariable={handleDeleteVariable}
+        apis={apis}
+        onAddApi={handleAddApi}
+        onSelectApi={(id) => handleOpenApiForEdit(id)}
         scenarios={scenarios}
         currentScenarioId={currentScenarioId}
         onSelectScenario={switchScenario}
@@ -753,6 +953,27 @@ function CanvasInner() {
           onDelete={handleDeleteStep}
           scenarioOptions={scenarioOptions}
           currentScenarioId={currentScenarioId}
+          variables={variables}
+          onRegisterVariable={handleAddVariable}
+          registeredApis={apis}
+          onCreateApi={handleAddApi}
+          onEditApi={(id) => handleOpenApiForEdit(id)}
+        />
+      )}
+
+      {/* API 편집/등록 모달 — 좌측 패널의 + 또는 클릭 시 열림 */}
+      {editingApi && (
+        <ApiEditModal
+          api={editingApi.api}
+          isNew={editingApi.isNew}
+          variables={variables}
+          onSubmit={handleSubmitApi}
+          onRegisterVariable={handleAddVariable}
+          onDelete={() => {
+            handleDeleteApi(editingApi.api.id)
+            setEditingApi(null)
+          }}
+          onClose={() => setEditingApi(null)}
         />
       )}
     </div>

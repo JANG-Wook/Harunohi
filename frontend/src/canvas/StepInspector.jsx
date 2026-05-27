@@ -13,6 +13,11 @@ export default function StepInspector({
   onDelete,
   scenarioOptions = [],
   currentScenarioId = null,
+  variables = [],
+  onRegisterVariable,
+  registeredApis = [],
+  onCreateApi,
+  onEditApi,
 }) {
   if (!step) {
     return (
@@ -58,6 +63,11 @@ export default function StepInspector({
         scenarioOptions={scenarioOptions}
         currentScenarioId={currentScenarioId}
         currentResponseId={step.id}
+        variables={variables}
+        onRegisterVariable={onRegisterVariable}
+        registeredApis={registeredApis}
+        onCreateApi={onCreateApi}
+        onEditApi={onEditApi}
       />
 
       <div className="step-inspector__footer">

@@ -467,6 +467,7 @@ export default function Menu({
   actionArea  = null,
   scrollable  = false,
   className   = '',
+  style       = null, // 호출부에서 containerStyle 일부 오버라이드 (예: Select dropdown 너비)
 }) {
   const scrollRef = useRef(null)
 
@@ -523,7 +524,7 @@ export default function Menu({
   }
 
   return (
-    <div style={containerStyle} className={className}>
+    <div style={{ ...containerStyle, ...(style ?? {}) }} className={className}>
       <div style={innerStyle}>
         <div style={scrollWrapperStyle}>
           <div ref={scrollRef} style={scrollAreaStyle}>

@@ -22,6 +22,40 @@ export function createEmptyStep() {
 let scenarioSeq = 0
 export const nextScenarioId = () => `sc_${Date.now().toString(36)}_${scenarioSeq++}`
 
+let variableSeq = 0
+export const nextVariableId = () => `var_${Date.now().toString(36)}_${variableSeq++}`
+
+let apiSeq = 0
+export const nextApiId = () => `api_${Date.now().toString(36)}_${apiSeq++}`
+
+/**
+ * 봇 변수 — 시뮬레이터/실런타임에서 메시지 치환에 사용.
+ *   originalKey: 식별자 (예: 'memberName'). API 응답/폼 키와 매칭되는 원본 키.
+ *   displayName: 사용자 별명 (예: '회원명'). 없으면 originalKey 가 표시 이름이 됨.
+ *   sampleValue: 시뮬레이터 미리보기용 값 (테스트로 API 호출하면 자동 채워짐).
+ *   sourceType:  'manual' | 'api' | 'form' — 변수 출처
+ *   sourceId:    sourceType 이 api/form 일 때 해당 응답 id (manual 은 null)
+ *   valueType:   'string' | 'number' | 'boolean' — 표시/검증용 (Phase 2A 는 string 만)
+ */
+export function createVariable({
+  originalKey,
+  displayName = '',
+  sampleValue = '',
+  sourceType = 'manual',
+  sourceId = null,
+  valueType = 'string',
+}) {
+  return {
+    id: nextVariableId(),
+    originalKey,
+    displayName,
+    sampleValue,
+    sourceType,
+    sourceId,
+    valueType,
+  }
+}
+
 /** 빈 시나리오 — 응답 0개로 시작, 트리거 위치만 기본값 */
 export function createEmptyScenario(name = '새 시나리오') {
   return {

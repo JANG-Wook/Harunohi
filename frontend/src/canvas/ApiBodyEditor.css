@@ -1,0 +1,40 @@
+/* Request Body 편집기 — 폼 모드 + JSON 모드 토글 */
+
+.api-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-10);
+}
+
+.api-body__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+
+.api-body__mode {
+  flex-shrink: 0;
+}
+
+.api-body__warning {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6) var(--spacing-10);
+  background: color-mix(in srgb, var(--color-status-cautionary) 10%, transparent);
+  border-radius: var(--spacing-6);
+}
+
+.api-body__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.api-body__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--spacing-8);
+  align-items: center;
+}

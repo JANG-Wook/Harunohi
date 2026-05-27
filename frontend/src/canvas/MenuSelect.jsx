@@ -47,6 +47,9 @@ export default function MenuSelect({
                 setOpen(false)
               },
             }))}
+            /* Select 드롭다운은 트리거 너비를 그대로 채워야 옵션 라벨이 한 줄에 들어감.
+               Menu DS 기본 maxWidth(320px) 가 좁아 긴 옵션이 줄바꿈되는 이슈 회피. */
+            style={{ width: '100%', maxWidth: 'none' }}
           />
         </div>
       )}

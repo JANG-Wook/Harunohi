@@ -52,12 +52,23 @@ export default function BotWorkspaceLayout() {
     simulatorPayloadRef.current = fn
   }, [])
 
-  /* 시뮬레이터 모달 상태 + 열 때 현재 봇의 시나리오 스냅샷 */
+  /* 시뮬레이터 모달 상태 + 열 때 현재 봇의 시나리오/변수/등록 API 스냅샷 */
   const [simulatorOpen, setSimulatorOpen] = useState(false)
   const [simulatorScenarios, setSimulatorScenarios] = useState([])
+  const [simulatorVariables, setSimulatorVariables] = useState([])
+  const [simulatorApis, setSimulatorApis] = useState([])
   const handleOpenSimulator = useCallback(() => {
-    const scs = simulatorPayloadRef.current?.() ?? []
-    setSimulatorScenarios(scs)
+    const payload = simulatorPayloadRef.current?.()
+    // 구포맷(scenarios 만 반환) 호환을 위해 형태 분기
+    if (Array.isArray(payload)) {
+      setSimulatorScenarios(payload)
+      setSimulatorVariables([])
+      setSimulatorApis([])
+    } else {
+      setSimulatorScenarios(payload?.scenarios ?? [])
+      setSimulatorVariables(payload?.variables ?? [])
+      setSimulatorApis(payload?.apis ?? [])
+    }
     setSimulatorOpen(true)
   }, [])
 
@@ -320,6 +331,8 @@ export default function BotWorkspaceLayout() {
         isOpen={simulatorOpen}
         onClose={() => setSimulatorOpen(false)}
         scenarios={simulatorScenarios}
+        variables={simulatorVariables}
+        apis={simulatorApis}
         botName={decodeURIComponent(botId ?? '')}
       />
     </div>

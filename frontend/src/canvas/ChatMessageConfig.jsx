@@ -10,6 +10,7 @@ import Tab from '../design-system/components/Tab/Tab.jsx'
 import TextButton from '../design-system/components/TextButton/TextButton.jsx'
 import Textarea from '../design-system/components/Textfield/Textarea.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
+import ApiPicker from './ApiPicker.jsx'
 import MenuSelect from './MenuSelect.jsx'
 import {
   ACTION_TYPES,
@@ -43,7 +44,7 @@ const LINK_TYPE_OPTIONS = [
  *
  * scenarioOptions: [{ id, name, responses: [{value, label}] }]
  * currentScenarioId / currentResponseId: 같은 시나리오 안에서 자기 자신은 응답 옵션에서 제외 */
-function LinkEditor({
+export function LinkEditor({
   link,
   onChange,
   scenarioOptions = [],
@@ -350,6 +351,11 @@ export default function ChatMessageConfig({
   scenarioOptions = [],
   currentScenarioId = null,
   currentResponseId = null,
+  variables = [],
+  onRegisterVariable,
+  registeredApis = [],
+  onCreateApi,
+  onEditApi,
 }) {
   const { cfg, mode, texts, imageFile, carouselCards, activeCardIdx, form } = config
 
@@ -383,6 +389,7 @@ export default function ChatMessageConfig({
 
   const isCarousel = mode === 'carousel'
   const isInputForm = mode === 'inputForm'
+  const isApi = mode === 'api'
   const isPending = mode === 'rag' || mode === 'branch'
 
   /* 캐로셀 모드에선 카드 단위 섹션(이미지·텍스트·버튼)을 외곽 rail 로 묶음 */
@@ -502,7 +509,20 @@ export default function ChatMessageConfig({
           )}
         </NumberedSection>
 
-        {!isPending && (
+        {isApi && (
+          <ApiPicker
+            apiRef={config.api}
+            onChange={(nextApi) => update({ api: nextApi })}
+            registeredApis={registeredApis}
+            onCreateApi={onCreateApi}
+            onEditApi={onEditApi}
+            scenarioOptions={scenarioOptions}
+            currentScenarioId={currentScenarioId}
+            currentResponseId={currentResponseId}
+          />
+        )}
+
+        {!isPending && !isApi && (
           <>
             {isCarousel && (
               <div>

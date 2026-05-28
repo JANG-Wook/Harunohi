@@ -350,6 +350,7 @@ export default function ChatMessageConfig({
   config,
   onChange,
   scenarioOptions = [],
+  scenarios = [],
   currentScenarioId = null,
   currentResponseId = null,
   variables = [],
@@ -519,8 +520,10 @@ export default function ChatMessageConfig({
             onCreateApi={onCreateApi}
             onEditApi={onEditApi}
             scenarioOptions={scenarioOptions}
+            scenarios={scenarios}
             currentScenarioId={currentScenarioId}
             currentResponseId={currentResponseId}
+            variables={variables}
           />
         )}
 

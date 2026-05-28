@@ -93,3 +93,8 @@
 .step-node__preview {
   padding: var(--spacing-8) 0 0;
 }
+
+/* API 모드 — 컴팩트 노드. ApiNodePreview 가 자체 패딩을 가지므로 컨테이너는 비움 */
+.step-node__api {
+  padding: 0;
+}

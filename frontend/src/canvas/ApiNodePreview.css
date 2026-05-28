@@ -1,0 +1,101 @@
+/* API 호출 응답 — 캔버스 컴팩트 노드 미리보기. step-node 안에서 메시지 카드 자리에 들어간다. */
+
+.api-node {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-16) var(--spacing-16);
+}
+
+.api-node__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.api-node__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-20);
+  height: var(--spacing-20);
+  border-radius: var(--spacing-6);
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+}
+
+.api-node__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.api-node__endpoint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  min-width: 0;
+}
+
+.api-node__method {
+  flex-shrink: 0;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px var(--spacing-4);
+  border-radius: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+  color: var(--color-primary-normal);
+}
+
+.api-node__url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-alternative);
+}
+
+.api-node__divider {
+  height: 1px;
+  background: var(--color-line-solid-alternative);
+  margin: var(--spacing-4) 0;
+}
+
+.api-node__next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.api-node__next-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-width: 0;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+}
+
+.api-node__next-scenario {
+  font-weight: 600;
+  color: var(--color-label-normal);
+  flex-shrink: 0;
+}
+
+.api-node__next-sep {
+  color: var(--color-label-assistive);
+  flex-shrink: 0;
+}
+
+.api-node__next-response {
+  color: var(--color-label-alternative);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}

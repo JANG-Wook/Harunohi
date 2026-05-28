@@ -18,7 +18,7 @@ import ApiEditModal from '../canvas/ApiEditModal.jsx'
 import ScenarioPanel from '../canvas/ScenarioPanel.jsx'
 import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
-import StepNode from '../canvas/nodes/StepNode.jsx'
+import StepNode, { StepNodeProvider } from '../canvas/nodes/StepNode.jsx'
 import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
 import { createDefaultBotVariables, createEmptyScenario, createEmptyStep } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
@@ -1030,7 +1030,8 @@ function CanvasInner() {
       />
 
       <div className="bot-canvas__flow">
-        <ReactFlow
+        <StepNodeProvider registeredApis={apis} scenarios={scenarios}>
+          <ReactFlow
           nodes={nodes}
           edges={derivedEdges}
           onNodesChange={onNodesChange}
@@ -1049,6 +1050,7 @@ function CanvasInner() {
           <Background gap={20} size={1} color="rgba(112,115,124,0.18)" />
           <Controls position="bottom-right" showInteractive={false} showFitView={false} />
         </ReactFlow>
+        </StepNodeProvider>
       </div>
 
       {selectedId === TRIGGER_NODE_ID ? (
@@ -1065,6 +1067,7 @@ function CanvasInner() {
           onClose={() => setSelectedId(null)}
           onDelete={handleDeleteStep}
           scenarioOptions={scenarioOptions}
+          scenarios={scenarios}
           currentScenarioId={currentScenarioId}
           variables={variables}
           onRegisterVariable={handleAddVariable}

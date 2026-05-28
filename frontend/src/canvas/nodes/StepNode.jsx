@@ -1,10 +1,22 @@
-// 캔버스 위 응답 노드 — 헤더(이름) + 챗봇 메시지 미리보기 + cross-scenario 링크 배지
-import { memo } from 'react'
+// 캔버스 위 응답 노드 — 헤더(이름) + 챗봇 메시지 미리보기 + cross-scenario 링크 배지.
+// API 모드 응답은 메시지 카드 대신 ApiNodePreview 를 렌더해 "백그라운드 단계" 임을 명시.
+import { createContext, memo, useContext } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import Icon from '../../design-system/components/Icon/Icon.jsx'
 import Typography from '../../design-system/components/Typography/Typography.jsx'
+import ApiNodePreview from '../ApiNodePreview.jsx'
 import ChatMessagePreview from '../ChatMessagePreview.jsx'
 import './StepNode.css'
+
+/** API 노드가 등록된 API 목록과 시나리오 목록을 참조하기 위한 컨텍스트.
+ *  매번 node.data 에 흩뿌리지 않고 캔버스 컨테이너에서 한 번에 주입한다. */
+const StepNodeContext = createContext({ registeredApis: [], scenarios: [] })
+
+export function StepNodeProvider({ registeredApis = [], scenarios = [], children }) {
+  return (
+    <StepNodeContext.Provider value={{ registeredApis, scenarios }}>{children}</StepNodeContext.Provider>
+  )
+}
 
 /** cross-scenario 타겟 요약 — 시나리오별로 묶어 "시나리오명 · 응답명, 응답명" 형식 라인으로 변환 */
 function summarizeCrossTargets(targets) {
@@ -21,9 +33,11 @@ function summarizeCrossTargets(targets) {
 
 function StepNode({ data, selected }) {
   const step = data?.step
+  const { registeredApis, scenarios } = useContext(StepNodeContext)
   if (!step) return null
   const crossTargets = data?.crossTargets ?? null
   const crossGroups = crossTargets ? summarizeCrossTargets(crossTargets) : []
+  const isApiMode = step.messageConfig?.mode === 'api'
 
   return (
     <div className={['step-node', selected && 'step-node--selected'].filter(Boolean).join(' ')}>
@@ -54,8 +68,16 @@ function StepNode({ data, selected }) {
         </div>
       )}
 
-      <div className="step-node__preview">
-        <ChatMessagePreview config={step.messageConfig} height="640px" compact />
+      <div className={isApiMode ? 'step-node__api' : 'step-node__preview'}>
+        {isApiMode ? (
+          <ApiNodePreview
+            config={step.messageConfig}
+            registeredApis={registeredApis}
+            scenarios={scenarios}
+          />
+        ) : (
+          <ChatMessagePreview config={step.messageConfig} height="640px" compact />
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,209 @@
+/* API 응답 인스펙터 — 4 블록 레이아웃 + 변수 행 시각화 */
+
+.api-picker {
+  padding: var(--spacing-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+/* 사용할 API 선택 영역 */
+.api-picker__select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.api-picker__endpoint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.api-picker__method {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px var(--spacing-4);
+  border-radius: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+  color: var(--color-primary-normal);
+  flex-shrink: 0;
+}
+
+.api-picker__url {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-alternative);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.api-picker__edit {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 4 블록 공통 */
+.api-picker__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}
+
+.api-picker__block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+
+/* 변수 리스트 */
+.api-picker__var-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.api-picker__var {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--spacing-6);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-line-solid-alternative);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+}
+
+/* 흐름으로 채워짐 — 가장 강조 */
+.api-picker__var.is-flow {
+  color: var(--color-label-normal);
+}
+
+/* 기본값만 있음 — 중립 (시뮬레이터에선 sampleValue 로 치환되지만 흐름이 아직 안 닿음) */
+.api-picker__var.is-sample {
+  color: var(--color-label-alternative);
+  background: transparent;
+}
+
+/* 비어 있음 — 가장 흐림 */
+.api-picker__var.is-empty {
+  color: var(--color-label-assistive);
+  background: transparent;
+  opacity: 0.7;
+}
+
+.api-picker__var.is-unknown {
+  border-color: color-mix(in srgb, var(--color-status-negative) 32%, transparent);
+  color: var(--color-status-negative);
+}
+
+.api-picker__var.is-output {
+  background: color-mix(in srgb, var(--color-primary-normal) 6%, var(--color-bg-elevated));
+  color: var(--color-label-normal);
+}
+
+.api-picker__var-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-16);
+  height: var(--spacing-16);
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.api-picker__var.is-flow .api-picker__var-mark {
+  color: var(--color-status-positive);
+}
+
+.api-picker__var.is-sample .api-picker__var-mark {
+  color: var(--color-label-alternative);
+  font-size: 14px;
+}
+
+.api-picker__var.is-empty .api-picker__var-mark {
+  color: var(--color-label-assistive);
+}
+
+.api-picker__var.is-unknown .api-picker__var-mark {
+  color: var(--color-status-negative);
+}
+
+.api-picker__var.is-output .api-picker__var-mark {
+  color: var(--color-primary-normal);
+}
+
+.api-picker__var-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.api-picker__path {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  color: var(--color-label-alternative);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+  flex-shrink: 1;
+}
+
+/* 출처 칩 — SimulatorSidePanel 의 메모리 출처 칩과 동일한 팔레트 */
+.api-picker__chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px var(--spacing-4);
+  border-radius: var(--spacing-4);
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.api-picker__chip--manual {
+  background: color-mix(in srgb, var(--color-label-assistive) 16%, transparent);
+  color: var(--color-label-alternative);
+}
+
+.api-picker__chip--api {
+  background: color-mix(in srgb, var(--color-primary-normal) 16%, transparent);
+  color: var(--color-primary-normal);
+}
+
+.api-picker__chip--form {
+  background: color-mix(in srgb, var(--color-status-positive) 16%, transparent);
+  color: var(--color-status-positive);
+}
+
+.api-picker__chip--unknown {
+  background: color-mix(in srgb, var(--color-status-negative) 16%, transparent);
+  color: var(--color-status-negative);
+}
+
+.api-picker__chip--sample {
+  background: color-mix(in srgb, var(--color-label-assistive) 12%, transparent);
+  color: var(--color-label-alternative);
+}
+
+/* 경고 라인 */
+.api-picker__warning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--spacing-6);
+  background: color-mix(in srgb, var(--color-status-negative) 8%, transparent);
+}

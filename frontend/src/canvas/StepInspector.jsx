@@ -12,6 +12,7 @@ export default function StepInspector({
   onClose,
   onDelete,
   scenarioOptions = [],
+  scenarios = [],
   currentScenarioId = null,
   variables = [],
   onRegisterVariable,
@@ -61,6 +62,7 @@ export default function StepInspector({
         config={step.messageConfig}
         onChange={(nextConfig) => patch({ messageConfig: nextConfig })}
         scenarioOptions={scenarioOptions}
+        scenarios={scenarios}
         currentScenarioId={currentScenarioId}
         currentResponseId={step.id}
         variables={variables}

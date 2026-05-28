@@ -106,6 +106,7 @@
   gap: var(--spacing-8);
   padding: var(--spacing-6) var(--spacing-8);
   border-radius: var(--spacing-6);
+  cursor: pointer;
   transition: background 120ms ease;
 }
 .scenario-panel__variable:hover {
@@ -130,14 +131,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.scenario-panel__variable-delete {
-  opacity: 0;
-  transition: opacity 120ms ease;
-}
-.scenario-panel__variable:hover .scenario-panel__variable-delete {
-  opacity: 1;
 }
 
 .scenario-panel__empty {
@@ -188,17 +181,25 @@
   color: var(--color-primary-normal);
 }
 
+/* span 과 input 의 시각 박스 크기를 동일하게 — 토글 시 row 높이 흔들림 방지.
+   둘 다 padding 2px 6px + 1px 보더 (span 은 투명) + 같은 폰트 토큰. */
 .scenario-panel__scenario-name {
   flex: 1;
+  min-width: 0;
   font-size: var(--font-size-label-1);
   line-height: var(--line-height-label-1-normal);
   font-weight: 500;
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid transparent;
+  border-radius: var(--spacing-4);
+  box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 이름 inline 편집 — DS 의 Textfield 은 패딩이 커서 토큰으로 직접 구현 */
+/* 이름 inline 편집 — DS 의 Textfield 은 패딩이 커서 토큰으로 직접 구현.
+   span 과 동일한 패딩/보더 박스로 토글 시 row 높이 유지 */
 .scenario-panel__scenario-rename {
   flex: 1;
   min-width: 0;
@@ -206,6 +207,7 @@
   background: var(--color-bg-normal);
   border-radius: var(--spacing-4);
   padding: var(--spacing-2) var(--spacing-6);
+  box-sizing: border-box;
   font-family: inherit;
   font-size: var(--font-size-label-1);
   line-height: var(--line-height-label-1-normal);
@@ -314,33 +316,51 @@
   justify-content: center;
 }
 
-/* 응답 삭제 버튼 — 호버 시 노출. DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */
-.scenario-panel__item-action {
+/* 응답 이름 — 시나리오와 동일한 시각 박스 (rename 토글 시 row 높이 유지) */
+.scenario-panel__item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  font-weight: 500;
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid transparent;
+  border-radius: var(--spacing-4);
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 응답 이름 inline 편집 */
+.scenario-panel__item-rename {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--color-primary-normal);
+  background: var(--color-bg-normal);
+  border-radius: var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-6);
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  color: var(--color-label-normal);
+  outline: none;
+}
+
+/* 응답 액션 묶음 — 호버 시 노출 */
+.scenario-panel__item-actions {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  border-radius: var(--spacing-6);
-  cursor: pointer;
-  color: var(--color-label-alternative);
-  padding: 0;
+  gap: var(--spacing-2);
   opacity: 0;
-  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
-  font-family: inherit;
+  transition: opacity 120ms ease;
 }
 
-.scenario-panel__item:hover .scenario-panel__item-action,
-.scenario-panel__item--active .scenario-panel__item-action {
+.scenario-panel__item:hover .scenario-panel__item-actions,
+.scenario-panel__item--active .scenario-panel__item-actions {
   opacity: 1;
-}
-
-.scenario-panel__item-action:hover {
-  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
-  color: var(--color-status-negative);
 }
 
 /* 삭제 가드 모달 backdrop — DS 에 modal-wrapper 가 없어 토큰으로 직접 구현 */

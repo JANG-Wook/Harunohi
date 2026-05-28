@@ -15,6 +15,7 @@ export default function ScenarioPanel({
   // 변수 (봇 전역)
   variables = [],
   onAddVariable,
+  onUpdateVariable,
   onDeleteVariable,
   // 등록 API (봇 전역)
   apis = [],
@@ -34,12 +35,16 @@ export default function ScenarioPanel({
   onSelectResponse,
   onAddResponse,
   onDeleteResponse,
+  onRenameResponse,
   // 트리거 — 현재 시나리오의 트리거 선택
   triggerSelected,
   onSelectTrigger,
 }) {
-  /* 변수 추가 모달 — null 이면 닫힘 */
-  const [variableModalOpen, setVariableModalOpen] = useState(false)
+  /* 변수 모달 — null = 닫힘, { isNew, variable } = 열림 */
+  const [variableModal, setVariableModal] = useState(null)
+  const openAddVariable = () => setVariableModal({ isNew: true, variable: null })
+  const openEditVariable = (v) => setVariableModal({ isNew: false, variable: v })
+  const closeVariableModal = () => setVariableModal(null)
   /* 이름 변경 중인 시나리오 id — null 이면 모두 보기 모드 */
   const [renamingId, setRenamingId] = useState(null)
   const [renameValue, setRenameValue] = useState('')
@@ -62,6 +67,29 @@ export default function ScenarioPanel({
     setRenamingId(null)
   }
   const cancelRename = () => setRenamingId(null)
+
+  /* 이름 변경 중인 응답 id — 시나리오 rename 과 별도 상태 (동시에 두 개 활성 불가) */
+  const [renamingResponseId, setRenamingResponseId] = useState(null)
+  const [renameResponseValue, setRenameResponseValue] = useState('')
+  const renameResponseInputRef = useRef(null)
+
+  useEffect(() => {
+    if (renamingResponseId && renameResponseInputRef.current) {
+      renameResponseInputRef.current.focus()
+      renameResponseInputRef.current.select()
+    }
+  }, [renamingResponseId])
+
+  const startRenameResponse = (step) => {
+    setRenamingResponseId(step.id)
+    setRenameResponseValue(step.name)
+  }
+  const commitRenameResponse = () => {
+    const trimmed = renameResponseValue.trim()
+    if (renamingResponseId && trimmed) onRenameResponse?.(renamingResponseId, trimmed)
+    setRenamingResponseId(null)
+  }
+  const cancelRenameResponse = () => setRenamingResponseId(null)
 
   /* 삭제 확인 다이얼로그 — 응답 개수를 보여주고 동의 받기 */
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -108,55 +136,7 @@ export default function ScenarioPanel({
 
   return (
     <aside className="scenario-panel">
-      {/* ── 변수 섹션 (봇 전역, 위계상 최상위) ─────────────────── */}
-      <div className="scenario-panel__section scenario-panel__section--variables">
-        <div className="scenario-panel__head">
-          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
-            변수
-          </Typography>
-          <button
-            type="button"
-            className="scenario-panel__action scenario-panel__action--add"
-            onClick={() => setVariableModalOpen(true)}
-            aria-label="변수 추가"
-          >
-            <Icon name="plus" size={14} />
-          </button>
-        </div>
-        {variables.length === 0 ? (
-          <div className="scenario-panel__empty">
-            <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
-              아직 등록된 변수가 없어요.
-            </Typography>
-          </div>
-        ) : (
-          <ul className="scenario-panel__variables">
-            {variables.map((v) => {
-              const displayKey = v.displayName?.trim() || v.originalKey
-              return (
-                <li key={v.id} className="scenario-panel__variable">
-                  <span className="scenario-panel__variable-key">
-                    {`{{$${displayKey}}}`}
-                  </span>
-                  <span className="scenario-panel__variable-value" title={v.sampleValue}>
-                    {v.sampleValue || '—'}
-                  </span>
-                  <button
-                    type="button"
-                    className="scenario-panel__action scenario-panel__action--delete scenario-panel__variable-delete"
-                    aria-label="변수 삭제"
-                    onClick={() => onDeleteVariable?.(v.id)}
-                  >
-                    <Icon name="close" size={12} />
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-
-      {/* ── API 섹션 (봇 전역, 변수 다음) ─────────────────────── */}
+      {/* ── API 섹션 (봇 전역, 데이터 소스 — 변수의 인과 상위) ── */}
       <div className="scenario-panel__section scenario-panel__section--apis">
         <div className="scenario-panel__head">
           <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
@@ -178,7 +158,7 @@ export default function ScenarioPanel({
             </Typography>
           </div>
         ) : (
-          <ul className="scenario-panel__apis">
+          <ul className="scenario-panel__apis sidebar-scroll">
             {apis.map((a) => (
               <li
                 key={a.id}
@@ -191,6 +171,50 @@ export default function ScenarioPanel({
                 </span>
               </li>
             ))}
+          </ul>
+        )}
+      </div>
+
+      {/* ── 변수 섹션 (봇 전역, API 응답에서 파생됨) ──────────── */}
+      <div className="scenario-panel__section scenario-panel__section--variables">
+        <div className="scenario-panel__head">
+          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
+            변수
+          </Typography>
+          <button
+            type="button"
+            className="scenario-panel__action scenario-panel__action--add"
+            onClick={openAddVariable}
+            aria-label="변수 추가"
+          >
+            <Icon name="plus" size={14} />
+          </button>
+        </div>
+        {variables.length === 0 ? (
+          <div className="scenario-panel__empty">
+            <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
+              아직 등록된 변수가 없어요.
+            </Typography>
+          </div>
+        ) : (
+          <ul className="scenario-panel__variables sidebar-scroll">
+            {variables.map((v) => {
+              const displayKey = v.displayName?.trim() || v.originalKey
+              return (
+                <li
+                  key={v.id}
+                  className="scenario-panel__variable"
+                  onClick={() => openEditVariable(v)}
+                >
+                  <span className="scenario-panel__variable-key">
+                    {`{{$${displayKey}}}`}
+                  </span>
+                  <span className="scenario-panel__variable-value" title={v.sampleValue}>
+                    {v.sampleValue || '—'}
+                  </span>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
@@ -211,7 +235,7 @@ export default function ScenarioPanel({
           </button>
         </div>
 
-        <ul className="scenario-panel__scenarios">
+        <ul className="scenario-panel__scenarios sidebar-scroll">
           {scenarios.map((sc) => {
             const isActive = sc.id === currentScenarioId
             const isRenaming = renamingId === sc.id
@@ -293,7 +317,6 @@ export default function ScenarioPanel({
             variant="solid"
             color="primary"
             size="small"
-            leadingIcon={<Icon name="plus" size={14} />}
             label="응답 추가"
             onClick={onAddResponse}
           />
@@ -309,7 +332,7 @@ export default function ScenarioPanel({
           </Typography>
         </div>
 
-        <ul className="scenario-panel__items">
+        <ul className="scenario-panel__items sidebar-scroll">
           {/* 트리거 — 현재 시나리오의 진입점, 고정 항목 */}
           <li
             className={[
@@ -339,6 +362,7 @@ export default function ScenarioPanel({
             const statusColor = complete
               ? 'var(--color-label-alternative)'
               : 'var(--color-status-cautionary)'
+            const isRenaming = renamingResponseId === step.id
 
             return (
               <li
@@ -349,41 +373,91 @@ export default function ScenarioPanel({
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                onClick={() => onSelectResponse(step.id)}
+                onClick={() => !isRenaming && onSelectResponse(step.id)}
               >
                 <span className="scenario-panel__item-icon" style={{ color: statusColor }}>
                   <Icon name={statusIcon} size={16} />
                 </span>
-                <Typography variant="label-1-normal" weight="medium" as="span">
-                  {step.name}
-                </Typography>
-                {/* 응답 삭제 — 호버 시 노출. DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */}
-                <button
-                  type="button"
-                  className="scenario-panel__item-action"
-                  aria-label="응답 삭제"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDeleteResponse?.(step.id)
-                  }}
-                >
-                  <Icon name="close" size={14} />
-                </button>
+                {isRenaming ? (
+                  <input
+                    ref={renameResponseInputRef}
+                    type="text"
+                    className="scenario-panel__item-rename"
+                    value={renameResponseValue}
+                    onChange={(e) => setRenameResponseValue(e.target.value)}
+                    onBlur={commitRenameResponse}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitRenameResponse()
+                      if (e.key === 'Escape') cancelRenameResponse()
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="응답 이름"
+                  />
+                ) : (
+                  <span
+                    className="scenario-panel__item-name"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation()
+                      startRenameResponse(step)
+                    }}
+                  >
+                    {step.name}
+                  </span>
+                )}
+                {/* 응답 액션 버튼들 — 호버 시 노출. DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */}
+                <div className="scenario-panel__item-actions">
+                  <button
+                    type="button"
+                    className="scenario-panel__action scenario-panel__action--edit"
+                    aria-label="응답 이름 변경"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startRenameResponse(step)
+                    }}
+                  >
+                    <Icon name="pencil" size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    className="scenario-panel__action scenario-panel__action--delete"
+                    aria-label="응답 삭제"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDeleteResponse?.(step.id)
+                    }}
+                  >
+                    <Icon name="close" size={12} />
+                  </button>
+                </div>
               </li>
             )
           })}
         </ul>
       </div>
 
-      {/* 변수 추가 모달 — DS 에 폼 모달이 없어 토큰 + Textfield/Button 으로 직접 구현 */}
-      {variableModalOpen && (
+      {/* 변수 등록/편집 모달 — 신규: onAddVariable, 편집: onUpdateVariable + 모달 내 삭제 */}
+      {variableModal && (
         <VariableAddModal
+          variable={variableModal.variable}
+          isNew={variableModal.isNew}
           existing={variables}
-          onCancel={() => setVariableModalOpen(false)}
           onSubmit={(payload) => {
-            onAddVariable?.(payload)
-            setVariableModalOpen(false)
+            if (variableModal.isNew) {
+              onAddVariable?.(payload)
+            } else {
+              onUpdateVariable?.(variableModal.variable.id, payload)
+            }
+            closeVariableModal()
           }}
+          onDelete={
+            variableModal.isNew
+              ? undefined
+              : () => {
+                  onDeleteVariable?.(variableModal.variable.id)
+                  closeVariableModal()
+                }
+          }
+          onClose={closeVariableModal}
         />
       )}
 

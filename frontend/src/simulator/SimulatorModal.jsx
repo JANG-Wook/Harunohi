@@ -12,11 +12,15 @@ import {
   clickButton,
   restart,
   sendUtterance,
+  submitForm,
+  clearMemory,
   advanceApiIfNeeded,
+  advanceSsoIfNeeded,
   effectiveVariables,
   getActiveResponse,
 } from '../lib/simulatorRuntime.js'
 import { callApi } from '../lib/apiCaller.js'
+import { runSsoFlow } from '../lib/ssoFlow.js'
 import SimulatorChat from './SimulatorChat.jsx'
 import SimulatorSidePanel from './SimulatorSidePanel.jsx'
 import './SimulatorModal.css'
@@ -54,6 +58,20 @@ export default function SimulatorModal({
     })
   }, [session])
 
+  /* 활성 봇 응답이 SSO mode 면 자동으로 팝업 흐름 실행 → 토큰 저장 + 다음 응답 진행.
+     API 와 같은 중복 방지 패턴 */
+  const lastSsoResponseIdRef = useRef(null)
+  useEffect(() => {
+    const active = getActiveResponse(session)
+    if (!active || session.ended) return
+    if (active.response.messageConfig?.mode !== 'sso') return
+    if (lastSsoResponseIdRef.current === active.responseId) return
+    lastSsoResponseIdRef.current = active.responseId
+    advanceSsoIfNeeded(session, runSsoFlow).then((next) => {
+      setSession(next)
+    })
+  }, [session])
+
   /* Esc 닫기 + 배경 스크롤 잠금 */
   useEffect(() => {
     if (!isOpen) return
@@ -71,12 +89,19 @@ export default function SimulatorModal({
   const handleClickButton = (label, link) => {
     setSession((prev) => clickButton(prev, label, link))
   }
+  const handleSubmitForm = (value) => {
+    setSession((prev) => submitForm(prev, value))
+  }
   const handleSendUtterance = (text) => {
     setSession((prev) => sendUtterance(prev, text))
   }
   const handleRestart = () => {
     lastApiResponseIdRef.current = null
+    lastSsoResponseIdRef.current = null
     setSession(restart(session))
+  }
+  const handleClearMemory = () => {
+    setSession((prev) => clearMemory(prev))
   }
 
   // 봇명 표시는 props 우선, 없으면 시나리오 이름으로 fallback
@@ -128,10 +153,11 @@ export default function SimulatorModal({
             session={session}
             variables={effectiveVariables(session)}
             onClickButton={handleClickButton}
+            onSubmitForm={handleSubmitForm}
             onSendUtterance={handleSendUtterance}
             botName={headerName}
           />
-          <SimulatorSidePanel session={session} />
+          <SimulatorSidePanel session={session} onClearMemory={handleClearMemory} />
         </div>
       </div>
     </div>

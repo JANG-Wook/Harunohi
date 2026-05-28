@@ -29,6 +29,32 @@ let apiSeq = 0
 export const nextApiId = () => `api_${Date.now().toString(36)}_${apiSeq++}`
 
 /**
+ * 새 봇 생성 시 기본으로 제공되는 변수 8종 — 자주 쓰이는 챗봇 패턴 커버.
+ * 매 호출마다 새 id 발급해서 봇끼리 충돌 없음. 사용자는 자유롭게 삭제/편집 가능.
+ */
+export function createDefaultBotVariables() {
+  const seed = [
+    { originalKey: 'memberName',     displayName: '회원명',       sampleValue: '홍길동' },
+    { originalKey: 'memberCode',     displayName: '회원코드',     sampleValue: 'M001' },
+    { originalKey: 'phone',          displayName: '휴대폰번호',   sampleValue: '01012341234' },
+    { originalKey: 'email',          displayName: '이메일',       sampleValue: 'hong@example.com' },
+    { originalKey: 'grade',          displayName: '등급',         sampleValue: 'VIP' },
+    { originalKey: 'orderNumber',    displayName: '주문번호',     sampleValue: 'ORD-20240528-001' },
+    { originalKey: 'trackingNumber', displayName: '배송번호',     sampleValue: '1234567890' },
+    { originalKey: 'accessToken',    displayName: '',             sampleValue: 'at_xxxxxxxxx' },
+  ]
+  return seed.map((entry) => ({
+    id: nextVariableId(),
+    originalKey: entry.originalKey,
+    displayName: entry.displayName,
+    sampleValue: entry.sampleValue,
+    sourceType: 'manual',
+    sourceId: null,
+    valueType: 'string',
+  }))
+}
+
+/**
  * 봇 변수 — 시뮬레이터/실런타임에서 메시지 치환에 사용.
  *   originalKey: 식별자 (예: 'memberName'). API 응답/폼 키와 매칭되는 원본 키.
  *   displayName: 사용자 별명 (예: '회원명'). 없으면 originalKey 가 표시 이름이 됨.

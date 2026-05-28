@@ -1,4 +1,4 @@
-/* 변수 추가 모달 — DS 에 폼 모달 없어 토큰으로 직접 구현 (DashboardPage 의 봇 생성 모달과 동일 패턴) */
+/* 변수 등록/편집 모달 — DS 폼 모달 없어 토큰으로 직접 구현 (ApiEditModal 과 같은 패턴) */
 
 .var-modal__backdrop {
   position: fixed;
@@ -38,9 +38,24 @@
   gap: var(--spacing-16);
 }
 
+/* ── 푸터 — 좌측 삭제 / 우측 취소 + 등록·저장 (ApiEditModal 패턴) ── */
 .var-modal__foot {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-8);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
   padding: var(--spacing-16) var(--spacing-20);
+  border-top: 1px solid var(--color-line-solid-alternative);
+  background: var(--color-bg-elevated);
+}
+
+.var-modal__foot-left {
+  display: flex;
+  align-items: center;
+}
+
+.var-modal__foot-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
 }

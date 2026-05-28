@@ -12,6 +12,7 @@ import Textarea from '../design-system/components/Textfield/Textarea.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import ApiPicker from './ApiPicker.jsx'
 import MenuSelect from './MenuSelect.jsx'
+import SsoConfig from './SsoConfig.jsx'
 import {
   ACTION_TYPES,
   FILE_CAPTION_BANNER,
@@ -390,6 +391,7 @@ export default function ChatMessageConfig({
   const isCarousel = mode === 'carousel'
   const isInputForm = mode === 'inputForm'
   const isApi = mode === 'api'
+  const isSso = mode === 'sso'
   const isPending = mode === 'rag' || mode === 'branch'
 
   /* 캐로셀 모드에선 카드 단위 섹션(이미지·텍스트·버튼)을 외곽 rail 로 묶음 */
@@ -522,7 +524,18 @@ export default function ChatMessageConfig({
           />
         )}
 
-        {!isPending && !isApi && (
+        {isSso && (
+          <SsoConfig
+            config={config.sso}
+            onChange={(nextSso) => update({ sso: nextSso })}
+            variables={variables}
+            scenarioOptions={scenarioOptions}
+            currentScenarioId={currentScenarioId}
+            currentResponseId={currentResponseId}
+          />
+        )}
+
+        {!isPending && !isApi && !isSso && (
           <>
             {isCarousel && (
               <div>
@@ -703,6 +716,36 @@ export default function ChatMessageConfig({
                       </div>
                     </FieldGroup>
                   )}
+
+                  {/* 저장할 변수 — 정규화된 입력값을 어느 변수에 저장할지 */}
+                  <FieldGroup label="저장할 변수">
+                    <MenuSelect
+                      value={form.memoryVariableId ?? ''}
+                      onChange={(id) => setForm({ memoryVariableId: id })}
+                      options={variables.map((v) => ({
+                        value: v.id,
+                        label: `{{$${v.displayName?.trim() || v.originalKey}}}`,
+                      }))}
+                      placeholder={
+                        variables.length === 0
+                          ? '먼저 변수를 등록해주세요'
+                          : '저장할 변수 선택'
+                      }
+                      disabled={variables.length === 0}
+                    />
+                  </FieldGroup>
+
+                  {/* 제출 후 진행할 응답 — 기존 LinkEditor 재사용 */}
+                  <FieldGroup label="제출 후 진행할 응답">
+                    <LinkEditor
+                      link={form.nextLink}
+                      onChange={(nextLink) => setForm({ nextLink })}
+                      scenarioOptions={scenarioOptions}
+                      currentScenarioId={currentScenarioId}
+                      currentResponseId={currentResponseId}
+                      isEnabled
+                    />
+                  </FieldGroup>
                 </SectionCard>
               </NumberedSection>
             )}

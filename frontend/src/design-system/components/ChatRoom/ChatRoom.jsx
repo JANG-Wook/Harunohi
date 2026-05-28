@@ -228,8 +228,9 @@ const labelOf = (options, id, fallbackIdx) => {
   return found?.label || `옵션 ${(idx >= 0 ? idx : fallbackIdx) + 1}`
 }
 
-function RadioGroup({ heading, options }) {
-  const [selectedId, setSelectedId] = useState(options[0]?.id)
+// controlled — 부모에서 value (선택된 id) + onChange 관리. 미지정 시 첫 옵션 기본.
+function RadioGroup({ heading, options, value, onChange }) {
+  const selectedId = value ?? options[0]?.id
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
       <FormHeading text={heading} />
@@ -238,21 +239,22 @@ function RadioGroup({ heading, options }) {
           key={o.id}
           label={o.label || `옵션 ${i + 1}`}
           checked={selectedId === o.id}
-          onChange={() => setSelectedId(o.id)}
+          onChange={() => onChange?.(o.id)}
         />
       ))}
     </div>
   )
 }
 
-function CheckboxList({ heading, options }) {
-  const [selected, setSelected] = useState(() => new Set(options[0] ? [options[0].id] : []))
-  const toggle = id => setSelected(prev => {
-    const next = new Set(prev)
+// controlled — value 는 id 배열
+function CheckboxList({ heading, options, value, onChange }) {
+  const selected = new Set(Array.isArray(value) ? value : [])
+  const toggle = (id) => {
+    const next = new Set(selected)
     if (next.has(id)) next.delete(id)
-    else              next.add(id)
-    return next
-  })
+    else next.add(id)
+    onChange?.([...next])
+  }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
       <FormHeading text={heading} />
@@ -268,9 +270,10 @@ function CheckboxList({ heading, options }) {
   )
 }
 
-function InteractiveSelect({ heading, options, mode, placeholder = '값 선택' }) {
+// controlled — value 는 항상 id 배열 (single 모드도 빈배열 또는 [id])
+function InteractiveSelect({ heading, options, mode, placeholder = '값 선택', value, onChange }) {
   const [open, setOpen] = useState(false)
-  const [selectedIds, setSelectedIds] = useState([])
+  const selectedIds = Array.isArray(value) ? value : []
   const ref = useRef(null)
 
   useEffect(() => {
@@ -284,9 +287,12 @@ function InteractiveSelect({ heading, options, mode, placeholder = '값 선택' 
 
   const handlePick = id => {
     if (mode === 'multi') {
-      setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+      const next = selectedIds.includes(id)
+        ? selectedIds.filter(x => x !== id)
+        : [...selectedIds, id]
+      onChange?.(next)
     } else {
-      setSelectedIds([id])
+      onChange?.([id])
       setOpen(false)
     }
   }
@@ -309,7 +315,7 @@ function InteractiveSelect({ heading, options, mode, placeholder = '값 선택' 
           placeholder={placeholder}
           onClick={() => setOpen(o => !o)}
           forceFocused={open}
-          onRemoveChip={chipValue => setSelectedIds(prev => prev.filter(id => labelOf(options, id, 0) !== chipValue))}
+          onRemoveChip={chipValue => onChange?.(selectedIds.filter(id => labelOf(options, id, 0) !== chipValue))}
         />
       ) : (
         <Select
@@ -343,71 +349,104 @@ function InteractiveSelect({ heading, options, mode, placeholder = '값 선택' 
   )
 }
 
-// 미리보기용 — DateInput을 로컬 state로 감싼 래퍼 (대화방 폭에 맞게 100%)
-function DateInputLocal({ heading, placeholder }) {
-  const [val, setVal] = useState(null)
-  return <DateInput heading={heading} placeholder={placeholder} value={val} onChange={setVal} calendarWidth="100%" />
-}
-
-// 미리보기용 — Date + Time 입력을 함께 표시
-function DateTimeInputLocal({ heading, placeholder, timePlaceholder }) {
-  const [date, setDate] = useState(null)
-  const [time, setTime] = useState(null)
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
-      <DateInput heading={heading} placeholder={placeholder} value={date} onChange={setDate} calendarWidth="100%" />
-      <TimeInput value={time} onChange={setTime} placeholder={timePlaceholder || '시간 선택'} />
-    </div>
-  )
-}
-
-// 미리보기용 — 기간 선택 DateInput
-function DateRangeInputLocal({ heading, placeholder }) {
-  const [range, setRange] = useState(null)
+// controlled — value/onChange 부모에서 관리. 미지정 시 빈 값
+function DateInputLocal({ heading, placeholder, value, onChange }) {
   return (
     <DateInput
-      mode="range"
       heading={heading}
       placeholder={placeholder}
-      value={range}
-      onChange={setRange}
+      value={value ?? null}
+      onChange={onChange ?? (() => {})}
       calendarWidth="100%"
     />
   )
 }
 
-// 입력 폼 컨트롤 (유형별 분기) — heading은 컴포넌트의 heading prop 우선 사용
-function FormControl({ type, options = [], heading, placeholder, timePlaceholder }) {
+// controlled — value 는 { date, time } 객체. 미지정 시 둘 다 null.
+function DateTimeInputLocal({ heading, placeholder, timePlaceholder, value, onChange }) {
+  const date = value?.date ?? null
+  const time = value?.time ?? null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
+      <DateInput
+        heading={heading}
+        placeholder={placeholder}
+        value={date}
+        onChange={(d) => onChange?.({ date: d, time })}
+        calendarWidth="100%"
+      />
+      <TimeInput
+        value={time}
+        onChange={(t) => onChange?.({ date, time: t })}
+        placeholder={timePlaceholder || '시간 선택'}
+      />
+    </div>
+  )
+}
+
+// controlled — value 는 { start, end } 또는 [start, end]. DateInput range 모드가 기대하는 형태로 그대로 전달
+function DateRangeInputLocal({ heading, placeholder, value, onChange }) {
+  return (
+    <DateInput
+      mode="range"
+      heading={heading}
+      placeholder={placeholder}
+      value={value ?? null}
+      onChange={onChange ?? (() => {})}
+      calendarWidth="100%"
+    />
+  )
+}
+
+// 입력 폼 컨트롤 (유형별 분기) — 모두 controlled. value/onChange 를 부모에서 관리.
+function FormControl({ type, options = [], heading, placeholder, timePlaceholder, value, onChange }) {
+  // 텍스트 기반 (textfield/textarea/number/phone/email/url) — 같은 Textfield/Textarea 사용
+  const stringOnChange = (e) => onChange?.(e.target.value)
+
   switch (type) {
     case 'boolean':
     case 'checkboxSingle':
-      return <RadioGroup heading={heading} options={options} />
+      return <RadioGroup heading={heading} options={options} value={value} onChange={onChange} />
     case 'checkboxMulti':
-      return <CheckboxList heading={heading} options={options} />
+      return <CheckboxList heading={heading} options={options} value={value ?? []} onChange={onChange} />
     case 'textfield':
-      return <Textfield heading={heading} placeholder={placeholder} />
+    case 'phone':
+    case 'email':
+    case 'url':
+      return <Textfield heading={heading} placeholder={placeholder} value={value ?? ''} onChange={stringOnChange} />
     case 'number':
-      return <Textfield heading={heading} type="number" placeholder={placeholder} />
+      return <Textfield heading={heading} type="number" placeholder={placeholder} value={value ?? ''} onChange={stringOnChange} />
     case 'textarea':
-      return <Textarea heading={heading} placeholder={placeholder} resize="fixed" />
+      return <Textarea heading={heading} placeholder={placeholder} resize="fixed" value={value ?? ''} onChange={stringOnChange} />
     case 'date':
-      return <DateInputLocal heading={heading} placeholder={placeholder} />
+      return <DateInputLocal heading={heading} placeholder={placeholder} value={value} onChange={onChange} />
     case 'datetime':
-      return <DateTimeInputLocal heading={heading} placeholder={placeholder} timePlaceholder={timePlaceholder} />
+      return <DateTimeInputLocal heading={heading} placeholder={placeholder} timePlaceholder={timePlaceholder} value={value} onChange={onChange} />
     case 'dateRange':
-      return <DateRangeInputLocal heading={heading} placeholder={placeholder} />
+      return <DateRangeInputLocal heading={heading} placeholder={placeholder} value={value} onChange={onChange} />
     case 'selectSingle':
-      return <InteractiveSelect heading={heading} options={options} mode="single" placeholder={placeholder} />
+      return <InteractiveSelect heading={heading} options={options} mode="single" placeholder={placeholder} value={value ?? []} onChange={onChange} />
     case 'selectMulti':
-      return <InteractiveSelect heading={heading} options={options} mode="multi" placeholder={placeholder} />
+      return <InteractiveSelect heading={heading} options={options} mode="multi" placeholder={placeholder} value={value ?? []} onChange={onChange} />
     default:
       return null
   }
 }
 
-function BotInputForm({ description, placeholder, timePlaceholder, type, options }) {
-  // type 변경 시 내부 state 초기화를 위해 key 사용
-  return <FormControl key={type} type={type} options={options} heading={description} placeholder={placeholder} timePlaceholder={timePlaceholder} />
+function BotInputForm({ description, placeholder, timePlaceholder, type, options, value, onChange }) {
+  // type 변경 시 내부 state 초기화를 위해 key 사용 (controlled 라도 내부 ref 정리 안전)
+  return (
+    <FormControl
+      key={type}
+      type={type}
+      options={options}
+      heading={description}
+      placeholder={placeholder}
+      timePlaceholder={timePlaceholder}
+      value={value}
+      onChange={onChange}
+    />
+  )
 }
 
 function BotMessage({
@@ -421,6 +460,9 @@ function BotMessage({
   onMainClick, onSubClick, onFormSubmit, disabled = false,
 }) {
   const isInputForm = messageMode === 'inputForm'
+  /* 폼 입력값을 메시지 단위로 보관 — disabled(이전 메시지) 면 의미 없음.
+     formType 이 바뀌면 새 메시지로 간주, 같은 메시지에선 type 불변. */
+  const [formValue, setFormValue] = useState(null)
   const hasText   = textOn && (titleOn || bodyOn || (accordionOn && !isInputForm))
   const hasButton = !isInputForm && buttonOn && ((mainOn && mainButton) || (subOn && subButton))
   const showImage = !isInputForm && imageOn
@@ -450,8 +492,21 @@ function BotMessage({
       )}
       {isInputForm && (
         <>
-          <BotInputForm description={formDescription} placeholder={formPlaceholder} timePlaceholder={formTimePlaceholder} type={formType} options={formOptions} />
-          <FullWidthButton variant="solid" label="확인" onClick={onFormSubmit} disabled={disabled} />
+          <BotInputForm
+            description={formDescription}
+            placeholder={formPlaceholder}
+            timePlaceholder={formTimePlaceholder}
+            type={formType}
+            options={formOptions}
+            value={formValue}
+            onChange={setFormValue}
+          />
+          <FullWidthButton
+            variant="solid"
+            label="확인"
+            onClick={() => onFormSubmit?.(formValue)}
+            disabled={disabled}
+          />
         </>
       )}
       {hasButton && (
@@ -949,7 +1004,7 @@ export default function ChatRoom({
   // 외부 시뮬레이터/통합용 — 메시지 내 액션 클릭 콜백.
   // 시그니처: (messageId, action) where action 은 다음 중 하나.
   //   { kind: 'main' } | { kind: 'sub' } | { kind: 'quick', index }
-  //   | { kind: 'card-main', index } | { kind: 'card-sub', index } | { kind: 'form-submit' }
+  //   | { kind: 'card-main', index } | { kind: 'card-sub', index } | { kind: 'form-submit', value }
   onMessageAction,
   resetDisabled = false,
   closeDisabled = false,
@@ -1108,7 +1163,7 @@ export default function ChatRoom({
                         onCardMainClick={fire ? (i) => fire({ kind: 'card-main', index: i }) : undefined}
                         onCardSubClick={fire ? (i) => fire({ kind: 'card-sub', index: i }) : undefined}
                         onQuickClick={fire ? (i) => fire({ kind: 'quick', index: i }) : undefined}
-                        onFormSubmit={fire ? () => fire({ kind: 'form-submit' }) : undefined}
+                        onFormSubmit={fire ? (value) => fire({ kind: 'form-submit', value }) : undefined}
                       />
                     </div>
                   )

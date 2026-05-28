@@ -20,7 +20,7 @@ import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
 import StepNode from '../canvas/nodes/StepNode.jsx'
 import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
-import { createEmptyScenario, createEmptyStep } from '../lib/stepTypes.js'
+import { createDefaultBotVariables, createEmptyScenario, createEmptyStep } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
 import './BotCanvasPage.css'
 
@@ -232,6 +232,76 @@ function migrateLegacyVersion(v) {
   }
 }
 
+/** Phase 4 마이그레이션 — messageConfig 에 sso 필드 + perMode.sso 누락 시 빈 값 보강 */
+function migrateSsoField(version) {
+  if (!Array.isArray(version.scenarios)) return version
+  return {
+    ...version,
+    scenarios: version.scenarios.map((sc) => ({
+      ...sc,
+      responses: (sc.responses ?? []).map((r) => {
+        const cfg = r.messageConfig
+        if (!cfg) return r
+        if (cfg.sso !== undefined && cfg.perMode?.sso !== undefined) return r
+        const nextPerMode = { ...(cfg.perMode ?? {}) }
+        if (nextPerMode.sso === undefined) {
+          nextPerMode.sso = {
+            messageBannerOn: false,
+            bannerFile: '',
+            quickButtonOn: false,
+            quickList: [
+              { id: 1, label: '', link: { type: null, targetScenarioId: '', targetResponseId: '', url: '' } },
+              { id: 2, label: '', link: { type: null, targetScenarioId: '', targetResponseId: '', url: '' } },
+            ],
+          }
+        }
+        return {
+          ...r,
+          messageConfig: {
+            ...cfg,
+            sso: cfg.sso ?? {
+              ssoUrl: '',
+              exchangeUrl: '',
+              tokenVariableId: '',
+              memberCodeVariableId: '',
+              nextLink: { type: null, targetScenarioId: '', targetResponseId: '', url: '' },
+            },
+            perMode: nextPerMode,
+          },
+        }
+      }),
+    })),
+  }
+}
+
+/** Phase 2C 마이그레이션 — form 객체에 memoryVariableId/nextLink 누락 시 빈 값 보강 */
+function migrateFormFields(version) {
+  if (!Array.isArray(version.scenarios)) return version
+  return {
+    ...version,
+    scenarios: version.scenarios.map((sc) => ({
+      ...sc,
+      responses: (sc.responses ?? []).map((r) => {
+        const cfg = r.messageConfig
+        if (!cfg?.form) return r
+        const form = cfg.form
+        if (form.memoryVariableId !== undefined && form.nextLink !== undefined) return r
+        return {
+          ...r,
+          messageConfig: {
+            ...cfg,
+            form: {
+              ...form,
+              memoryVariableId: form.memoryVariableId ?? '',
+              nextLink: form.nextLink ?? { type: null, targetScenarioId: '', targetResponseId: '', url: '' },
+            },
+          },
+        }
+      }),
+    })),
+  }
+}
+
 /** Phase 2B 인라인 API config (response.messageConfig.api 가 method/url/... 가짐) →
  *  Phase 2B-3 등록 API + 응답은 apiId 만 참조 형태로 마이그레이션. */
 function migrateInlineApisToRegistry(version) {
@@ -297,7 +367,7 @@ function loadFromStorage(botId) {
     if (parsed && Array.isArray(parsed.versions)) {
       // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API 마이그레이션
       const versions = parsed.versions.map((v) =>
-        migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))),
+        migrateSsoField(migrateFormFields(migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))))),
       )
       return {
         versions,
@@ -308,15 +378,19 @@ function loadFromStorage(botId) {
     }
     // 더 오래된 포맷 — versions 자체가 없고 steps 만 있음
     if (parsed && Array.isArray(parsed.steps)) {
-      const legacy = migrateInlineApisToRegistry(
-        migrateVersionLinks(
-          migrateLegacyVersion({
-            id: `v_${Date.now()}_legacy`,
-            savedAt: new Date().toISOString(),
-            steps: parsed.steps,
-            positions: parsed.positions ?? {},
-            triggerTargetStepId: parsed.triggerTargetStepId ?? null,
-          }),
+      const legacy = migrateSsoField(
+        migrateFormFields(
+          migrateInlineApisToRegistry(
+            migrateVersionLinks(
+              migrateLegacyVersion({
+                id: `v_${Date.now()}_legacy`,
+                savedAt: new Date().toISOString(),
+                steps: parsed.steps,
+                positions: parsed.positions ?? {},
+                triggerTargetStepId: parsed.triggerTargetStepId ?? null,
+              }),
+            ),
+          ),
         ),
       )
       return { versions: [legacy], currentVersionId: legacy.id, status: 'draft' }
@@ -376,8 +450,15 @@ function CanvasInner() {
   )
   const [selectedId, setSelectedId] = useState(null)
 
-  /* 봇 변수 — 전역 (버전 단위로 스냅샷). 시뮬레이터 변수 치환의 단일 출처 */
-  const [variables, setVariables] = useState(initialVersion?.variables ?? [])
+  /* 봇 변수 초기값 — 신규 봇이면 자주 쓰는 8종 디폴트, 기존 봇이면 저장된 그대로.
+     savedSnapshot 도 동일 값 써야 isDirty 가 새 봇 진입 시 즉시 true 가 안 됨. */
+  const initialVariables = useMemo(() => {
+    if (initialVersion?.variables) return initialVersion.variables
+    if (initialVersion) return []
+    return createDefaultBotVariables()
+  }, [initialVersion])
+
+  const [variables, setVariables] = useState(initialVariables)
 
   /* 봇 등록 API — 응답에서 apiId 로 참조 (한 번 등록, 여러 응답 재사용) */
   const [apis, setApis] = useState(initialVersion?.apis ?? [])
@@ -407,7 +488,7 @@ function CanvasInner() {
           positions: initialScenarios[0]?.positions ?? {},
           triggerPosition: initialScenarios[0]?.triggerPosition,
         }),
-        initialVersion?.variables ?? [],
+        initialVariables,
         initialVersion?.apis ?? [],
       ),
     ),
@@ -690,6 +771,31 @@ function CanvasInner() {
     [currentScenarioId, setNodes],
   )
 
+  /* 응답 이름 변경 — 현재 시나리오의 해당 응답만 갱신.
+     handleStepChange 와 달리 messageConfig 는 건드리지 않으니 캔버스 노드 data 도 갱신 */
+  const handleRenameResponse = useCallback(
+    (stepId, name) => {
+      setScenarios((prev) =>
+        prev.map((sc) =>
+          sc.id !== currentScenarioId
+            ? sc
+            : {
+                ...sc,
+                responses: sc.responses.map((r) => (r.id === stepId ? { ...r, name } : r)),
+              },
+        ),
+      )
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === stepId
+            ? { ...n, data: { ...n.data, step: { ...n.data.step, name } } }
+            : n,
+        ),
+      )
+    },
+    [currentScenarioId, setNodes],
+  )
+
   /* 트리거 타겟 변경 — 현재 시나리오의 triggerTargetResponseId 갱신 */
   const handleTriggerTargetChange = useCallback(
     (responseId) => {
@@ -781,6 +887,11 @@ function CanvasInner() {
         },
       ]
     })
+  }, [])
+
+  const handleUpdateVariable = useCallback((id, patch) => {
+    // 편집 모달에서 originalKey/displayName/sampleValue 패치 적용
+    setVariables((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch } : v)))
   }, [])
 
   const handleDeleteVariable = useCallback((id) => {
@@ -896,6 +1007,7 @@ function CanvasInner() {
       <ScenarioPanel
         variables={variables}
         onAddVariable={handleAddVariable}
+        onUpdateVariable={handleUpdateVariable}
         onDeleteVariable={handleDeleteVariable}
         apis={apis}
         onAddApi={handleAddApi}
@@ -912,6 +1024,7 @@ function CanvasInner() {
         onSelectResponse={handleSelectFromList}
         onAddResponse={handleAddStep}
         onDeleteResponse={handleDeleteStep}
+        onRenameResponse={handleRenameResponse}
         triggerSelected={selectedId === TRIGGER_NODE_ID}
         onSelectTrigger={handleSelectTrigger}
       />

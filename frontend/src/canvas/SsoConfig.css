@@ -1,0 +1,20 @@
+/* SSO 응답 설정 UI — 섹션 묶음 + 필드 간격 */
+
+.sso-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  padding: var(--spacing-16);
+}
+
+.sso-config__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-10);
+}
+
+.sso-config__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}

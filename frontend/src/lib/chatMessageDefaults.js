@@ -43,6 +43,7 @@ export const ACTION_TYPES = [
   { value: 'rag', label: 'RAG 메시지' },
   { value: 'branch', label: '분기 연결' },
   { value: 'api', label: 'API 호출' },
+  { value: 'sso', label: 'SSO 로그인' },
 ]
 
 export const HTTP_METHODS = [
@@ -54,8 +55,11 @@ export const HTTP_METHODS = [
 ]
 
 export const FORM_TYPES = [
-  { value: 'textfield', label: 'String (Textfield)', hasOptions: false, hasGuide: true, sampleDesc: '휴대폰 번호', samplePlaceholder: '휴대폰 번호를 입력해 주세요.' },
+  { value: 'textfield', label: 'String (Textfield)', hasOptions: false, hasGuide: true, sampleDesc: '자유 입력', samplePlaceholder: '내용을 입력해 주세요.' },
   { value: 'textarea', label: 'String (Textarea)', hasOptions: false, hasGuide: true, sampleDesc: '주관식 의견', samplePlaceholder: '의견을 남겨주세요.' },
+  { value: 'phone', label: 'Phone (휴대폰 번호)', hasOptions: false, hasGuide: true, sampleDesc: '휴대폰 번호', samplePlaceholder: '예: 01012345678' },
+  { value: 'email', label: 'Email (이메일)', hasOptions: false, hasGuide: true, sampleDesc: '이메일', samplePlaceholder: '예: hong@example.com' },
+  { value: 'url', label: 'URL', hasOptions: false, hasGuide: true, sampleDesc: 'URL', samplePlaceholder: '예: https://example.com' },
   { value: 'date', label: 'Date (단일 선택)', hasOptions: false, hasGuide: true, sampleDesc: '예약일', samplePlaceholder: '날짜 선택' },
   { value: 'dateRange', label: 'Date (기간 선택)', hasOptions: false, hasGuide: true, sampleDesc: '예약 기간', samplePlaceholder: '기간 선택' },
   { value: 'datetime', label: 'Date time (단일 선택)', hasOptions: false, hasGuide: true, hasTime: true, sampleDesc: '예약 일시', samplePlaceholder: '날짜 선택', sampleTimePlaceholder: '시간 선택' },
@@ -134,6 +138,21 @@ export function defaultPerModeExtras() {
   }
 }
 
+/** SSO 로그인 응답 설정.
+ *  ssoUrl: 팝업으로 열 SSO 페이지 URL (예: /mock-sso/login).
+ *  exchangeUrl: authCode → accessToken 교환 API.
+ *  tokenVariableId / memberCodeVariableId: 받은 값을 저장할 변수 id (선택).
+ *  nextLink: 로그인 완료 후 진행할 응답 (기존 LinkEditor 형식). */
+export function defaultSsoConfig() {
+  return {
+    ssoUrl: '',
+    exchangeUrl: '',
+    tokenVariableId: '',
+    memberCodeVariableId: '',
+    nextLink: defaultLink(),
+  }
+}
+
 /** 응답이 들고 있는 API 참조 — 등록된 API 의 id + 호출 후 진행할 응답 링크.
  *  실제 method/URL/headers/body 는 bot.apis 의 해당 엔트리에 보관. */
 export function defaultApiConfig() {
@@ -193,6 +212,10 @@ export function createDefaultMessageConfig() {
       guideText: samplePlaceholderFor('textfield'),
       timeGuideText: sampleTimePlaceholderFor('textfield'),
       options: defaultFormOptionsFor('textfield'),
+      /** 사용자 입력을 저장할 변수 id — bot.variables 의 id. 없으면 저장 안 함. */
+      memoryVariableId: '',
+      /** 제출 후 진행할 응답 — bot 타입 link (기존 LinkEditor 형식) */
+      nextLink: defaultLink(),
     },
     // 모드별 메시지 레벨 부가 설정 (배너, 퀵 버튼) — 단일/캐로셀/입력폼/RAG/분기 각각 독립
     perMode: {
@@ -202,8 +225,11 @@ export function createDefaultMessageConfig() {
       rag: defaultPerModeExtras(),
       branch: defaultPerModeExtras(),
       api: defaultPerModeExtras(),
+      sso: defaultPerModeExtras(),
     },
     // API 호출 설정 (mode === 'api' 일 때 사용). 다른 모드에선 무시.
     api: defaultApiConfig(),
+    // SSO 로그인 설정 (mode === 'sso' 일 때 사용). 다른 모드에선 무시.
+    sso: defaultSsoConfig(),
   }
 }

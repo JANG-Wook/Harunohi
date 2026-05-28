@@ -175,7 +175,8 @@ export default function ApiEditModal({
 
           <section className="api-modal__section">
             <Typography variant="body-2-normal" weight="semibold" color="var(--color-label-neutral)" as="div">
-              요청
+              요청{' '}
+              <span style={{ color: 'var(--color-status-negative)' }}>*</span>
             </Typography>
             <MenuSelect
               value={draft.method}
@@ -297,7 +298,7 @@ export default function ApiEditModal({
               color="primary"
               size="medium"
               label={isNew ? '등록' : '저장'}
-              disabled={!draft.name?.trim()}
+              disabled={!draft.name?.trim() || !draft.url?.trim()}
               onClick={() => onSubmit?.(draft)}
             />
           </div>

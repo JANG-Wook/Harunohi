@@ -21,6 +21,7 @@
 .console-header__brand {
   display: flex;
   align-items: center;
+  gap: var(--spacing-8);
 }
 
 .console-header__actions {
@@ -63,6 +64,12 @@
   color: var(--color-label-neutral);
   cursor: pointer;
   transition: background 120ms ease;
+  /* button 리셋 — branch 항목이 <button> 으로 렌더될 때 */
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .console-nav__item:hover {
@@ -81,6 +88,37 @@
 
 .console-nav__item--disabled:hover {
   background: transparent;
+}
+
+/* 자식 항목 — 들여쓰기 + 아이콘·텍스트 약간 작은 톤 */
+.console-nav__item--child {
+  padding-left: var(--spacing-32);
+  gap: var(--spacing-8);
+  font-size: 13px;
+}
+
+/* 부모(branch) 항목 — 우측 chevron 자리 확보 */
+.console-nav__item--branch {
+  justify-content: flex-start;
+}
+
+.console-nav__chevron {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-label-alternative);
+  transition: transform 160ms ease;
+  transform: rotate(-90deg);
+}
+
+.console-nav__chevron.is-open {
+  transform: rotate(0deg);
+}
+
+.console-nav__children {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .console-main {

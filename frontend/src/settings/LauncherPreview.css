@@ -1,0 +1,32 @@
+/* 런처 미리보기(에디터) — 배경판(stage)만 담당. 말풍선/버튼/꼬리는 LauncherButtonPreview */
+
+.launcher-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 고객사 홈페이지를 흉내낸 배경판 */
+.launcher-preview__stage {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  border-radius: var(--spacing-16);
+  border: 1px solid var(--color-line-solid-normal);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--color-bg-normal-alternative),
+      var(--color-bg-normal-alternative) 12px,
+      var(--color-bg-normal) 12px,
+      var(--color-bg-normal) 24px
+    );
+  overflow: hidden;
+}
+
+/* 우측 하단 도크 — 런처 버튼 미리보기를 우측 하단에 고정 배치 */
+.launcher-preview__dock {
+  position: absolute;
+  right: var(--spacing-24);
+  bottom: var(--spacing-24);
+}

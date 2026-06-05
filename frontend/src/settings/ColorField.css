@@ -1,0 +1,54 @@
+/* 색상 선택 필드 — 스와치(네이티브 피커) + hex 입력. chrome 은 토큰, 색만 inline */
+
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.color-field--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 네이티브 컬러 피커 — 색 미리보기 박스로 보이게 input 은 숨김 */
+.color-field__picker {
+  position: relative;
+  width: var(--spacing-40);
+  height: var(--spacing-40);
+  border-radius: var(--spacing-8);
+  border: 1px solid var(--color-line-solid-normal);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.color-field__picker input[type='color'] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.color-field__hex {
+  flex: 1;
+  min-width: 0;
+  height: var(--spacing-40);
+  padding: 0 var(--spacing-12);
+  border-radius: var(--spacing-8);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-elevated);
+  color: var(--color-label-normal);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: var(--font-size-label-1);
+  text-transform: uppercase;
+}
+
+.color-field__hex:focus {
+  outline: none;
+  border-color: var(--color-primary-normal);
+}

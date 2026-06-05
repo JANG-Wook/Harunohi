@@ -1,19 +1,87 @@
-// 콘솔 공통 레이아웃 — 상단 헤더(테마 토글 + 아바타) + 좌측 사이드바 + 본문
+// 콘솔 공통 레이아웃 — 상단 헤더(테마 토글 + 아바타) + 좌측 사이드바 + 본문.
+// 사이드바는 평면 + 부모/자식(접고 펼치기) 두 패턴을 동시에 지원.
+import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import Avatar from '../design-system/components/Avatar/Avatar.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useTheme } from '../lib/useTheme.js'
+import ForsythiaLogo from './ForsythiaLogo.jsx'
 import './ConsoleLayout.css'
 
+// children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
 const NAV_ITEMS = [
-  { to: '/app/bots', label: '봇 목록', icon: 'agent' },
-  { to: '/app/analytics', label: '분석', icon: 'column', disabled: true },
-  { to: '/app/assets/knowledge', label: '지식베이스', icon: 'book', disabled: true },
-  { to: '/app/assets/variables', label: '변수', icon: 'textVariable', disabled: true },
-  { to: '/app/settings', label: '설정', icon: 'setting', disabled: true },
+  { key: 'dashboard', to: '/app/dashboard', label: '대시보드', icon: 'home', disabled: true },
+  { key: 'bots', to: '/app/bots', label: '챗봇 목록', icon: 'agent' },
+  {
+    key: 'chatbot-ui',
+    label: '챗봇 디자인 설정',
+    icon: 'palette',
+    children: [
+      { key: 'launcher', to: '/app/chatbot-ui/launcher', label: '플로팅 런처 버튼', icon: 'bubble' },
+      { key: 'chatroom', to: '/app/chatbot-ui/chatroom', label: '대화방', icon: 'message', disabled: true },
+    ],
+  },
+  { key: 'analytics', to: '/app/analytics', label: '분석', icon: 'column', disabled: true },
+  { key: 'knowledge', to: '/app/assets/knowledge', label: '지식베이스', icon: 'book', disabled: true },
+  { key: 'settings', to: '/app/settings', label: '설정', icon: 'setting', disabled: true },
 ]
+
+/** 일반(leaf) 항목 한 줄 */
+function NavLeaf({ item, isChild = false }) {
+  return (
+    <NavLink
+      to={item.to}
+      className={({ isActive }) =>
+        [
+          'console-nav__item',
+          isChild && 'console-nav__item--child',
+          isActive && 'console-nav__item--active',
+          item.disabled && 'console-nav__item--disabled',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      }
+      onClick={(e) => item.disabled && e.preventDefault()}
+    >
+      <Icon name={item.icon} size={isChild ? 16 : 18} />
+      <Typography variant="label-1-normal" weight="medium" as="span">
+        {item.label}
+      </Typography>
+    </NavLink>
+  )
+}
+
+/** 자식이 있는 부모 항목 — 클릭 시 펼침/접힘 토글, 우측에 chevron */
+function NavBranch({ item }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <>
+      <button
+        type="button"
+        className="console-nav__item console-nav__item--branch"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <Icon name={item.icon} size={18} />
+        <Typography variant="label-1-normal" weight="medium" as="span">
+          {item.label}
+        </Typography>
+        <span className={`console-nav__chevron ${open ? 'is-open' : ''}`} aria-hidden="true">
+          <Icon name="chevronDown" size={14} />
+        </span>
+      </button>
+      {open && (
+        <div className="console-nav__children">
+          {item.children.map((child) => (
+            <NavLeaf key={child.key} item={child} isChild />
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
 
 export default function ConsoleLayout() {
   const { theme, toggle } = useTheme()
@@ -23,6 +91,7 @@ export default function ConsoleLayout() {
     <div className="console-layout">
       <header className="console-header">
         <div className="console-header__brand">
+          <ForsythiaLogo size={22} />
           <Typography variant="headline-2" weight="semibold" as="span">
             Harunohi
           </Typography>
@@ -41,27 +110,13 @@ export default function ConsoleLayout() {
       <div className="console-body">
         <aside className="console-sidebar">
           <nav className="console-nav">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  [
-                    'console-nav__item',
-                    isActive && 'console-nav__item--active',
-                    item.disabled && 'console-nav__item--disabled',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')
-                }
-                onClick={(e) => item.disabled && e.preventDefault()}
-              >
-                <Icon name={item.icon} size={18} />
-                <Typography variant="label-1-normal" weight="medium" as="span">
-                  {item.label}
-                </Typography>
-              </NavLink>
-            ))}
+            {NAV_ITEMS.map((item) =>
+              item.children ? (
+                <NavBranch key={item.key} item={item} />
+              ) : (
+                <NavLeaf key={item.key} item={item} />
+              ),
+            )}
           </nav>
         </aside>
 

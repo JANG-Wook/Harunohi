@@ -1,0 +1,292 @@
+/* 런처 설정 페이지 — 헤더 + (좌 설정 / 우 미리보기) 2열.
+   설정 패널은 봇 설정(ChatMessageConfig)과 동일한 아이콘 레일 + 카드 패턴을 따른다. */
+
+.launcher-set {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.launcher-set__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-24);
+}
+
+.launcher-set__head-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20);
+  min-width: 0;
+}
+
+.launcher-set__head-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+/* 이름 인라인 편집 — StepInspector head 패턴 */
+.launcher-set__name-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-8);
+  margin: calc(-1 * var(--spacing-4)) calc(-1 * var(--spacing-8));
+  border-radius: var(--spacing-6);
+  cursor: text;
+  transition: background 120ms ease;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.launcher-set__name-edit:hover,
+.launcher-set__name-edit:focus-within {
+  background: var(--color-fill-alternative);
+}
+
+.launcher-set__name-edit:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--color-primary-normal) 43%, transparent);
+  outline-offset: -1px;
+}
+
+.launcher-set__name-input {
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+  letter-spacing: var(--letter-spacing-heading-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-label-normal);
+  padding: 0;
+  outline: none;
+}
+
+.launcher-set__name-input::placeholder {
+  color: var(--color-label-assistive);
+}
+
+.launcher-set__name-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-label-assistive);
+  flex-shrink: 0;
+}
+
+.launcher-set__name-edit:hover .launcher-set__name-icon,
+.launcher-set__name-edit:focus-within .launcher-set__name-icon {
+  color: var(--color-label-alternative);
+}
+
+.launcher-set__head-actions {
+  display: flex;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+}
+
+.launcher-set__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr minmax(380px, 460px);
+  gap: var(--spacing-24);
+}
+
+/* 좌측 설정 패널 */
+.launcher-set__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  padding: var(--spacing-24);
+  border-radius: var(--spacing-16);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-elevated);
+  overflow-y: auto;
+}
+
+/* ── 섹션 (아이콘 레일 + 헤더 + 카드) — 봇 설정과 동일 ── */
+.lset-section {
+  display: flex;
+  gap: var(--spacing-12);
+}
+
+.lset-section__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.lset-section__chip {
+  width: var(--spacing-24);
+  height: var(--spacing-24);
+  border-radius: var(--radius-full);
+  background: var(--color-fill-normal);
+  color: var(--color-label-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lset-section__line {
+  width: 2px;
+  flex: 1;
+  margin-top: var(--spacing-4);
+  background: var(--color-line-alternative);
+  border-radius: var(--radius-full);
+}
+
+.lset-section__body {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: var(--spacing-4);
+}
+
+.lset-section__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--spacing-24);
+}
+
+.lset-section__title {
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-body-2);
+}
+
+/* 섹션 카드 — 필드 묶음 */
+.lset-card {
+  margin-top: var(--spacing-12);
+  border: 1px solid var(--color-line-alternative);
+  border-radius: var(--spacing-12);
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+
+/* 카드 안 필드 (라벨 + 컨트롤) */
+.lset-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.lset-field__label {
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-label-alternative);
+  letter-spacing: var(--letter-spacing-label-2);
+}
+
+/* 기본 아이콘 / 이미지 업로드 라디오 그룹 */
+.launcher-set__radios {
+  display: flex;
+  gap: var(--spacing-20);
+}
+
+/* 기본 아이콘 선택 */
+.launcher-set__icons {
+  display: flex;
+  gap: var(--spacing-8);
+}
+
+.launcher-set__icon-opt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-12) var(--spacing-8);
+  border-radius: var(--spacing-12);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-elevated);
+  color: var(--color-label-neutral);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.launcher-set__icon-opt:hover {
+  background: var(--color-fill-alternative);
+}
+
+.launcher-set__icon-opt.is-active {
+  border-color: var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
+  color: var(--color-primary-normal);
+}
+
+/* 이미지 업로드 */
+.launcher-set__upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.launcher-set__upload-field {
+  cursor: pointer;
+}
+
+.launcher-set__caption {
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-assistive);
+}
+
+.launcher-set__caption.is-error {
+  color: var(--color-status-negative);
+}
+
+/* 글자 크기 선택 */
+.launcher-set__sizes {
+  display: flex;
+  gap: var(--spacing-6);
+}
+
+.launcher-set__size-opt {
+  min-width: var(--spacing-40);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--spacing-8);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-elevated);
+  color: var(--color-label-neutral);
+  font-size: var(--font-size-label-1);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.launcher-set__size-opt:hover {
+  background: var(--color-fill-alternative);
+}
+
+.launcher-set__size-opt.is-active {
+  border-color: var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
+  color: var(--color-primary-normal);
+}
+
+/* 우측 미리보기 */
+.launcher-set__preview {
+  min-height: 0;
+}
+
+/* 저장 토스트 */
+.launcher-set__toast {
+  position: fixed;
+  bottom: var(--spacing-32);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}

@@ -184,6 +184,13 @@ html, body, #root { margin: 0; padding: 0; height: 100%; }
   --color-accent-fg-pink:       #E846CD;
 
   /* --------------------------------------------------
+     Harunohi 브랜드 컬러 — 개나리 노랑
+     로고/엠블럼 전용. 일반 UI 강조엔 primary 사용.
+     -------------------------------------------------- */
+  --color-harunohi-yellow:      #FFC107;
+  --color-harunohi-yellow-deep: #C58F00;
+
+  /* --------------------------------------------------
      Semantic Colors — Inverse (다크 배경용)
      -------------------------------------------------- */
   --color-inverse-primary:    #3385FF;
@@ -479,6 +486,9 @@ html, body, #root { margin: 0; padding: 0; height: 100%; }
   --color-accent-fg-purple:     #d478ff;
   --color-accent-fg-pink:       #fa73e3;
 
+  --color-harunohi-yellow:      #ffd43b;
+  --color-harunohi-yellow-deep: #d69a1f;
+
   --color-inverse-primary:    #0066ff;
   --color-inverse-background: #ffffff;
   --color-inverse-label:      #171719;
@@ -551,6 +561,9 @@ html, body, #root { margin: 0; padding: 0; height: 100%; }
     --color-accent-fg-violet:     #9e86fc;
     --color-accent-fg-purple:     #d478ff;
     --color-accent-fg-pink:       #fa73e3;
+
+    --color-harunohi-yellow:      #ffd43b;
+    --color-harunohi-yellow-deep: #d69a1f;
 
     --color-inverse-primary:    #0066ff;
     --color-inverse-background: #ffffff;

@@ -151,6 +151,11 @@ export const color = {
     purple:    '#AD36E3',
     pink:      '#E846CD',
   },
+  // Harunohi 브랜드 전용 — 개나리 노랑. 로고/엠블럼 한정.
+  harunohi: {
+    yellow:     '#FFC107',
+    yellowDeep: '#C58F00',
+  },
   inverse: {
     primary:    '#3385FF',
     background: '#1B1C1E',
@@ -241,6 +246,10 @@ export const darkColor = {
     violet:    '#9e86fc',
     purple:    '#d478ff',
     pink:      '#fa73e3',
+  },
+  harunohi: {
+    yellow:     '#FFD43B',
+    yellowDeep: '#D69A1F',
   },
   inverse: {
     primary:    '#0066ff',

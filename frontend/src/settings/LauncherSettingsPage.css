@@ -282,6 +282,13 @@
   min-height: 0;
 }
 
+/* 이탈 가드 backdrop — Alert 가 자체 풀스크린 dimmer+카드를 그리므로 위치/z-index 만 담당 */
+.launcher-set__leave-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
 /* 저장 토스트 */
 .launcher-set__toast {
   position: fixed;

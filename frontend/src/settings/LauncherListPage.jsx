@@ -295,9 +295,9 @@ export default function LauncherListPage() {
         </div>
       )}
 
-      {/* 삭제 확인 — DS Alert */}
+      {/* 삭제 확인 — DS Alert (자체 dimmer 보유 → bare 래퍼) */}
       {deleteTarget && (
-        <div className="lc__backdrop" onClick={(e) => e.target === e.currentTarget && setDeleteTarget(null)}>
+        <div className="lc__alert-backdrop" onClick={(e) => e.target === e.currentTarget && setDeleteTarget(null)}>
           <Alert
             platform="web"
             title="런처 버튼을 삭제할까요?"

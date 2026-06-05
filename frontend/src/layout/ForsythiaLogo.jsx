@@ -1,19 +1,16 @@
-// 하루노히 브랜드 로고 — 개나리 한 송이.
-// 4장 좁은 창 모양 꽃잎이 십자로 배치된 개나리 특유의 실루엣.
-// 브랜드 전용 토큰(--color-harunohi-yellow / -deep) 만 사용해 다크/라이트 모두 동일한 톤.
+// 하루노히 브랜드 로고 — 개나리 한 송이(단순화 버전).
+// 4장 창 모양 꽃잎이 십자로 배치된 개나리 실루엣. 잎맥 등 디테일은 빼고 잎을 두껍게.
+// 색은 브랜드 토큰(--color-harunohi-yellow → -deep) 2-스톱 대각선 그라디언트 (컨플루언스 스타일).
+// 그라디언트는 잎별이 아니라 로고 전체에 하나로 흐르도록 — 꽃잎 모양으로 clip 후 전체 사각형에 그라디언트.
 
 export default function ForsythiaLogo({ size = 22 }) {
-  // 개나리 꽃잎 — 위로 길게 뻗은 창(lance) 모양.
-  //   끝(y≈-9) 은 뾰족, 중상단(y≈-3) 에서 가장 넓음, base(0,0) 로 모아짐.
+  // 두꺼운 창(lance) 꽃잎 — 끝(y≈-8.5) 뾰족, 중상단에서 넓고, base(0,0) 로 모임. 폭 ≈ 4.4.
   const PETAL =
-    'M 0,-9 ' +
-    'Q -1.6,-7 -1.6,-3 ' +
-    'Q -1.4,-0.6 0,0 ' +
-    'Q 1.4,-0.6 1.6,-3 ' +
-    'Q 1.6,-7 0,-9 Z'
-
-  // 잎맥 — 베이스에서 끝까지 옅게 그어 깊이감
-  const VEIN = 'M 0,-1 L 0,-8.2'
+    'M 0,-8.5 ' +
+    'Q -2.2,-6.4 -2.2,-3 ' +
+    'Q -2,-0.4 0,0 ' +
+    'Q 2,-0.4 2.2,-3 ' +
+    'Q 2.2,-6.4 0,-8.5 Z'
 
   return (
     <svg
@@ -24,30 +21,23 @@ export default function ForsythiaLogo({ size = 22 }) {
       aria-hidden="true"
       role="img"
     >
-      {/* 화면 중앙(12,12). 살짝 기울여(-12°) 자연스럽게 */}
-      <g transform="translate(12 12) rotate(-12)">
-        {/* 4장 꽃잎 — 0/90/180/270 도 */}
-        {[0, 90, 180, 270].map((deg) => (
-          <g key={deg} transform={`rotate(${deg})`}>
-            <path
-              d={PETAL}
-              fill="var(--color-harunohi-yellow)"
-              stroke="var(--color-harunohi-yellow-deep)"
-              strokeWidth="0.4"
-              strokeLinejoin="round"
-            />
-            <path
-              d={VEIN}
-              stroke="var(--color-harunohi-yellow-deep)"
-              strokeWidth="0.3"
-              strokeLinecap="round"
-              opacity="0.55"
-            />
-          </g>
-        ))}
-        {/* 중심 — 작은 진한 노란 점 (수술) */}
-        <circle r="1.3" fill="var(--color-harunohi-yellow-deep)" />
-      </g>
+      <defs>
+        {/* 밝은 노랑 → 진한 노랑 대각선 그라디언트 (전체 viewBox 기준 = 로고 전체에 하나로 흐름) */}
+        <linearGradient id="harunohiLogoGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0" style={{ stopColor: 'var(--color-harunohi-yellow)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--color-harunohi-yellow-deep)' }} />
+        </linearGradient>
+        {/* 꽃잎 4장 모양 클립 — clipPath 자식엔 <g> 불가라 각 path 에 transform 직접 적용 */}
+        <clipPath id="harunohiLogoClip">
+          {/* +(0°)와 X(45°)의 중간인 22.5° 로 회전 */}
+          {[0, 90, 180, 270].map((deg) => (
+            <path key={deg} d={PETAL} transform={`translate(12 12) rotate(${deg + 22.5})`} />
+          ))}
+        </clipPath>
+      </defs>
+
+      {/* 전체 사각형에 그라디언트 → 꽃잎 모양으로만 보이도록 clip */}
+      <rect x="0" y="0" width="24" height="24" fill="url(#harunohiLogoGradient)" clipPath="url(#harunohiLogoClip)" />
     </svg>
   )
 }

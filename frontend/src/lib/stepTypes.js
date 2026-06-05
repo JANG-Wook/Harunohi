@@ -94,6 +94,28 @@ export function createEmptyScenario(name = '새 시나리오') {
   }
 }
 
+/** 신규 봇용 기본 시나리오 + 웰컴 응답 — 트리거가 웰컴을 가리키도록 */
+export function makeDefaultScenarioWithWelcome() {
+  const welcome = { ...createEmptyStep(), name: '웰컴메시지' }
+  const sc = createEmptyScenario('기본 시나리오')
+  return { ...sc, responses: [welcome], triggerTargetResponseId: welcome.id }
+}
+
+/** 신규 봇의 최초 저장 데이터 — 버전 1개(기본 시나리오+웰컴, 기본 변수)로 즉시 영속 가능.
+ *  localStorage 의 harunohi.bot.<id> 에 그대로 저장한다. nowIso 는 호출부에서 주입. */
+export function createInitialBotData(nowIso) {
+  const scenario = makeDefaultScenarioWithWelcome()
+  const version = {
+    id: `v_${Date.now().toString(36)}`,
+    savedAt: nowIso,
+    scenarios: [scenario],
+    currentScenarioId: scenario.id,
+    variables: createDefaultBotVariables(),
+    apis: [],
+  }
+  return { versions: [version], currentVersionId: version.id, status: 'draft' }
+}
+
 /**
  * 단계가 "완성"되었는지 판정 — 모든 활성 토글에 값이 채워졌으면 true.
  * StepList 의 경고 아이콘 노출 여부에 사용된다.

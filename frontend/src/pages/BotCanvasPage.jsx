@@ -20,7 +20,7 @@ import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
 import StepNode, { StepNodeProvider } from '../canvas/nodes/StepNode.jsx'
 import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
-import { createDefaultBotVariables, createEmptyScenario, createEmptyStep } from '../lib/stepTypes.js'
+import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, makeDefaultScenarioWithWelcome } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
 import './BotCanvasPage.css'
 
@@ -65,16 +65,6 @@ function buildAllNodes(responses, options = {}) {
   return [triggerNode, ...responsesToNodes(responses, options)]
 }
 
-/** 신규 봇용 기본 시나리오 + 웰컴 응답 자동 생성 */
-function makeDefaultScenarioWithWelcome() {
-  const welcome = { ...createEmptyStep(), name: '웰컴메시지' }
-  const sc = createEmptyScenario('기본 시나리오')
-  return {
-    ...sc,
-    responses: [welcome],
-    triggerTargetResponseId: welcome.id,
-  }
-}
 
 /** 시나리오의 직렬화 — 안정 비교용. 엣지는 도출이라 저장 대상 아님 */
 function scenarioPayload(sc, nodes) {

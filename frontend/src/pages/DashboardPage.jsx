@@ -11,6 +11,7 @@ import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useFocusTrap } from '../lib/useFocusTrap.js'
+import { createInitialBotData } from '../lib/stepTypes.js'
 import './DashboardPage.css'
 
 const STORAGE_PREFIX = 'harunohi.bot.'
@@ -131,9 +132,14 @@ export default function DashboardPage() {
     if (!trimmed) return
     // 이름 중복 체크 — 저장 키가 디코딩된 봇 이름(useParams 디코딩 결과)이라 trimmed 그대로 검사
     if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
-      setNameError('이미 사용 중인 봇 이름입니다.')
+      setNameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
+    // 생성 즉시 기본 데이터로 저장 — 캔버스에서 따로 저장 안 해도 목록에 남음 (런처와 동일)
+    window.localStorage.setItem(
+      STORAGE_PREFIX + trimmed,
+      JSON.stringify(createInitialBotData(new Date().toISOString())),
+    )
     setModalOpen(false)
     // URL 은 인코딩해 안전하게 전달 (라우터가 디코딩해서 useParams 로 전달)
     navigate(`/app/bots/${encodeURIComponent(trimmed)}/canvas`)
@@ -170,7 +176,7 @@ export default function DashboardPage() {
     }
     // 저장 키가 디코딩된 이름이라 trimmed 그대로 검사
     if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
-      setRenameError('이미 사용 중인 봇 이름입니다.')
+      setRenameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
     const oldKey = STORAGE_PREFIX + renameTarget.id
@@ -309,7 +315,7 @@ export default function DashboardPage() {
                 <span
                   role="button"
                   tabIndex={0}
-                  aria-label="봇 이름 변경"
+                  aria-label="챗봇 이름 변경"
                   className="dashboard__card-action dashboard__card-action--edit"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -385,7 +391,7 @@ export default function DashboardPage() {
 
             <div className="dashboard__modal-body">
               <Textfield
-                heading="봇 이름"
+                heading="챗봇 이름"
                 required
                 placeholder="예: AS 신청봇"
                 value={botName}
@@ -417,10 +423,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 삭제 확인 다이얼로그 — HailMary Alert 컴포넌트 + 자체 backdrop */}
+      {/* 삭제 확인 다이얼로그 — Alert 가 자체 dimmer+카드를 그리므로 bare 래퍼 */}
       {deleteTarget && (
         <div
-          className="dashboard__modal-backdrop"
+          className="dashboard__alert-backdrop"
           onClick={(e) => {
             if (e.target === e.currentTarget) setDeleteTarget(null)
           }}
@@ -446,7 +452,7 @@ export default function DashboardPage() {
           <div className="dashboard__modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-rename-title" ref={dialogRef} tabIndex={-1}>
             <header className="dashboard__modal-head">
               <Typography variant="headline-1" weight="semibold" as="span" id="dashboard-rename-title">
-                봇 이름 변경
+                챗봇 이름 변경
               </Typography>
               <IconButtonNormal
                 icon={<Icon name="close" size={18} />}
@@ -458,7 +464,7 @@ export default function DashboardPage() {
 
             <div className="dashboard__modal-body">
               <Textfield
-                heading="봇 이름"
+                heading="챗봇 이름"
                 required
                 placeholder="예: AS 신청봇"
                 value={renameValue}

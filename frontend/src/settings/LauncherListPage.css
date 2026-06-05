@@ -95,6 +95,13 @@
   color: var(--color-status-negative);
 }
 
+/* Alert(삭제 확인) 래퍼 — Alert 가 자체 dimmer+카드를 그리므로 위치/z-index 만 */
+.lc__alert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
 /* 모달 (생성/이름변경) */
 .lc__backdrop {
   position: fixed;

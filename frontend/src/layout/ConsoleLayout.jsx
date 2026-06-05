@@ -91,8 +91,8 @@ export default function ConsoleLayout() {
     <div className="console-layout">
       <header className="console-header">
         <div className="console-header__brand">
-          <ForsythiaLogo size={22} />
-          <Typography variant="headline-2" weight="semibold" as="span">
+          <ForsythiaLogo size={28} />
+          <Typography variant="headline-2" weight="bold" color="var(--color-label-neutral)" as="span">
             Harunohi
           </Typography>
         </div>

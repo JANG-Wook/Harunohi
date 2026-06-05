@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import Alert from '../design-system/components/Alert/Alert.jsx'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
@@ -32,6 +33,9 @@ import './LauncherSettingsPage.css'
 const TEXT_SIZES = [13, 14, 15, 16, 18]
 const TOAST_DURATION = 2400
 const LIST_PATH = '/app/chatbot-ui/launcher'
+
+/** 저장 비교용 스냅샷 — 이름 + 설정값을 직렬화 */
+const snapshotOf = (name, config) => JSON.stringify({ name, config })
 
 /** 섹션 — 좌측 아이콘 레일(칩 + 연결선) + 헤더(토글/제목) + 카드 본문. 봇 설정과 동일한 패턴. */
 function Section({ icon, title, toggle, children }) {
@@ -77,6 +81,32 @@ export default function LauncherSettingsPage() {
   const fileRef = useRef(null)
   const [uploadError, setUploadError] = useState('')
 
+  /* 저장 기준점 — 저장 누를 때까지의 마지막 저장 상태. 현재 값과 다르면 dirty */
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    snapshotOf(entry?.name ?? '', entry?.config ?? defaultLauncherConfig()),
+  )
+  const isDirty = !!entry && snapshotOf(name, config) !== savedSnapshot
+
+  /* 이탈 가드 (봇 설정과 동일 방식) — 뒤로가기 버튼 클릭 시 확인 Alert */
+  const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false)
+
+  /* 새로고침·탭 닫기 가드 — dirty 면 브라우저 기본 경고 */
+  useEffect(() => {
+    if (!isDirty) return
+    const onBeforeUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [isDirty])
+
+  /* 뒤로가기 — dirty 면 확인, 아니면 즉시 목록으로 */
+  const handleBack = () => {
+    if (isDirty) setConfirmLeaveOpen(true)
+    else navigate(LIST_PATH)
+  }
+
   /* 존재하지 않는 id 면 목록으로 되돌림 */
   useEffect(() => {
     if (!entry) navigate(LIST_PATH, { replace: true })
@@ -106,6 +136,7 @@ export default function LauncherSettingsPage() {
   const handleSave = () => {
     const finalName = name.trim() || entry.name
     saveLauncher({ id: launcherId, name: finalName, config, nowIso: new Date().toISOString() })
+    setSavedSnapshot(snapshotOf(finalName, config)) // 저장 기준점 갱신 → dirty 해제
     setToast('런처 디자인을 저장했어요.')
     window.clearTimeout(handleSave._t)
     handleSave._t = window.setTimeout(() => setToast(null), TOAST_DURATION)
@@ -132,7 +163,7 @@ export default function LauncherSettingsPage() {
         <div className="launcher-set__head-left">
         <IconButtonNormal
           icon={<Icon name="chevronLeft" size={20} />}
-          onClick={() => navigate(LIST_PATH)}
+          onClick={handleBack}
           aria-label="뒤로가기"
         />
         <div className="launcher-set__head-title">
@@ -335,6 +366,24 @@ export default function LauncherSettingsPage() {
             message={toast}
             icon={<Icon name="circleCheckFill" size={20} color="var(--color-status-positive)" />}
             onClose={() => setToast(null)}
+          />
+        </div>
+      )}
+
+      {/* 이탈 가드 — 뒤로가기 시 저장 안 한 변경점이 있으면 (봇 설정과 동일 패턴) */}
+      {confirmLeaveOpen && (
+        <div
+          className="launcher-set__leave-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmLeaveOpen(false)
+          }}
+        >
+          <Alert
+            platform="web"
+            title="저장하지 않은 변경 사항이 있어요"
+            body="지금 나가면 변경한 내용이 사라집니다. 정말 나가시겠어요?"
+            primaryAction={{ label: '나가기', variant: 'negative', onClick: () => navigate(LIST_PATH) }}
+            secondaryAction={{ label: '취소', onClick: () => setConfirmLeaveOpen(false) }}
           />
         </div>
       )}

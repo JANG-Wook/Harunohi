@@ -108,16 +108,13 @@
   margin-left: var(--spacing-2);
 }
 
-/* 이탈 가드 다이얼로그 backdrop — Alert 컴포넌트를 중앙 배치 */
+/* 이탈/버전 가드 backdrop — Alert 컴포넌트가 자체 풀스크린 dimmer+카드를 그리므로
+   여기선 배경/패딩 없이 풀뷰포트 위치 + z-index 만 담당 (이중 딤·가장자리 프레임 방지) */
 .bot-workspace__modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.48);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-20);
-  z-index: 1000;
+  /* React Flow 연결선(z-index 1001)·패널(1000) 위로 딤이 덮이도록 충분히 높게 */
+  z-index: 2000;
 }
 
 /* 저장 토스트 — 화면 하단 중앙 고정 */
@@ -126,5 +123,5 @@
   left: 50%;
   bottom: var(--spacing-32);
   transform: translateX(-50%);
-  z-index: 1100;
+  z-index: 2100;
 }

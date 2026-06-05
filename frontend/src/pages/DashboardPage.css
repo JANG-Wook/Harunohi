@@ -135,6 +135,13 @@
   z-index: 1100;
 }
 
+/* Alert(삭제 확인) 래퍼 — Alert 가 자체 dimmer+카드를 그리므로 위치/z-index 만 */
+.dashboard__alert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
 /* 봇 생성 모달 — DS 에 폼 입력형 모달이 없어 토큰으로 직접 구현 */
 .dashboard__modal-backdrop {
   position: fixed;

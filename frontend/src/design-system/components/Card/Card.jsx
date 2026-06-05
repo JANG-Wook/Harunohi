@@ -215,12 +215,20 @@ export default function Card({
 
   const cardEvents = isClickable ? {
     onClick,
+    onKeyDown: (e) => {
+      // 키보드 활성화 — Enter/Space 로 onClick 실행 (네이티브 button 동작 흉내)
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        onClick?.(e)
+      }
+    },
     onMouseEnter: () => setIsHovered(true),
     onMouseLeave: () => { setIsHovered(false); setIsPressed(false) },
     onMouseDown:  () => setIsPressed(true),
     onMouseUp:    () => setIsPressed(false),
     onFocus:      () => setIsFocused(true),
     onBlur:       () => { setIsFocused(false); setIsPressed(false) },
+    role:         'button',
     tabIndex:     0,
   } : {}
 

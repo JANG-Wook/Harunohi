@@ -126,6 +126,15 @@ export default function Avatar({
     onFocus:      () => setFocused(true),
     onBlur:       () => { setFocused(false); setPressed(false) },
     onClick,
+    onKeyDown: onClick
+      ? (e) => {
+          // 키보드 활성화 — Enter/Space 로 onClick 실행
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onClick(e)
+          }
+        }
+      : undefined,
     tabIndex: 0,
     role:     onClick ? 'button' : undefined,
   } : {}

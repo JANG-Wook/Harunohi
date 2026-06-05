@@ -22,6 +22,9 @@
  *  <Alert platform="android" title="알림" body="내용" primaryAction={{ label: '확인', onClick: fn }} />
  */
 
+import { useRef } from 'react'
+import { useFocusTrap } from '../../../lib/useFocusTrap.js'
+
 /* ── 액션 버튼 색상 맵 (Web / Android) ──────────────────────── */
 const ACTION_COLOR = {
   normal:   'var(--color-primary-normal)',
@@ -103,6 +106,10 @@ export default function Alert({
   secondaryAction = null,
   className       = '',
 }) {
+  // 다이얼로그 포커스 트랩 + 복원 (마운트되어 있는 동안 활성)
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   /* ── iOS ────────────────────────────────────────────────── */
   if (platform === 'ios') {
     return (
@@ -121,6 +128,8 @@ export default function Alert({
         aria-modal="true"
         aria-labelledby={title ? 'alert-title' : undefined}
         aria-describedby="alert-body"
+        ref={dialogRef}
+        tabIndex={-1}
       >
         {/* 전체 배경 dimmer */}
         <div style={{
@@ -271,6 +280,8 @@ export default function Alert({
       aria-modal="true"
       aria-labelledby={title ? 'alert-title' : undefined}
       aria-describedby="alert-body"
+      ref={dialogRef}
+      tabIndex={-1}
     >
       {/* 전체 배경 dimmer */}
       <div style={{

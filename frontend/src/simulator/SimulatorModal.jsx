@@ -21,6 +21,7 @@ import {
 } from '../lib/simulatorRuntime.js'
 import { callApi } from '../lib/apiCaller.js'
 import { runSsoFlow } from '../lib/ssoFlow.js'
+import { useFocusTrap } from '../lib/useFocusTrap.js'
 import SimulatorChat from './SimulatorChat.jsx'
 import SimulatorSidePanel from './SimulatorSidePanel.jsx'
 import './SimulatorModal.css'
@@ -107,6 +108,9 @@ export default function SimulatorModal({
   // 봇명 표시는 props 우선, 없으면 시나리오 이름으로 fallback
   const headerName = useMemo(() => botName || '챗봇 미리보기', [botName])
 
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, isOpen)
+
   if (!isOpen) return null
 
   return (
@@ -121,6 +125,8 @@ export default function SimulatorModal({
         role="dialog"
         aria-modal="true"
         aria-label="시뮬레이터"
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <header className="sim-modal__head">
           <div className="sim-modal__title">

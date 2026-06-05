@@ -53,6 +53,7 @@ export default function Checkbox({
   forceInteraction = undefined,
   onChange         = null,
   className        = '',
+  ...props
 }) {
   const [interactionState, setInteractionState] = useState('normal')
 
@@ -152,6 +153,7 @@ export default function Checkbox({
       aria-checked={isIndeterminate ? 'mixed' : isChecked}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
+      {...props}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}

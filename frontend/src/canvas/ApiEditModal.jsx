@@ -7,7 +7,7 @@
 //   onDelete(): API 삭제 (확인은 부모에서 처리해도 OK)
 //   variables / onRegisterVariable: 응답 viewer 의 변수 등록을 위해 전달
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
@@ -19,6 +19,7 @@ import { callApi } from '../lib/apiCaller.js'
 import { parseCurl } from '../lib/curlParser.js'
 import ApiBodyEditor from './ApiBodyEditor.jsx'
 import MenuSelect from './MenuSelect.jsx'
+import { useFocusTrap } from '../lib/useFocusTrap.js'
 import ApiResponseViewer from './ApiResponseViewer.jsx'
 import './ApiEditModal.css'
 
@@ -34,6 +35,9 @@ export default function ApiEditModal({
   variables = [],
   onRegisterVariable, // 신규 모드에선 응답 viewer 가 비활성
 }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   /* 모달 안에서만 살아있는 draft — 등록/저장 누르기 전엔 부모 state 영향 없음 */
   const [draft, setDraft] = useState(api)
 
@@ -113,9 +117,9 @@ export default function ApiEditModal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="api-modal" role="dialog" aria-modal="true">
+      <div className="api-modal" role="dialog" aria-modal="true" aria-labelledby="api-modal-title" ref={dialogRef} tabIndex={-1}>
         <header className="api-modal__head">
-          <Typography variant="headline-1" weight="semibold" as="span">
+          <Typography variant="headline-1" weight="semibold" as="span" id="api-modal-title">
             {isNew ? 'API 등록' : 'API 편집'}
           </Typography>
           <IconButtonNormal

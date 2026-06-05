@@ -24,6 +24,7 @@ export default function Switch({
   disabled  = false,
   onChange  = null,
   className = '',
+  ...props
 }) {
   const { trackW, trackH, thumb, pad } = SIZES[size]
 
@@ -84,6 +85,7 @@ export default function Switch({
         disabled={disabled}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        {...props}
         style={{
           background:     'none',
           border:         'none',

@@ -24,6 +24,7 @@ import {
   loadLauncher,
   saveLauncher,
 } from '../lib/launcherConfig.js'
+import { isLowContrast } from '../lib/contrast.js'
 import ColorField from './ColorField.jsx'
 import LauncherPreview from './LauncherPreview.jsx'
 import './LauncherSettingsPage.css'
@@ -45,7 +46,7 @@ function Section({ icon, title, toggle, children }) {
       <div className="lset-section__body">
         <div className="lset-section__head">
           {toggle ? (
-            <Switch size="small" active={toggle.active} onChange={toggle.onChange} />
+            <Switch size="small" active={toggle.active} onChange={toggle.onChange} aria-label={title} />
           ) : null}
           <span className="lset-section__title">{title}</span>
         </div>
@@ -119,6 +120,11 @@ export default function LauncherSettingsPage() {
 
   const isImageMode = config.iconType === 'image'
   const imageExists = hasImage(config.iconImage)
+
+  /* 색 대비 경고 — 너무 비슷하면 잘 안 보임 (기존 negative caption 재사용) */
+  const iconContrastLow = !isImageMode && isLowContrast(config.iconColor, config.bgColor)
+  const greetingContrastLow =
+    config.greetingOn && isLowContrast(config.greetingTextColor, config.greetingBgColor)
 
   return (
     <div className="launcher-set">
@@ -224,6 +230,11 @@ export default function LauncherSettingsPage() {
 
             <Field label={isImageMode ? '아이콘 색 (이미지 업로드 중에는 비활성)' : '아이콘 색'}>
               <ColorField value={config.iconColor} onChange={(c) => set({ iconColor: c })} disabled={isImageMode} />
+              {iconContrastLow && (
+                <span className="launcher-set__caption is-error">
+                  아이콘 색과 버튼 배경색의 대비가 낮아 잘 안 보일 수 있어요.
+                </span>
+              )}
             </Field>
 
             <Field label="버튼 배경색">
@@ -259,6 +270,7 @@ export default function LauncherSettingsPage() {
                     placeholder="도움이 필요하신가요?"
                     value={config.greetingText}
                     onChange={(e) => set({ greetingText: e.target.value })}
+                    aria-label="메시지 내용"
                   />
                 </Field>
 
@@ -305,6 +317,11 @@ export default function LauncherSettingsPage() {
 
                 <Field label="배경색">
                   <ColorField value={config.greetingBgColor} onChange={(c) => set({ greetingBgColor: c })} />
+                  {greetingContrastLow && (
+                    <span className="launcher-set__caption is-error">
+                      글자색과 배경색의 대비가 낮아 잘 안 보일 수 있어요.
+                    </span>
+                  )}
                 </Field>
               </>
             ) : null}

@@ -24,6 +24,7 @@
  *  <Textfield trailingButton={{ label: '확인', variant: 'assistive', disabled: true }} />
  */
 
+import { useId } from 'react'
 import Icon from '../Icon/Icon'
 
 const BORDER_COLOR = {
@@ -47,6 +48,9 @@ export default function Textfield({
   ...props
 }) {
   const hasSplitPanel = !!trailingButton
+
+  // heading 을 input 의 접근 이름으로 연결 (스크린리더가 라벨을 읽도록). 시각 변화 없음.
+  const headingId = useId()
 
   const isFocused = forceFocused && !disabled
 
@@ -177,7 +181,7 @@ export default function Textfield({
     <div style={containerStyle} className={className}>
       {heading && (
         <div style={headingStyle}>
-          <span>{heading}</span>
+          <span id={headingId}>{heading}</span>
           {required && <span style={requiredStyle} aria-label="필수">*</span>}
         </div>
       )}
@@ -198,6 +202,7 @@ export default function Textfield({
               disabled={disabled}
               aria-invalid={status === 'negative'}
               aria-required={required}
+              aria-labelledby={heading ? headingId : undefined}
               {...props}
             />
             {trailingContent && (

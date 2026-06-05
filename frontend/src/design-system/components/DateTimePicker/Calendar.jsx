@@ -190,6 +190,7 @@ export default function Calendar({ mode = 'single', value, onChange, width = '32
             <button
               key={dayKey(cell.date)}
               onClick={() => handleClick(cell.date)}
+              aria-label={`${cell.date.getFullYear()}년 ${cell.date.getMonth() + 1}월 ${cell.date.getDate()}일`}
               style={{
                 position:        'relative',
                 aspectRatio:     '1 / 1',

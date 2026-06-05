@@ -849,6 +849,7 @@ function ChatInput({ value, onChange, placeholder, onPlus, onSend }) {
         <textarea
           ref={textareaRef}
           autoFocus
+          aria-label={placeholder || '메시지 입력'}
           value={value}
           onChange={e => onChange(e.target.value)}
           onBlur={handleBlur}
@@ -892,7 +893,16 @@ function ChatInput({ value, onChange, placeholder, onPlus, onSend }) {
     <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center' }}>
       <ActionButton onClick={onPlus} iconName="plus" ariaLabel="추가" iconColor="var(--color-bg-normal)" />
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={placeholder || '메시지 입력'}
         onClick={handlePillClick}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handlePillClick()
+          }
+        }}
         style={{
           flex:            1,
           height:          '36px',

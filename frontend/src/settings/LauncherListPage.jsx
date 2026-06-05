@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useFocusTrap } from '../lib/useFocusTrap.js'
 import Alert from '../design-system/components/Alert/Alert.jsx'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
@@ -57,6 +58,10 @@ export default function LauncherListPage() {
 
   // 삭제 확인
   const [deleteTarget, setDeleteTarget] = useState(null)
+
+  // 모달 포커스 트랩 — 생성/이름변경 중 하나만 열림
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, createOpen || !!renameTarget)
 
   // 토스트
   const [toast, setToast] = useState(null)
@@ -230,12 +235,12 @@ export default function LauncherListPage() {
       {/* 생성 모달 */}
       {createOpen && (
         <div className="lc__backdrop" onClick={(e) => e.target === e.currentTarget && setCreateOpen(false)}>
-          <div className="lc__modal" role="dialog" aria-modal="true">
+          <div className="lc__modal" role="dialog" aria-modal="true" aria-labelledby="lc-create-title" ref={dialogRef} tabIndex={-1}>
             <div className="lc__modal-head">
-              <Typography variant="headline-2" weight="semibold" as="span">
+              <Typography variant="headline-2" weight="semibold" as="span" id="lc-create-title">
                 런처 버튼 만들기
               </Typography>
-              <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" onClick={() => setCreateOpen(false)} />
+              <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" aria-label="닫기" onClick={() => setCreateOpen(false)} />
             </div>
             <div className="lc__modal-body">
               <Textfield
@@ -262,12 +267,12 @@ export default function LauncherListPage() {
       {/* 이름 변경 모달 */}
       {renameTarget && (
         <div className="lc__backdrop" onClick={(e) => e.target === e.currentTarget && setRenameTarget(null)}>
-          <div className="lc__modal" role="dialog" aria-modal="true">
+          <div className="lc__modal" role="dialog" aria-modal="true" aria-labelledby="lc-rename-title" ref={dialogRef} tabIndex={-1}>
             <div className="lc__modal-head">
-              <Typography variant="headline-2" weight="semibold" as="span">
+              <Typography variant="headline-2" weight="semibold" as="span" id="lc-rename-title">
                 이름 변경
               </Typography>
-              <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" onClick={() => setRenameTarget(null)} />
+              <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" aria-label="닫기" onClick={() => setRenameTarget(null)} />
             </div>
             <div className="lc__modal-body">
               <Textfield

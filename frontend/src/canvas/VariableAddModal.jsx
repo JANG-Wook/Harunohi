@@ -8,12 +8,13 @@
 //   onClose(): 모달 닫기 (draft 폐기)
 //   onDelete(): 편집 모드에서만 호출됨
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
+import { useFocusTrap } from '../lib/useFocusTrap.js'
 import './VariableAddModal.css'
 
 export default function VariableAddModal({
@@ -24,6 +25,9 @@ export default function VariableAddModal({
   onClose,
   onDelete,
 }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   const [originalKey, setOriginalKey] = useState(variable?.originalKey ?? '')
   const [displayName, setDisplayName] = useState(variable?.displayName ?? '')
   const [sampleValue, setSampleValue] = useState(variable?.sampleValue ?? '')
@@ -81,9 +85,9 @@ export default function VariableAddModal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="var-modal" role="dialog" aria-modal="true">
+      <div className="var-modal" role="dialog" aria-modal="true" aria-labelledby="var-modal-title" ref={dialogRef} tabIndex={-1}>
         <header className="var-modal__head">
-          <Typography variant="headline-1" weight="semibold" as="span">
+          <Typography variant="headline-1" weight="semibold" as="span" id="var-modal-title">
             {isNew ? '변수 등록' : '변수 편집'}
           </Typography>
           <IconButtonNormal

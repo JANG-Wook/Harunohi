@@ -199,6 +199,7 @@ export default function Tooltip({
   shortcut      = false,
   shortcutText  = '⌘C',
   className     = '',
+  ...props
 }) {
   const spec       = SIZE_SPEC[size] ?? SIZE_SPEC.medium
   const isVertical = position === 'top' || position === 'bottom'
@@ -267,7 +268,7 @@ export default function Tooltip({
   }
 
   return (
-    <div style={outerStyle} className={className} role="tooltip">
+    <div style={outerStyle} className={className} role="tooltip" {...props}>
       {/* 화살표 */}
       <div style={arrowContainerStyle} aria-hidden="true">
         <div style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>

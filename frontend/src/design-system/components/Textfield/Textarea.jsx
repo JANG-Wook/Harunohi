@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useId, useRef, useState, useEffect } from 'react'
 import './Textarea.css'
 
 /**
@@ -138,6 +138,7 @@ export default function Textarea({
   ...props
 }) {
   const textareaRef = useRef(null)
+  const headingId = useId() // heading 을 textarea 접근 이름으로 연결
   const currentLength = value !== undefined ? String(value).length : 0
   const showBottom = maxLength > 0 || leadingContent || trailingContent
   const isFocused = forceFocused && !disabled
@@ -252,7 +253,7 @@ export default function Textarea({
     <div style={containerStyle} className={className}>
       {heading && (
         <div style={headingStyle}>
-          <span>{heading}</span>
+          <span id={headingId}>{heading}</span>
           {required && <span style={requiredStyle} aria-label="필수">*</span>}
         </div>
       )}
@@ -273,6 +274,7 @@ export default function Textarea({
               onChange={onChange}
               aria-invalid={status === 'negative'}
               aria-required={required}
+              aria-labelledby={heading ? headingId : undefined}
               {...props}
             />
             <CustomScrollBar scrollRef={textareaRef} />

@@ -10,6 +10,7 @@ import IconButtonNormal from '../design-system/components/IconButton/IconButtonN
 import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
+import { useFocusTrap } from '../lib/useFocusTrap.js'
 import './DashboardPage.css'
 
 const STORAGE_PREFIX = 'harunohi.bot.'
@@ -102,6 +103,10 @@ export default function DashboardPage() {
   const [renameTarget, setRenameTarget] = useState(null)
   const [renameValue, setRenameValue] = useState('')
   const [renameError, setRenameError] = useState('')
+
+  /* 모달 포커스 트랩 — 생성/이름변경 중 하나만 열림 */
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, modalOpen || !!renameTarget)
 
   /* 토스트 — 삭제 성공 시 노출 (BotWorkspaceLayout 저장 토스트와 같은 패턴) */
   const [toast, setToast] = useState(null) // null | string
@@ -365,9 +370,9 @@ export default function DashboardPage() {
             if (e.target === e.currentTarget) closeModal()
           }}
         >
-          <div className="dashboard__modal" role="dialog" aria-modal="true">
+          <div className="dashboard__modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-create-title" ref={dialogRef} tabIndex={-1}>
             <header className="dashboard__modal-head">
-              <Typography variant="headline-1" weight="semibold" as="span">
+              <Typography variant="headline-1" weight="semibold" as="span" id="dashboard-create-title">
                 챗봇 만들기
               </Typography>
               <IconButtonNormal
@@ -438,9 +443,9 @@ export default function DashboardPage() {
             if (e.target === e.currentTarget) closeRename()
           }}
         >
-          <div className="dashboard__modal" role="dialog" aria-modal="true">
+          <div className="dashboard__modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-rename-title" ref={dialogRef} tabIndex={-1}>
             <header className="dashboard__modal-head">
-              <Typography variant="headline-1" weight="semibold" as="span">
+              <Typography variant="headline-1" weight="semibold" as="span" id="dashboard-rename-title">
                 봇 이름 변경
               </Typography>
               <IconButtonNormal

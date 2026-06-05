@@ -1,7 +1,7 @@
 // 챗봇 메시지 응답 설정 패널 — HailMary ChatMessagePage 우측 패널의 controlled 버전
 // config 와 onChange(nextConfig) 두 prop 만 받는다.
 
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useId, useRef, useState } from 'react'
 import Checkbox from '../design-system/components/Checkbox/Checkbox.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
@@ -145,7 +145,7 @@ export function LinkEditor({
 function SwitchRow({ label, active, onChange, disabled = false }) {
   return (
     <div className="cmc-switch-row">
-      <Switch size="small" active={active} onChange={onChange} disabled={disabled} />
+      <Switch size="small" active={active} onChange={onChange} disabled={disabled} aria-label={label} />
       <span className="cmc-switch-row__label">{label}</span>
     </div>
   )
@@ -195,11 +195,17 @@ function FieldGroup({ label, children }) {
 }
 
 function CheckBlock({ checked, onChange, label, children }) {
+  // 라벨 텍스트를 체크박스의 접근 이름으로 연결 (시각 변화 없이 스크린리더 인식)
+  const labelId = useId()
   return (
     <div className="cmc-check">
       <div className="cmc-check__head">
-        <Checkbox state={checked ? 'checked' : 'unchecked'} onChange={onChange} />
-        <span className="cmc-check__label" onClick={onChange}>{label}</span>
+        <Checkbox
+          state={checked ? 'checked' : 'unchecked'}
+          onChange={onChange}
+          aria-labelledby={labelId}
+        />
+        <span id={labelId} className="cmc-check__label" onClick={onChange}>{label}</span>
       </div>
       {checked && <div className="cmc-check__body">{children}</div>}
     </div>

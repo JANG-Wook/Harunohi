@@ -73,8 +73,13 @@ function loadBotList() {
       // 손상된 항목은 무시
     }
   }
-  // 이름 가나다순
-  list.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  // 최근 저장(수정)순 — 최신이 좌측 상단. 시각 정보 없으면 뒤로, 동률이면 이름순
+  list.sort((a, b) => {
+    const ta = a.updatedAt || a.createdAt || ''
+    const tb = b.updatedAt || b.createdAt || ''
+    if (ta !== tb) return tb.localeCompare(ta) // 내림차순(최신 먼저)
+    return a.name.localeCompare(b.name, 'ko')
+  })
   return list
 }
 
@@ -238,13 +243,13 @@ export default function DashboardPage() {
     <div className="dashboard">
       <div className="dashboard__header">
         <Typography variant="title-2" weight="bold" as="h1">
-          봇 목록
+          챗봇
         </Typography>
         <Button
           variant="solid"
           color="primary"
           size="medium"
-          label="봇 만들기"
+          label="챗봇 만들기"
           onClick={openModal}
         />
       </div>
@@ -339,15 +344,18 @@ export default function DashboardPage() {
           )
         })}
 
-        <button
-          type="button"
-          className="dashboard__card dashboard__card--ghost"
-          onClick={openModal}
-        >
-          <Typography variant="headline-2" weight="semibold" as="span">
-            봇 만들기
-          </Typography>
-        </button>
+        {/* 봇이 하나도 없을 때만 만들기 ghost 카드 노출 (있으면 상단 버튼으로 생성) */}
+        {bots.length === 0 && (
+          <button
+            type="button"
+            className="dashboard__card dashboard__card--ghost"
+            onClick={openModal}
+          >
+            <Typography variant="headline-2" weight="semibold" as="span">
+              챗봇 만들기
+            </Typography>
+          </button>
+        )}
       </div>
 
       {modalOpen && (
@@ -360,7 +368,7 @@ export default function DashboardPage() {
           <div className="dashboard__modal" role="dialog" aria-modal="true">
             <header className="dashboard__modal-head">
               <Typography variant="headline-1" weight="semibold" as="span">
-                봇 만들기
+                챗봇 만들기
               </Typography>
               <IconButtonNormal
                 icon={<Icon name="close" size={18} />}

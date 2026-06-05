@@ -46,6 +46,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-8);
+  /* 봇 카드(아이콘+이름+상태+날짜)와 비슷한 높이로 맞춤 — 빈 상태에서 단독 노출돼도 어색하지 않게 */
+  min-height: 172px;
 }
 
 /* 저장된 봇 카드 — 아이콘 + 이름 + 단계 수 + 호버 시 삭제 버튼 */

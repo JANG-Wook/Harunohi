@@ -19,6 +19,13 @@ export const LAUNCHER_ICONS = [
   { value: 'faceSmileFill', label: '스마일' },
 ]
 
+/** 진입 메시지 글자 굵기 — 디자인 시스템 weight 토큰 매핑 */
+export const GREETING_WEIGHTS = [
+  { value: 'regular', label: '얇게', css: 400 },
+  { value: 'medium', label: '보통', css: 500 },
+  { value: 'bold', label: '굵게', css: 700 },
+]
+
 export function defaultLauncherConfig() {
   return {
     iconType: 'default',          // 'default' | 'image'
@@ -31,6 +38,7 @@ export function defaultLauncherConfig() {
     greetingText: '도움이 필요하신가요?',
     greetingTextColor: '#FFFFFF',
     greetingTextSize: 15,         // px
+    greetingTextWeight: 'medium', // 'regular'(얇게) | 'medium'(보통) | 'bold'(굵게)
     greetingBgColor: '#0066FF',
   }
 }
@@ -53,7 +61,13 @@ export function loadLauncherList() {
       // 손상 항목 무시
     }
   }
-  list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'))
+  // 최근 저장(수정)순 — 최신이 좌측 상단. 동률이면 이름순
+  list.sort((a, b) => {
+    const ta = a.updatedAt || a.createdAt || ''
+    const tb = b.updatedAt || b.createdAt || ''
+    if (ta !== tb) return tb.localeCompare(ta) // 내림차순(최신 먼저)
+    return (a.name || '').localeCompare(b.name || '', 'ko')
+  })
   return list
 }
 

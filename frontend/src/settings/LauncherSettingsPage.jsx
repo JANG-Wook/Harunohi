@@ -18,6 +18,7 @@ import {
   IMAGE_MAX_SIZE,
 } from '../lib/chatMessageDefaults.js'
 import {
+  GREETING_WEIGHTS,
   LAUNCHER_ICONS,
   defaultLauncherConfig,
   loadLauncher,
@@ -274,6 +275,25 @@ export default function LauncherSettingsPage() {
                         aria-pressed={config.greetingTextSize === px}
                       >
                         {px}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="글자 굵기">
+                  <div className="launcher-set__sizes">
+                    {GREETING_WEIGHTS.map((w) => (
+                      <button
+                        key={w.value}
+                        type="button"
+                        className={['launcher-set__size-opt', config.greetingTextWeight === w.value && 'is-active']
+                          .filter(Boolean)
+                          .join(' ')}
+                        style={{ fontWeight: w.css }}
+                        onClick={() => set({ greetingTextWeight: w.value })}
+                        aria-pressed={config.greetingTextWeight === w.value}
+                      >
+                        {w.label}
                       </button>
                     ))}
                   </div>

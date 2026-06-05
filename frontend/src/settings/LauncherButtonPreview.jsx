@@ -4,9 +4,10 @@
 
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import { getImageUrl } from '../lib/chatMessageDefaults.js'
+import { GREETING_WEIGHTS } from '../lib/launcherConfig.js'
 import './LauncherButtonPreview.css'
 
-export default function LauncherButtonPreview({ config, compact = false }) {
+export default function LauncherButtonPreview({ config, compact = false, buttonOnly = false }) {
   const {
     iconType,
     iconName,
@@ -18,11 +19,14 @@ export default function LauncherButtonPreview({ config, compact = false }) {
     greetingText,
     greetingTextColor,
     greetingTextSize,
+    greetingTextWeight = 'medium',
     greetingBgColor,
   } = config
 
+  const weightCss = GREETING_WEIGHTS.find((w) => w.value === greetingTextWeight)?.css ?? 500
+
   const imageUrl = iconType === 'image' ? getImageUrl(iconImage) : ''
-  const showGreeting = greetingOn && greetingText?.trim()
+  const showGreeting = !buttonOnly && greetingOn && greetingText?.trim()
   const isTop = greetingPosition === 'top'
 
   // 사이즈 — compact(카드) vs full(에디터)
@@ -67,6 +71,7 @@ export default function LauncherButtonPreview({ config, compact = false }) {
             background: greetingBgColor,
             color: greetingTextColor,
             fontSize: compact ? '12px' : `${greetingTextSize}px`,
+            fontWeight: weightCss,
             // 최소 높이를 버튼과 같게 → 짧은 말풍선에서도 꼬리(버튼 중앙)가 둥근 모서리에 걸리지 않음
             minHeight: buttonSize,
           }}

@@ -40,18 +40,10 @@
   box-shadow: 0px 4px 6px -1px rgba(23, 23, 23, 0.06), 0px 2px 4px -2px rgba(23, 23, 23, 0.06);
 }
 
-.lc__card--ghost {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-8);
-  color: var(--color-label-alternative);
-}
-
 /* 카드 미리보기 — 말풍선 + 버튼만 (compact). 우측 정렬로 실제 배치 느낌 */
 .lc__card-preview {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding: var(--spacing-12) 0;
   margin-bottom: var(--spacing-4);
   overflow: hidden;

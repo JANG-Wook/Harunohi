@@ -13,7 +13,7 @@ import './ConsoleLayout.css'
 // children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
 const NAV_ITEMS = [
   { key: 'dashboard', to: '/app/dashboard', label: '대시보드', icon: 'home', disabled: true },
-  { key: 'bots', to: '/app/bots', label: '챗봇 목록', icon: 'agent' },
+  { key: 'bots', to: '/app/bots', label: '챗봇', icon: 'agent' },
   {
     key: 'chatbot-ui',
     label: '챗봇 디자인 설정',

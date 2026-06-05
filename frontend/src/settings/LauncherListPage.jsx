@@ -168,7 +168,7 @@ export default function LauncherListPage() {
             onClick={() => navigate(`/app/chatbot-ui/launcher/${entry.id}`)}
           >
             <div className="lc__card-preview">
-              <LauncherButtonPreview config={entry.config} compact />
+              <LauncherButtonPreview config={entry.config} compact buttonOnly />
             </div>
             <Typography variant="headline-2" weight="semibold" as="span">
               {entry.name}
@@ -225,14 +225,6 @@ export default function LauncherListPage() {
             </div>
           </button>
         ))}
-
-        {/* 만들기 ghost 카드 */}
-        <button type="button" className="lc__card lc__card--ghost" onClick={openCreate}>
-          <Icon name="plus" size={20} />
-          <Typography variant="body-2-normal" weight="medium" as="span">
-            런처 버튼 만들기
-          </Typography>
-        </button>
       </div>
 
       {/* 생성 모달 */}

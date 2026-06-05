@@ -17,9 +17,13 @@
   align-items: flex-end;
 }
 
-/* compact(카드)는 간격을 좁힘 */
+/* compact(카드)는 간격을 좁히고, 떠있는 그림자 제거 (썸네일 용도) */
 .lbp--compact {
   gap: var(--spacing-8);
+}
+
+.lbp--compact .lbp__button {
+  box-shadow: none;
 }
 
 .lbp__greeting {
@@ -31,7 +35,6 @@
   padding: var(--spacing-12) var(--spacing-16);
   border-radius: var(--spacing-16);
   line-height: 1.45;
-  font-weight: 500;
   box-shadow: 0 4px 16px -4px rgba(23, 23, 23, 0.24);
   word-break: keep-all;
 }

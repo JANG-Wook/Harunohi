@@ -15,12 +15,14 @@ export default function App() {
       <Route element={<ConsoleLayout />}>
         <Route path="/app/bots" element={<DashboardPage />} />
         <Route path="/app/chatbot-ui/launcher" element={<LauncherListPage />} />
-        <Route path="/app/chatbot-ui/launcher/:launcherId" element={<LauncherSettingsPage />} />
       </Route>
 
       <Route element={<BotWorkspaceLayout />}>
         <Route path="/app/bots/:botId/canvas" element={<BotCanvasPage />} />
       </Route>
+
+      {/* 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린 (LNB 이탈 방지) */}
+      <Route path="/app/chatbot-ui/launcher/:launcherId" element={<LauncherSettingsPage />} />
 
       <Route path="*" element={<Navigate to="/app/bots" replace />} />
     </Routes>

@@ -1,10 +1,112 @@
 /* 런처 설정 페이지 — 헤더 + (좌 설정 / 우 미리보기) 2열.
    설정 패널은 봇 설정(ChatMessageConfig)과 동일한 아이콘 레일 + 카드 패턴을 따른다. */
 
+/* ── 챗봇 디자인 에디터 셸 — LNB 없는 독립 풀스크린 ── */
+.dze {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg-normal-alternative);
+}
+
+.dze__topbar {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-16) 0 var(--spacing-12);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-line-solid-normal);
+}
+
+.dze__topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.dze__topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.dze__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* 좌측 탭 — 디자인 편집 대상(런처/대화방) */
+.dze__nav {
+  flex-shrink: 0;
+  width: 240px;
+  background: var(--color-bg-elevated);
+  border-right: 1px solid var(--color-line-solid-normal);
+  padding: var(--spacing-16) var(--spacing-12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dze__nav-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-12);
+}
+
+.dze__nav-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-8) var(--spacing-12);
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: var(--color-label-neutral);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.dze__nav-tab:hover {
+  background: var(--color-fill-alternative);
+}
+
+.dze__nav-tab.is-active {
+  background: var(--color-fill-normal);
+  color: var(--color-label-normal);
+}
+
+/* 본문 — 스크롤 컨테이너 */
+.dze__main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--spacing-24);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 대화방 placeholder */
+.dze__placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-12);
+}
+
+/* 본문 내부 — 런처 설정 영역 (헤더 + 미리보기/패널) */
 .launcher-set {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
   min-height: 0;
 }
 

@@ -1,17 +1,23 @@
-// 런처 설정 페이지 — 플로팅 챗봇 진입 버튼 디자인 편집 + 실시간 미리보기.
-// 좌측 설정 패널(봇 설정과 동일한 아이콘 레일 + 카드 패턴) / 우측 미리보기. 저장 시 localStorage + 토스트.
+// 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린.
+// 상단바(브랜드+테마) + 좌측 탭(플로팅 런처 버튼 / 대화방) + 본문.
+// 플로팅 런처 버튼 탭: 좌 미리보기 / 우 설정 패널. 대화방 탭: 준비 중 placeholder.
+// 저장 누르기 전까진 미반영, 뒤로가기/새로고침 시 이탈 가드.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Alert from '../design-system/components/Alert/Alert.jsx'
+import Avatar from '../design-system/components/Avatar/Avatar.jsx'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
+import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
 import Radio from '../design-system/components/Radio/Radio.jsx'
 import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Switch from '../design-system/components/Switch/Switch.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
+import ForsythiaLogo from '../layout/ForsythiaLogo.jsx'
+import { useTheme } from '../lib/useTheme.js'
 import {
   getImageName,
   hasImage,
@@ -74,7 +80,10 @@ export default function LauncherSettingsPage() {
   const navigate = useNavigate()
   const { launcherId } = useParams()
   const entry = useMemo(() => loadLauncher(launcherId), [launcherId])
+  const { theme, toggle: toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
 
+  const [tab, setTab] = useState('launcher') // 'launcher' | 'chatroom'
   const [config, setConfig] = useState(() => entry?.config ?? defaultLauncherConfig())
   const [name, setName] = useState(() => entry?.name ?? '')
   const [toast, setToast] = useState(null)
@@ -87,7 +96,7 @@ export default function LauncherSettingsPage() {
   )
   const isDirty = !!entry && snapshotOf(name, config) !== savedSnapshot
 
-  /* 이탈 가드 (봇 설정과 동일 방식) — 뒤로가기 버튼 클릭 시 확인 Alert */
+  /* 이탈 가드 — 뒤로가기 클릭 시 확인 Alert */
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false)
 
   /* 새로고침·탭 닫기 가드 — dirty 면 브라우저 기본 경고 */
@@ -101,7 +110,6 @@ export default function LauncherSettingsPage() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [isDirty])
 
-  /* 뒤로가기 — dirty 면 확인, 아니면 즉시 목록으로 */
   const handleBack = () => {
     if (isDirty) setConfirmLeaveOpen(true)
     else navigate(LIST_PATH)
@@ -136,8 +144,8 @@ export default function LauncherSettingsPage() {
   const handleSave = () => {
     const finalName = name.trim() || entry.name
     saveLauncher({ id: launcherId, name: finalName, config, nowIso: new Date().toISOString() })
-    setSavedSnapshot(snapshotOf(finalName, config)) // 저장 기준점 갱신 → dirty 해제
-    setToast('런처 디자인을 저장했어요.')
+    setSavedSnapshot(snapshotOf(finalName, config))
+    setToast('챗봇 디자인을 저장했어요.')
     window.clearTimeout(handleSave._t)
     handleSave._t = window.setTimeout(() => setToast(null), TOAST_DURATION)
   }
@@ -157,207 +165,268 @@ export default function LauncherSettingsPage() {
   const greetingContrastLow =
     config.greetingOn && isLowContrast(config.greetingTextColor, config.greetingBgColor)
 
+  const TABS = [
+    { key: 'launcher', label: '플로팅 런처 버튼', icon: 'bubble' },
+    { key: 'chatroom', label: '대화방', icon: 'message' },
+  ]
+
   return (
-    <div className="launcher-set">
-      <header className="launcher-set__head">
-        <div className="launcher-set__head-left">
-        <IconButtonNormal
-          icon={<Icon name="chevronLeft" size={20} />}
-          onClick={handleBack}
-          aria-label="뒤로가기"
-        />
-        <div className="launcher-set__head-title">
-          {/* 이름 인라인 편집 — 펜슬 어포던스, 저장 시 함께 반영 */}
-          <label className="launcher-set__name-edit">
-            <input
-              type="text"
-              className="launcher-set__name-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="런처 버튼 이름"
-              aria-label="런처 버튼 이름"
-            />
-            <span className="launcher-set__name-icon" aria-hidden="true">
-              <Icon name="pencil" size={16} />
-            </span>
-          </label>
-          <Typography variant="label-1-normal" color="var(--color-label-alternative)" as="p">
-            챗봇을 임베드했을 때 표시되는 플로팅 런처 버튼의 디자인을 설정할 수 있어요.
+    <div className="dze">
+      {/* 상단바 — 뒤로가기 + 브랜드 + 테마/아바타 */}
+      <header className="dze__topbar">
+        <div className="dze__topbar-left">
+          <IconButtonNormal
+            icon={<Icon name="chevronLeft" size={20} />}
+            onClick={handleBack}
+            aria-label="목록으로"
+          />
+          <ForsythiaLogo size={26} />
+          <Typography variant="headline-2" weight="bold" color="var(--color-label-neutral)" as="span">
+            Harunohi
           </Typography>
         </div>
-        </div>
-        <div className="launcher-set__head-actions">
-          <Button variant="outlined" color="assistive" size="medium" label="기본값으로" onClick={handleReset} />
-          <Button variant="solid" color="primary" size="medium" label="저장" onClick={handleSave} />
+        <div className="dze__topbar-right">
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
+          <Avatar variant="person" size="small" interaction onClick={() => {}} />
         </div>
       </header>
 
-      <div className="launcher-set__body">
-        {/* 좌측 미리보기 */}
-        <section className="launcher-set__preview">
-          <LauncherPreview config={config} />
-        </section>
+      <div className="dze__body">
+        {/* 좌측 탭 — 챗봇 디자인의 편집 대상 전환 */}
+        <aside className="dze__nav">
+          <div className="dze__nav-head">
+            <Icon name="palette" size={16} color="var(--color-label-neutral)" />
+            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
+              챗봇 디자인 설정
+            </Typography>
+          </div>
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={['dze__nav-tab', tab === t.key && 'is-active'].filter(Boolean).join(' ')}
+              onClick={() => setTab(t.key)}
+              aria-pressed={tab === t.key}
+            >
+              <Icon name={t.icon} size={18} />
+              <Typography variant="label-1-normal" weight="medium" as="span">
+                {t.label}
+              </Typography>
+            </button>
+          ))}
+        </aside>
 
-        {/* 우측 설정 패널 */}
-        <section className="launcher-set__panel sidebar-scroll">
-          {/* 버튼 — 아이콘 소스/색/배경 */}
-          <Section icon="bubble" title="버튼">
-            <Field label="아이콘">
-              <div className="launcher-set__radios">
-                <Radio checked={!isImageMode} label="기본 아이콘" onChange={() => set({ iconType: 'default' })} />
-                <Radio checked={isImageMode} label="이미지 업로드" onChange={() => set({ iconType: 'image' })} />
-              </div>
-
-              {!isImageMode ? (
-                <div className="launcher-set__icons">
-                  {LAUNCHER_ICONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={['launcher-set__icon-opt', config.iconName === opt.value && 'is-active']
-                        .filter(Boolean)
-                        .join(' ')}
-                      onClick={() => set({ iconName: opt.value })}
-                      aria-pressed={config.iconName === opt.value}
-                    >
-                      <Icon name={opt.value} size={24} />
-                      <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
-                        {opt.label}
-                      </Typography>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="launcher-set__upload">
-                  <div
-                    className="launcher-set__upload-field"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => fileRef.current?.click()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        fileRef.current?.click()
-                      }
-                    }}
-                  >
-                    <Textfield
-                      placeholder="이미지를 업로드해 주세요."
-                      value={imageExists ? getImageName(config.iconImage) : ''}
-                      readOnly
-                      status={uploadError ? 'negative' : 'normal'}
-                      trailingButton={{ label: imageExists ? '변경' : '불러오기', variant: 'normal' }}
-                    />
-                  </div>
-                  <input ref={fileRef} type="file" accept="image/jpeg,image/png" onChange={handleFile} hidden />
-                  <span
-                    className={['launcher-set__caption', uploadError && 'is-error'].filter(Boolean).join(' ')}
-                  >
-                    {uploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장'}
-                  </span>
-                </div>
-              )}
-            </Field>
-
-            <Field label={isImageMode ? '아이콘 색 (이미지 업로드 중에는 비활성)' : '아이콘 색'}>
-              <ColorField value={config.iconColor} onChange={(c) => set({ iconColor: c })} disabled={isImageMode} />
-              {iconContrastLow && (
-                <span className="launcher-set__caption is-error">
-                  아이콘 색과 버튼 배경색의 대비가 낮아 잘 안 보일 수 있어요.
+        {/* 본문 */}
+        <main className="dze__main">
+          <header className="launcher-set__head">
+            <div className="launcher-set__head-title">
+              <label className="launcher-set__name-edit">
+                <input
+                  type="text"
+                  className="launcher-set__name-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="챗봇 디자인 이름"
+                  aria-label="챗봇 디자인 이름"
+                />
+                <span className="launcher-set__name-icon" aria-hidden="true">
+                  <Icon name="pencil" size={16} />
                 </span>
+              </label>
+              <Typography variant="label-1-normal" color="var(--color-label-alternative)" as="p">
+                {tab === 'launcher'
+                  ? '챗봇을 임베드했을 때 표시되는 플로팅 런처 버튼의 디자인을 설정할 수 있어요.'
+                  : '대화방 화면의 디자인을 설정할 수 있어요.'}
+              </Typography>
+            </div>
+            <div className="launcher-set__head-actions">
+              {tab === 'launcher' && (
+                <Button variant="outlined" color="assistive" size="medium" label="기본값으로" onClick={handleReset} />
               )}
-            </Field>
+              <Button variant="solid" color="primary" size="medium" label="저장" onClick={handleSave} />
+            </div>
+          </header>
 
-            <Field label="버튼 배경색">
-              <ColorField value={config.bgColor} onChange={(c) => set({ bgColor: c })} />
-            </Field>
-          </Section>
+          {tab === 'launcher' ? (
+            <div className="launcher-set__body">
+              {/* 좌측 미리보기 */}
+              <section className="launcher-set__preview">
+                <LauncherPreview config={config} />
+              </section>
 
-          {/* 진입 메시지 — 토글 ON 일 때만 카드 노출 */}
-          <Section
-            icon="message"
-            title="진입 메시지"
-            toggle={{ active: config.greetingOn, onChange: () => set({ greetingOn: !config.greetingOn }) }}
-          >
-            {config.greetingOn ? (
-              <>
-                <Field label="말풍선 위치">
-                  <div className="launcher-set__radios">
-                    <Radio
-                      checked={config.greetingPosition !== 'top'}
-                      label="버튼 왼쪽"
-                      onChange={() => set({ greetingPosition: 'left' })}
-                    />
-                    <Radio
-                      checked={config.greetingPosition === 'top'}
-                      label="버튼 위"
-                      onChange={() => set({ greetingPosition: 'top' })}
-                    />
-                  </div>
-                </Field>
+              {/* 우측 설정 패널 */}
+              <section className="launcher-set__panel sidebar-scroll">
+                <Section icon="bubble" title="버튼">
+                  <Field label="아이콘">
+                    <div className="launcher-set__radios">
+                      <Radio checked={!isImageMode} label="기본 아이콘" onChange={() => set({ iconType: 'default' })} />
+                      <Radio checked={isImageMode} label="이미지 업로드" onChange={() => set({ iconType: 'image' })} />
+                    </div>
 
-                <Field label="메시지 내용">
-                  <Textfield
-                    placeholder="도움이 필요하신가요?"
-                    value={config.greetingText}
-                    onChange={(e) => set({ greetingText: e.target.value })}
-                    aria-label="메시지 내용"
-                  />
-                </Field>
+                    {!isImageMode ? (
+                      <div className="launcher-set__icons">
+                        {LAUNCHER_ICONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            className={['launcher-set__icon-opt', config.iconName === opt.value && 'is-active']
+                              .filter(Boolean)
+                              .join(' ')}
+                            onClick={() => set({ iconName: opt.value })}
+                            aria-pressed={config.iconName === opt.value}
+                          >
+                            <Icon name={opt.value} size={24} />
+                            <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                              {opt.label}
+                            </Typography>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="launcher-set__upload">
+                        <div
+                          className="launcher-set__upload-field"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => fileRef.current?.click()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              fileRef.current?.click()
+                            }
+                          }}
+                        >
+                          <Textfield
+                            placeholder="이미지를 업로드해 주세요."
+                            value={imageExists ? getImageName(config.iconImage) : ''}
+                            readOnly
+                            status={uploadError ? 'negative' : 'normal'}
+                            trailingButton={{ label: imageExists ? '변경' : '불러오기', variant: 'normal' }}
+                          />
+                        </div>
+                        <input ref={fileRef} type="file" accept="image/jpeg,image/png" onChange={handleFile} hidden />
+                        <span
+                          className={['launcher-set__caption', uploadError && 'is-error'].filter(Boolean).join(' ')}
+                        >
+                          {uploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장'}
+                        </span>
+                      </div>
+                    )}
+                  </Field>
 
-                <Field label="글자 크기">
-                  <div className="launcher-set__sizes">
-                    {TEXT_SIZES.map((px) => (
-                      <button
-                        key={px}
-                        type="button"
-                        className={['launcher-set__size-opt', config.greetingTextSize === px && 'is-active']
-                          .filter(Boolean)
-                          .join(' ')}
-                        onClick={() => set({ greetingTextSize: px })}
-                        aria-pressed={config.greetingTextSize === px}
-                      >
-                        {px}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
+                  <Field label={isImageMode ? '아이콘 색 (이미지 업로드 중에는 비활성)' : '아이콘 색'}>
+                    <ColorField value={config.iconColor} onChange={(c) => set({ iconColor: c })} disabled={isImageMode} />
+                    {iconContrastLow && (
+                      <span className="launcher-set__caption is-error">
+                        아이콘 색과 버튼 배경색의 대비가 낮아 잘 안 보일 수 있어요.
+                      </span>
+                    )}
+                  </Field>
 
-                <Field label="글자 굵기">
-                  <div className="launcher-set__sizes">
-                    {GREETING_WEIGHTS.map((w) => (
-                      <button
-                        key={w.value}
-                        type="button"
-                        className={['launcher-set__size-opt', config.greetingTextWeight === w.value && 'is-active']
-                          .filter(Boolean)
-                          .join(' ')}
-                        style={{ fontWeight: w.css }}
-                        onClick={() => set({ greetingTextWeight: w.value })}
-                        aria-pressed={config.greetingTextWeight === w.value}
-                      >
-                        {w.label}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
+                  <Field label="버튼 배경색">
+                    <ColorField value={config.bgColor} onChange={(c) => set({ bgColor: c })} />
+                  </Field>
+                </Section>
 
-                <Field label="글자색">
-                  <ColorField value={config.greetingTextColor} onChange={(c) => set({ greetingTextColor: c })} />
-                </Field>
+                <Section
+                  icon="message"
+                  title="진입 메시지"
+                  toggle={{ active: config.greetingOn, onChange: () => set({ greetingOn: !config.greetingOn }) }}
+                >
+                  {config.greetingOn ? (
+                    <>
+                      <Field label="말풍선 위치">
+                        <div className="launcher-set__radios">
+                          <Radio
+                            checked={config.greetingPosition !== 'top'}
+                            label="버튼 왼쪽"
+                            onChange={() => set({ greetingPosition: 'left' })}
+                          />
+                          <Radio
+                            checked={config.greetingPosition === 'top'}
+                            label="버튼 위"
+                            onChange={() => set({ greetingPosition: 'top' })}
+                          />
+                        </div>
+                      </Field>
 
-                <Field label="배경색">
-                  <ColorField value={config.greetingBgColor} onChange={(c) => set({ greetingBgColor: c })} />
-                  {greetingContrastLow && (
-                    <span className="launcher-set__caption is-error">
-                      글자색과 배경색의 대비가 낮아 잘 안 보일 수 있어요.
-                    </span>
-                  )}
-                </Field>
-              </>
-            ) : null}
-          </Section>
-        </section>
+                      <Field label="메시지 내용">
+                        <Textfield
+                          placeholder="도움이 필요하신가요?"
+                          value={config.greetingText}
+                          onChange={(e) => set({ greetingText: e.target.value })}
+                          aria-label="메시지 내용"
+                        />
+                      </Field>
+
+                      <Field label="글자 크기">
+                        <div className="launcher-set__sizes">
+                          {TEXT_SIZES.map((px) => (
+                            <button
+                              key={px}
+                              type="button"
+                              className={['launcher-set__size-opt', config.greetingTextSize === px && 'is-active']
+                                .filter(Boolean)
+                                .join(' ')}
+                              onClick={() => set({ greetingTextSize: px })}
+                              aria-pressed={config.greetingTextSize === px}
+                            >
+                              {px}
+                            </button>
+                          ))}
+                        </div>
+                      </Field>
+
+                      <Field label="글자 굵기">
+                        <div className="launcher-set__sizes">
+                          {GREETING_WEIGHTS.map((w) => (
+                            <button
+                              key={w.value}
+                              type="button"
+                              className={['launcher-set__size-opt', config.greetingTextWeight === w.value && 'is-active']
+                                .filter(Boolean)
+                                .join(' ')}
+                              style={{ fontWeight: w.css }}
+                              onClick={() => set({ greetingTextWeight: w.value })}
+                              aria-pressed={config.greetingTextWeight === w.value}
+                            >
+                              {w.label}
+                            </button>
+                          ))}
+                        </div>
+                      </Field>
+
+                      <Field label="글자색">
+                        <ColorField value={config.greetingTextColor} onChange={(c) => set({ greetingTextColor: c })} />
+                      </Field>
+
+                      <Field label="배경색">
+                        <ColorField value={config.greetingBgColor} onChange={(c) => set({ greetingBgColor: c })} />
+                        {greetingContrastLow && (
+                          <span className="launcher-set__caption is-error">
+                            글자색과 배경색의 대비가 낮아 잘 안 보일 수 있어요.
+                          </span>
+                        )}
+                      </Field>
+                    </>
+                  ) : null}
+                </Section>
+              </section>
+            </div>
+          ) : (
+            <div className="dze__placeholder">
+              <Icon name="message" size={32} color="var(--color-label-assistive)" />
+              <Typography variant="body-2-normal" color="var(--color-label-alternative)" as="p">
+                대화방 디자인은 곧 제공될 예정이에요.
+              </Typography>
+            </div>
+          )}
+        </main>
       </div>
 
       {toast && (
@@ -370,7 +439,7 @@ export default function LauncherSettingsPage() {
         </div>
       )}
 
-      {/* 이탈 가드 — 뒤로가기 시 저장 안 한 변경점이 있으면 (봇 설정과 동일 패턴) */}
+      {/* 이탈 가드 — 뒤로가기 시 저장 안 한 변경점이 있으면 */}
       {confirmLeaveOpen && (
         <div
           className="launcher-set__leave-backdrop"

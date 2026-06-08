@@ -159,9 +159,9 @@ export default function LauncherListPage() {
     <div className="lc">
       <div className="lc__header">
         <Typography variant="title-2" weight="bold" as="h1">
-          플로팅 런처 버튼
+          챗봇 디자인
         </Typography>
-        <Button variant="solid" color="primary" size="medium" label="런처 버튼 만들기" onClick={openCreate} />
+        <Button variant="solid" color="primary" size="medium" label="챗봇 디자인 만들기" onClick={openCreate} />
       </div>
 
       <div className="lc__grid">
@@ -238,7 +238,7 @@ export default function LauncherListPage() {
           <div className="lc__modal" role="dialog" aria-modal="true" aria-labelledby="lc-create-title" ref={dialogRef} tabIndex={-1}>
             <div className="lc__modal-head">
               <Typography variant="headline-2" weight="semibold" as="span" id="lc-create-title">
-                런처 버튼 만들기
+                챗봇 디자인 만들기
               </Typography>
               <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" aria-label="닫기" onClick={() => setCreateOpen(false)} />
             </div>
@@ -246,7 +246,7 @@ export default function LauncherListPage() {
               <Textfield
                 heading="이름"
                 required
-                placeholder="예: 기본 런처, 이벤트용 핑크 런처"
+                placeholder="예: 기본 디자인, 이벤트용 핑크"
                 value={createName}
                 onChange={(e) => {
                   setCreateName(e.target.value)

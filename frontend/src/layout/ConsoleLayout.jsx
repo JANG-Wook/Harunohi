@@ -1,6 +1,5 @@
 // 콘솔 공통 레이아웃 — 상단 헤더(테마 토글 + 아바타) + 좌측 사이드바 + 본문.
 // 사이드바는 평면 + 부모/자식(접고 펼치기) 두 패턴을 동시에 지원.
-import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import Avatar from '../design-system/components/Avatar/Avatar.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
@@ -14,15 +13,8 @@ import './ConsoleLayout.css'
 const NAV_ITEMS = [
   { key: 'dashboard', to: '/app/dashboard', label: '대시보드', icon: 'home', disabled: true },
   { key: 'bots', to: '/app/bots', label: '챗봇', icon: 'agent' },
-  {
-    key: 'chatbot-ui',
-    label: '챗봇 디자인 설정',
-    icon: 'palette',
-    children: [
-      { key: 'launcher', to: '/app/chatbot-ui/launcher', label: '플로팅 런처 버튼', icon: 'bubble' },
-      { key: 'chatroom', to: '/app/chatbot-ui/chatroom', label: '대화방', icon: 'message', disabled: true },
-    ],
-  },
+  // 챗봇 디자인 설정 — 단일 항목. 클릭 시 챗봇 디자인 목록으로. (런처/대화방은 디자인 에디터 내부 탭)
+  { key: 'chatbot-ui', to: '/app/chatbot-ui/launcher', label: '챗봇 디자인 설정', icon: 'palette' },
   { key: 'analytics', to: '/app/analytics', label: '분석', icon: 'column', disabled: true },
   { key: 'knowledge', to: '/app/assets/knowledge', label: '지식베이스', icon: 'book', disabled: true },
   { key: 'settings', to: '/app/settings', label: '설정', icon: 'setting', disabled: true },
@@ -53,36 +45,6 @@ function NavLeaf({ item, isChild = false }) {
   )
 }
 
-/** 자식이 있는 부모 항목 — 클릭 시 펼침/접힘 토글, 우측에 chevron */
-function NavBranch({ item }) {
-  const [open, setOpen] = useState(true)
-  return (
-    <>
-      <button
-        type="button"
-        className="console-nav__item console-nav__item--branch"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        <Icon name={item.icon} size={18} />
-        <Typography variant="label-1-normal" weight="medium" as="span">
-          {item.label}
-        </Typography>
-        <span className={`console-nav__chevron ${open ? 'is-open' : ''}`} aria-hidden="true">
-          <Icon name="chevronDown" size={14} />
-        </span>
-      </button>
-      {open && (
-        <div className="console-nav__children">
-          {item.children.map((child) => (
-            <NavLeaf key={child.key} item={child} isChild />
-          ))}
-        </div>
-      )}
-    </>
-  )
-}
-
 export default function ConsoleLayout() {
   const { theme, toggle } = useTheme()
   const isDark = theme === 'dark'
@@ -110,13 +72,9 @@ export default function ConsoleLayout() {
       <div className="console-body">
         <aside className="console-sidebar">
           <nav className="console-nav">
-            {NAV_ITEMS.map((item) =>
-              item.children ? (
-                <NavBranch key={item.key} item={item} />
-              ) : (
-                <NavLeaf key={item.key} item={item} />
-              ),
-            )}
+            {NAV_ITEMS.map((item) => (
+              <NavLeaf key={item.key} item={item} />
+            ))}
           </nav>
         </aside>
 

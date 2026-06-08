@@ -10,12 +10,21 @@ import IconButtonNormal from '../design-system/components/IconButton/IconButtonN
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
 import Menu from '../design-system/components/Menu/Menu.jsx'
 import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
-import Typography from '../design-system/components/Typography/Typography.jsx'
 import SimulatorModal from '../simulator/SimulatorModal.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import './BotWorkspaceLayout.css'
 
 const TOAST_DURATION = 2400
+const STORAGE_PREFIX = 'harunohi.bot.'
+
+/** 이름 입력 너비 추정 — 한글 등 전각 문자는 약 2배 폭. 시각 폭(ch) 기준 floor 16 */
+function nameInputCh(s) {
+  let w = 0
+  for (const ch of s) {
+    w += /[ᄀ-ᇿ⺀-鿿　-〿㄰-㆏가-힣＀-￯]/.test(ch) ? 2 : 1
+  }
+  return Math.max(w, 16) + 2
+}
 
 /** ISO 문자열 → "2026.05.23 14:30" 형식 */
 function formatVersionLabel(iso) {
@@ -115,13 +124,61 @@ export default function BotWorkspaceLayout() {
 
   const handlePublish = useCallback(() => {
     const ok = publisherRef.current?.()
-    if (ok) showToast('발행되었습니다')
+    if (ok) showToast('배포되었습니다')
   }, [showToast])
 
   const handleBack = useCallback(() => {
     if (isDirty) setConfirmLeaveOpen(true)
     else navigate('/app/bots')
   }, [isDirty, navigate])
+
+  /* 봇 이름 인라인 편집 — 저장 키가 곧 이름이라, 커밋 시 키를 이동하고 새 URL 로 replace.
+     (BotCanvasPage 는 botId 변경에도 리마운트되지 않아 편집 중 상태는 보존된다) */
+  const botName = decodeURIComponent(botId ?? '')
+  const [nameDraft, setNameDraft] = useState(botName)
+  const [editingName, setEditingName] = useState(false)
+  const skipCommitRef = useRef(false) // Esc 취소 시 blur 커밋 방지
+  useEffect(() => {
+    setNameDraft(decodeURIComponent(botId ?? ''))
+  }, [botId])
+
+  const startRename = () => {
+    setNameDraft(decodeURIComponent(botId ?? ''))
+    setEditingName(true)
+  }
+  const cancelRename = () => {
+    skipCommitRef.current = true
+    setNameDraft(decodeURIComponent(botId ?? ''))
+    setEditingName(false)
+  }
+
+  const commitRename = useCallback(() => {
+    setEditingName(false)
+    if (skipCommitRef.current) {
+      skipCommitRef.current = false
+      return
+    }
+    const trimmed = nameDraft.trim()
+    const current = decodeURIComponent(botId ?? '')
+    if (!trimmed || trimmed === current) {
+      setNameDraft(current)
+      return
+    }
+    if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
+      showToast('이미 사용 중인 챗봇 이름입니다')
+      setNameDraft(current)
+      return
+    }
+    const raw = window.localStorage.getItem(STORAGE_PREFIX + current)
+    if (raw == null) {
+      setNameDraft(current)
+      return
+    }
+    window.localStorage.setItem(STORAGE_PREFIX + trimmed, raw)
+    window.localStorage.removeItem(STORAGE_PREFIX + current)
+    navigate(`/app/bots/${encodeURIComponent(trimmed)}/canvas`, { replace: true })
+    showToast(`'${trimmed}' 로 이름을 변경했어요`)
+  }, [nameDraft, botId, navigate, showToast])
 
   const handleConfirmLeave = useCallback(() => {
     setConfirmLeaveOpen(false)
@@ -201,9 +258,34 @@ export default function BotWorkspaceLayout() {
             onClick={handleBack}
             aria-label="뒤로가기"
           />
-          <Typography variant="heading-2" weight="semibold" as="span">
-            {decodeURIComponent(botId ?? '')}
-          </Typography>
+          {editingName ? (
+            <input
+              type="text"
+              className="bot-workspace__name-input"
+              style={{ width: `${nameInputCh(nameDraft)}ch` }}
+              value={nameDraft}
+              autoFocus
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+                else if (e.key === 'Escape') cancelRename()
+              }}
+              aria-label="챗봇 이름"
+            />
+          ) : (
+            <span className="bot-workspace__name">
+              <span className="bot-workspace__name-text">{botName}</span>
+              <button
+                type="button"
+                className="bot-workspace__name-edit-btn"
+                aria-label="이름 변경"
+                onClick={startRename}
+              >
+                <Icon name="pencil" size={14} />
+              </button>
+            </span>
+          )}
           {isDirty && (
             <span className="bot-workspace__dirty-dot" aria-label="저장되지 않은 변경 사항">
               •
@@ -211,14 +293,8 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 중앙 — 다크모드 + 버전 셀렉터 + 저장 버튼 */}
+        {/* 중앙 — 버전 셀렉터 + 저장 버튼 */}
         <div className="bot-workspace__center">
-          <IconButtonOutlined
-            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
-            size="small"
-            onClick={toggleTheme}
-            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          />
           <div className="bot-workspace__version" ref={versionMenuRef}>
             <button
               type="button"
@@ -253,11 +329,16 @@ export default function BotWorkspaceLayout() {
         </div>
 
         <div className="bot-workspace__actions">
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
           <Button
             variant="outlined"
             color="assistive"
             size="small"
-            leadingIcon={<Icon name="play" size={16} />}
             label="시뮬레이터"
             onClick={handleOpenSimulator}
           />
@@ -265,7 +346,7 @@ export default function BotWorkspaceLayout() {
             variant="solid"
             color="primary"
             size="small"
-            label={botStatus === 'active' ? '운영 중' : '발행'}
+            label={botStatus === 'active' ? '운영 중' : '배포'}
             onClick={handlePublish}
           />
         </div>

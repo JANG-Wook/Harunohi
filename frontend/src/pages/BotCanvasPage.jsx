@@ -11,6 +11,7 @@ import {
   Background,
   Controls,
   useNodesState,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -975,6 +976,20 @@ function CanvasInner() {
 
   /* ── 선택 핸들러 ────────────────────────────────────────────── */
 
+  const { setCenter, getNode, getZoom } = useReactFlow()
+
+  /* 목록에서 선택한 노드 중심으로 뷰포트 이동 — 줌 유지, 애니메이션 없이 즉시 */
+  const panToNode = useCallback(
+    (nodeId) => {
+      const node = getNode(nodeId)
+      if (!node) return
+      const w = node.measured?.width ?? node.width ?? 0
+      const h = node.measured?.height ?? node.height ?? 0
+      setCenter(node.position.x + w / 2, node.position.y + h / 2, { duration: 0, zoom: getZoom() })
+    },
+    [getNode, setCenter, getZoom],
+  )
+
   const onSelectionChange = useCallback(({ nodes: selected }) => {
     setSelectedId(selected[0]?.id ?? null)
   }, [])
@@ -983,14 +998,16 @@ function CanvasInner() {
     (stepId) => {
       setSelectedId(stepId)
       setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === stepId })))
+      panToNode(stepId)
     },
-    [setNodes],
+    [setNodes, panToNode],
   )
 
   const handleSelectTrigger = useCallback(() => {
     setSelectedId(TRIGGER_NODE_ID)
     setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === TRIGGER_NODE_ID })))
-  }, [setNodes])
+    panToNode(TRIGGER_NODE_ID)
+  }, [setNodes, panToNode])
 
   return (
     <div className="bot-canvas">

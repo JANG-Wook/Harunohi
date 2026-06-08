@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0 var(--spacing-24);
+  padding: 0 var(--spacing-24) 0 var(--spacing-12);
   background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-line-solid-normal);
   gap: var(--spacing-16);
@@ -22,8 +22,63 @@
 .bot-workspace__left {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--spacing-8);
   min-width: 0;
+}
+
+/* 봇 이름 — 이름 텍스트 + 연필 버튼(클릭 시 편집). 챗봇 디자인 에디터와 동일 스펙 */
+.bot-workspace__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.bot-workspace__name-text {
+  font-size: var(--font-size-heading-2);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-heading-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-label-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bot-workspace__name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  padding: var(--spacing-4);
+  border: none;
+  background: transparent;
+  border-radius: var(--spacing-6);
+  color: var(--color-label-assistive);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.bot-workspace__name-edit-btn:hover {
+  background: var(--color-fill-alternative);
+  color: var(--color-label-alternative);
+}
+
+.bot-workspace__name-input {
+  min-width: 0;
+  border: none;
+  background: var(--color-fill-alternative);
+  font-family: inherit;
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+  letter-spacing: var(--letter-spacing-heading-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-label-normal);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--spacing-6);
+  outline: 2px solid color-mix(in srgb, var(--color-primary-normal) 43%, transparent);
+  outline-offset: -1px;
 }
 
 .bot-workspace__id {

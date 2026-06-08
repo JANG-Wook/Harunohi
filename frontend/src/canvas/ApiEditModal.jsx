@@ -129,7 +129,7 @@ export default function ApiEditModal({
           />
         </header>
 
-        <div className="api-modal__body">
+        <div className="api-modal__body sidebar-scroll">
           <section className="api-modal__section">
             <Textfield
               heading="API 이름"

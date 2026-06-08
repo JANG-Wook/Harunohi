@@ -33,7 +33,7 @@ export default function StepInspector({
   const patch = (next) => onChange({ ...step, ...next })
 
   return (
-    <aside className="step-inspector">
+    <aside className="step-inspector sidebar-scroll">
       <header className="step-inspector__head">
         {/* 단계 이름 inline 편집 — DS 에 "inline editable heading" 컴포넌트가 없어 토큰으로 직접 구현 */}
         {/* 호버/포커스 시 우측에 펜슬 아이콘 노출로 편집 가능 어포던스 제공 */}

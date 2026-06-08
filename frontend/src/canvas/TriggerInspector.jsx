@@ -17,7 +17,7 @@ export default function TriggerInspector({
   const showNegative = !valid
 
   return (
-    <aside className="trigger-inspector">
+    <aside className="trigger-inspector sidebar-scroll">
       <header className="trigger-inspector__head">
         <div className="trigger-inspector__head-title">
           <Icon name="thunderFill" size={18} color="var(--color-primary-normal)" />

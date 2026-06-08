@@ -1,4 +1,4 @@
-// 런처 버튼 미리보기 — 말풍선 + 원형 버튼 + 꼬리. (배경판 stage 없음, 재사용 단위)
+// 런처 버튼 미리보기 — 진입 말풍선 + 버튼(모양/이미지) + 꼬리. (배경판 stage 없음, 재사용 단위)
 // 에디터(full)와 목록 카드(compact) 양쪽에서 동일 로직으로 렌더한다.
 // 색/크기는 사용자 설정값(config) inline 적용. 꼬리 border 색·위치도 inline.
 
@@ -13,6 +13,9 @@ export default function LauncherButtonPreview({ config, compact = false, buttonO
     iconName,
     iconColor,
     iconImage,
+    buttonType = 'default',
+    buttonShape = 'circle',
+    buttonImage,
     bgColor,
     greetingOn,
     greetingPosition = 'left',
@@ -25,6 +28,8 @@ export default function LauncherButtonPreview({ config, compact = false, buttonO
 
   const weightCss = GREETING_WEIGHTS.find((w) => w.value === greetingTextWeight)?.css ?? 500
 
+  const buttonImageUrl = buttonType === 'image' ? getImageUrl(buttonImage) : ''
+  const isButtonImage = !!buttonImageUrl
   const imageUrl = iconType === 'image' ? getImageUrl(iconImage) : ''
   const showGreeting = !buttonOnly && greetingOn && greetingText?.trim()
   const isTop = greetingPosition === 'top'
@@ -34,6 +39,13 @@ export default function LauncherButtonPreview({ config, compact = false, buttonO
   const iconSize = compact ? 18 : 28
   const tailHalf = compact ? 5 : 7 // 꼬리 폭의 절반
   const tailDepth = compact ? 7 : 9 // 꼬리 길이
+
+  // 버튼 안에 들어가는 콘텐츠 — 업로드 아이콘 이미지 또는 기본 아이콘 (모양 공통)
+  const buttonInner = imageUrl ? (
+    <img src={imageUrl} alt="" className="lbp__img" />
+  ) : (
+    <Icon name={iconName} size={iconSize} color={iconColor} />
+  )
 
   // 꼬리 스타일 — left: 오른쪽을 가리킴 / top: 아래를 가리키며 버튼 중앙과 세로 정렬
   const tailStyle = isTop
@@ -81,16 +93,21 @@ export default function LauncherButtonPreview({ config, compact = false, buttonO
         </div>
       ) : null}
 
-      <span
-        className="lbp__button"
-        style={{ background: bgColor, width: buttonSize, height: buttonSize }}
-      >
-        {imageUrl ? (
-          <img src={imageUrl} alt="" className="lbp__img" />
-        ) : (
-          <Icon name={iconName} size={iconSize} color={iconColor} />
-        )}
-      </span>
+      {isButtonImage ? (
+        <img
+          src={buttonImageUrl}
+          alt=""
+          className="lbp__button-img"
+          style={{ width: buttonSize, height: buttonSize }}
+        />
+      ) : (
+        <span
+          className={['lbp__button', `lbp__button--${buttonShape}`].join(' ')}
+          style={{ background: bgColor, width: buttonSize, height: buttonSize }}
+        >
+          {buttonInner}
+        </span>
+      )}
     </div>
   )
 }

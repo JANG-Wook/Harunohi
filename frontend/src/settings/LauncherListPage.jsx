@@ -14,12 +14,13 @@ import Typography from '../design-system/components/Typography/Typography.jsx'
 import LauncherButtonPreview from './LauncherButtonPreview.jsx'
 import {
   DEFAULT_LAUNCHER_ID,
+  createLauncher,
   defaultLauncherConfig,
   deleteLauncher,
   ensureDefaultLauncher,
   isLauncherNameTaken,
   loadLauncherList,
-  saveLauncher,
+  renameLauncher,
 } from '../lib/launcherConfig.js'
 import './LauncherListPage.css'
 
@@ -87,7 +88,7 @@ export default function LauncherListPage() {
       return
     }
     const id = newId()
-    saveLauncher({ id, name: trimmed, config: defaultLauncherConfig(), nowIso: new Date().toISOString() })
+    createLauncher({ id, name: trimmed, config: defaultLauncherConfig(), nowIso: new Date().toISOString() })
     setCreateOpen(false)
     navigate(`/app/chatbot-ui/launcher/${id}`)
   }
@@ -110,12 +111,7 @@ export default function LauncherListPage() {
       setRenameError('이미 사용 중인 이름이에요.')
       return
     }
-    saveLauncher({
-      id: renameTarget.id,
-      name: trimmed,
-      config: renameTarget.config,
-      nowIso: new Date().toISOString(),
-    })
+    renameLauncher({ id: renameTarget.id, name: trimmed, nowIso: new Date().toISOString() })
     setRenameTarget(null)
     reload()
     showToast(`'${trimmed}' 로 이름을 변경했어요.`)

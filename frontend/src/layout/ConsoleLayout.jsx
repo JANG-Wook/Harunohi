@@ -13,8 +13,8 @@ import './ConsoleLayout.css'
 const NAV_ITEMS = [
   { key: 'dashboard', to: '/app/dashboard', label: '대시보드', icon: 'home', disabled: true },
   { key: 'bots', to: '/app/bots', label: '챗봇', icon: 'agent' },
-  // 챗봇 디자인 설정 — 단일 항목. 클릭 시 챗봇 디자인 목록으로. (런처/대화방은 디자인 에디터 내부 탭)
-  { key: 'chatbot-ui', to: '/app/chatbot-ui/launcher', label: '챗봇 디자인 설정', icon: 'palette' },
+  // 챗봇 디자인 — 단일 항목. 클릭 시 챗봇 디자인 목록으로. (런처/대화방은 디자인 에디터 내부 탭)
+  { key: 'chatbot-ui', to: '/app/chatbot-ui/launcher', label: '챗봇 디자인', icon: 'palette' },
   { key: 'analytics', to: '/app/analytics', label: '분석', icon: 'column', disabled: true },
   { key: 'knowledge', to: '/app/assets/knowledge', label: '지식베이스', icon: 'book', disabled: true },
   { key: 'settings', to: '/app/settings', label: '설정', icon: 'setting', disabled: true },

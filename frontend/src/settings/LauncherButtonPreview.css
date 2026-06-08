@@ -56,12 +56,33 @@
 }
 
 .lbp__button {
-  border-radius: 50%;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 20px -4px rgba(23, 23, 23, 0.32);
   flex-shrink: 0;
+}
+
+/* 버튼 모양 — 원 / 사각형(라운드) / 말풍선(둥근사각 + 꼬리) */
+.lbp__button--circle {
+  border-radius: 50%;
+}
+
+.lbp__button--rounded {
+  border-radius: 30%;
+}
+
+.lbp__button--square {
+  border-radius: 14%;
+}
+
+/* 이미지 버튼 — 업로드 이미지가 버튼 전체. 모양 따라가는 그림자 */
+.lbp__button-img {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(23, 23, 23, 0.28));
 }
 
 .lbp__img {

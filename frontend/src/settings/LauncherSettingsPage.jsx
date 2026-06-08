@@ -1,12 +1,11 @@
 // 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린.
-// 상단바(브랜드+테마) + 좌측 탭(플로팅 런처 버튼 / 대화방) + 본문.
+// 상단바(뒤로가기+이름 / 다크모드+기본값으로+저장) + 좌측 탭(플로팅 런처 버튼 / 대화방) + 본문.
 // 플로팅 런처 버튼 탭: 좌 미리보기 / 우 설정 패널. 대화방 탭: 준비 중 placeholder.
 // 저장 누르기 전까진 미반영, 뒤로가기/새로고침 시 이탈 가드.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Alert from '../design-system/components/Alert/Alert.jsx'
-import Avatar from '../design-system/components/Avatar/Avatar.jsx'
 import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
@@ -16,7 +15,6 @@ import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Switch from '../design-system/components/Switch/Switch.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
-import ForsythiaLogo from '../layout/ForsythiaLogo.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import {
   getImageName,
@@ -27,6 +25,7 @@ import {
 import {
   GREETING_WEIGHTS,
   LAUNCHER_ICONS,
+  LAUNCHER_SHAPES,
   defaultLauncherConfig,
   loadLauncher,
   saveLauncher,
@@ -43,8 +42,17 @@ const LIST_PATH = '/app/chatbot-ui/launcher'
 /** 저장 비교용 스냅샷 — 이름 + 설정값을 직렬화 */
 const snapshotOf = (name, config) => JSON.stringify({ name, config })
 
+/** 이름 입력 너비 추정 — 한글 등 전각 문자는 약 2배 폭. 시각 폭(ch) 기준 floor 16 */
+function nameInputCh(s) {
+  let w = 0
+  for (const ch of s) {
+    w += /[ᄀ-ᇿ⺀-鿿　-〿㄰-㆏가-힣＀-￯]/.test(ch) ? 2 : 1
+  }
+  return Math.max(w, 16) + 2
+}
+
 /** 섹션 — 좌측 아이콘 레일(칩 + 연결선) + 헤더(토글/제목) + 카드 본문. 봇 설정과 동일한 패턴. */
-function Section({ icon, title, toggle, children }) {
+function Section({ icon, title, toggle, disabled, note, children }) {
   return (
     <section className="lset-section">
       <div className="lset-section__rail">
@@ -60,7 +68,10 @@ function Section({ icon, title, toggle, children }) {
           ) : null}
           <span className="lset-section__title">{title}</span>
         </div>
-        {children ? <div className="lset-card">{children}</div> : null}
+        {note ? <p className="lset-section__note">{note}</p> : null}
+        {children ? (
+          <div className={['lset-card', disabled && 'is-disabled'].filter(Boolean).join(' ')}>{children}</div>
+        ) : null}
       </div>
     </section>
   )
@@ -79,18 +90,32 @@ function Field({ label, children }) {
 export default function LauncherSettingsPage() {
   const navigate = useNavigate()
   const { launcherId } = useParams()
-  const entry = useMemo(() => loadLauncher(launcherId), [launcherId])
   const { theme, toggle: toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+
+  /* 디자인 엔트리 — 저장 후 갱신되므로 state 로 보유 */
+  const [entry, setEntry] = useState(() => loadLauncher(launcherId))
 
   const [tab, setTab] = useState('launcher') // 'launcher' | 'chatroom'
   const [config, setConfig] = useState(() => entry?.config ?? defaultLauncherConfig())
   const [name, setName] = useState(() => entry?.name ?? '')
+  const [editingName, setEditingName] = useState(false)
+  const nameBeforeEditRef = useRef('') // Esc 취소 시 되돌릴 값
   const [toast, setToast] = useState(null)
+  const toastTimerRef = useRef(null)
   const fileRef = useRef(null)
   const [uploadError, setUploadError] = useState('')
+  const buttonFileRef = useRef(null)
+  const [buttonUploadError, setButtonUploadError] = useState('')
 
-  /* 저장 기준점 — 저장 누를 때까지의 마지막 저장 상태. 현재 값과 다르면 dirty */
+  const showToast = (msg) => {
+    setToast(msg)
+    window.clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => setToast(null), TOAST_DURATION)
+  }
+  useEffect(() => () => window.clearTimeout(toastTimerRef.current), [])
+
+  /* 저장 기준점 — 마지막 저장 상태. 현재 값과 다르면 dirty */
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
     snapshotOf(entry?.name ?? '', entry?.config ?? defaultLauncherConfig()),
   )
@@ -122,46 +147,60 @@ export default function LauncherSettingsPage() {
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }))
 
-  const handleFile = (e) => {
+  /* 이미지 파일 읽기 — 검증 통과 시 onDone({name,url}), 실패 시 onError(메시지) */
+  const readImageFile = (e, { onDone, onError }) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
     if (!IMAGE_ALLOWED_TYPES.includes(file.type)) {
-      setUploadError('Jpg, Png 파일만 업로드할 수 있어요.')
+      onError('Jpg, Png 파일만 업로드할 수 있어요.')
       return
     }
     if (file.size > IMAGE_MAX_SIZE) {
-      setUploadError('파일 크기는 2MB 이하여야 해요.')
+      onError('파일 크기는 2MB 이하여야 해요.')
       return
     }
-    setUploadError('')
+    onError('')
     const reader = new FileReader()
-    reader.onload = () => set({ iconImage: { name: file.name, url: reader.result } })
-    reader.onerror = () => setUploadError('파일을 읽지 못했어요.')
+    reader.onload = () => onDone({ name: file.name, url: reader.result })
+    reader.onerror = () => onError('파일을 읽지 못했어요.')
     reader.readAsDataURL(file)
   }
 
+  const handleFile = (e) =>
+    readImageFile(e, { onDone: (img) => set({ iconImage: img }), onError: setUploadError })
+
+  const handleButtonFile = (e) =>
+    readImageFile(e, { onDone: (img) => set({ buttonImage: img }), onError: setButtonUploadError })
+
+  /* 저장 — 현재 편집값을 덮어쓰기 저장 */
   const handleSave = () => {
     const finalName = name.trim() || entry.name
-    saveLauncher({ id: launcherId, name: finalName, config, nowIso: new Date().toISOString() })
+    const next = saveLauncher({ id: launcherId, name: finalName, config, nowIso: new Date().toISOString() })
+    if (!next) return
+    setEntry(next)
+    setName(finalName)
     setSavedSnapshot(snapshotOf(finalName, config))
-    setToast('챗봇 디자인을 저장했어요.')
-    window.clearTimeout(handleSave._t)
-    handleSave._t = window.setTimeout(() => setToast(null), TOAST_DURATION)
+    showToast('저장했어요.')
   }
 
   const handleReset = () => {
     setConfig(defaultLauncherConfig())
     setUploadError('')
+    setButtonUploadError('')
   }
 
   if (!entry) return null
 
   const isImageMode = config.iconType === 'image'
   const imageExists = hasImage(config.iconImage)
+  const isButtonImage = config.buttonType === 'image'
+  const buttonImageExists = hasImage(config.buttonImage)
+  // 이미지 버튼이면 아이콘 섹션 전체 비활성 (이미지가 버튼 그 자체)
+  const iconDisabled = isButtonImage
 
-  /* 색 대비 경고 — 너무 비슷하면 잘 안 보임 (기존 negative caption 재사용) */
-  const iconContrastLow = !isImageMode && isLowContrast(config.iconColor, config.bgColor)
+  /* 색 대비 경고 — 너무 비슷하면 잘 안 보임. 이미지 버튼이면 의미 없음 */
+  const iconContrastLow = !isImageMode && !isButtonImage && isLowContrast(config.iconColor, config.bgColor)
   const greetingContrastLow =
     config.greetingOn && isLowContrast(config.greetingTextColor, config.greetingBgColor)
 
@@ -172,7 +211,7 @@ export default function LauncherSettingsPage() {
 
   return (
     <div className="dze">
-      {/* 상단바 — 뒤로가기 + 브랜드 + 테마/아바타 */}
+      {/* 상단바 — 좌(뒤로가기+이름) / 우(다크모드+기본값으로+저장) */}
       <header className="dze__topbar">
         <div className="dze__topbar-left">
           <IconButtonNormal
@@ -180,11 +219,49 @@ export default function LauncherSettingsPage() {
             onClick={handleBack}
             aria-label="목록으로"
           />
-          <ForsythiaLogo size={26} />
-          <Typography variant="headline-2" weight="bold" color="var(--color-label-neutral)" as="span">
-            Harunohi
-          </Typography>
+          {editingName ? (
+            <input
+              type="text"
+              className="dze__name-input"
+              style={{ width: `${nameInputCh(name)}ch` }}
+              value={name}
+              autoFocus
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => setEditingName(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+                else if (e.key === 'Escape') {
+                  setName(nameBeforeEditRef.current)
+                  setEditingName(false)
+                }
+              }}
+              placeholder="챗봇 디자인 이름"
+              aria-label="챗봇 디자인 이름"
+            />
+          ) : (
+            <span className="dze__name">
+              <span className="dze__name-text">{name || '챗봇 디자인 이름'}</span>
+              <button
+                type="button"
+                className="dze__name-edit-btn"
+                aria-label="이름 변경"
+                onClick={() => {
+                  nameBeforeEditRef.current = name
+                  setEditingName(true)
+                }}
+              >
+                <Icon name="pencil" size={14} />
+              </button>
+            </span>
+          )}
+          {isDirty && (
+            <span className="dze__dirty-dot" aria-label="저장되지 않은 변경 사항">
+              •
+            </span>
+          )}
         </div>
+
+        {/* 우측 — 다크모드(하루노히 테마) + 기본값으로 + 저장 */}
         <div className="dze__topbar-right">
           <IconButtonOutlined
             icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
@@ -192,19 +269,16 @@ export default function LauncherSettingsPage() {
             onClick={toggleTheme}
             aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
           />
-          <Avatar variant="person" size="small" interaction onClick={() => {}} />
+          {tab === 'launcher' && (
+            <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
+          )}
+          <Button variant="solid" color="primary" size="small" label="저장" onClick={handleSave} />
         </div>
       </header>
 
       <div className="dze__body">
         {/* 좌측 탭 — 챗봇 디자인의 편집 대상 전환 */}
         <aside className="dze__nav">
-          <div className="dze__nav-head">
-            <Icon name="palette" size={16} color="var(--color-label-neutral)" />
-            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
-              챗봇 디자인 설정
-            </Typography>
-          </div>
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -223,35 +297,6 @@ export default function LauncherSettingsPage() {
 
         {/* 본문 */}
         <main className="dze__main">
-          <header className="launcher-set__head">
-            <div className="launcher-set__head-title">
-              <label className="launcher-set__name-edit">
-                <input
-                  type="text"
-                  className="launcher-set__name-input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="챗봇 디자인 이름"
-                  aria-label="챗봇 디자인 이름"
-                />
-                <span className="launcher-set__name-icon" aria-hidden="true">
-                  <Icon name="pencil" size={16} />
-                </span>
-              </label>
-              <Typography variant="label-1-normal" color="var(--color-label-alternative)" as="p">
-                {tab === 'launcher'
-                  ? '챗봇을 임베드했을 때 표시되는 플로팅 런처 버튼의 디자인을 설정할 수 있어요.'
-                  : '대화방 화면의 디자인을 설정할 수 있어요.'}
-              </Typography>
-            </div>
-            <div className="launcher-set__head-actions">
-              {tab === 'launcher' && (
-                <Button variant="outlined" color="assistive" size="medium" label="기본값으로" onClick={handleReset} />
-              )}
-              <Button variant="solid" color="primary" size="medium" label="저장" onClick={handleSave} />
-            </div>
-          </header>
-
           {tab === 'launcher' ? (
             <div className="launcher-set__body">
               {/* 좌측 미리보기 */}
@@ -261,7 +306,13 @@ export default function LauncherSettingsPage() {
 
               {/* 우측 설정 패널 */}
               <section className="launcher-set__panel sidebar-scroll">
-                <Section icon="bubble" title="버튼">
+                {/* 아이콘 — 버튼 안에 들어가는 아이콘/이미지 (이미지 버튼이면 비활성) */}
+                <Section
+                  icon="bubble"
+                  title="아이콘"
+                  disabled={iconDisabled}
+                  note={iconDisabled ? '이미지 버튼을 사용하는 동안에는 아이콘이 적용되지 않아요.' : undefined}
+                >
                   <Field label="아이콘">
                     <div className="launcher-set__radios">
                       <Radio checked={!isImageMode} label="기본 아이콘" onChange={() => set({ iconType: 'default' })} />
@@ -319,7 +370,7 @@ export default function LauncherSettingsPage() {
                     )}
                   </Field>
 
-                  <Field label={isImageMode ? '아이콘 색 (이미지 업로드 중에는 비활성)' : '아이콘 색'}>
+                  <Field label={isImageMode ? '아이콘 색 (이미지 아이콘 중에는 비활성)' : '아이콘 색'}>
                     <ColorField value={config.iconColor} onChange={(c) => set({ iconColor: c })} disabled={isImageMode} />
                     {iconContrastLow && (
                       <span className="launcher-set__caption is-error">
@@ -327,10 +378,76 @@ export default function LauncherSettingsPage() {
                       </span>
                     )}
                   </Field>
+                </Section>
 
-                  <Field label="버튼 배경색">
-                    <ColorField value={config.bgColor} onChange={(c) => set({ bgColor: c })} />
+                {/* 버튼 — 컨테이너 모양 또는 이미지 버튼 */}
+                <Section icon="square" title="버튼">
+                  <Field label="버튼">
+                    <div className="launcher-set__radios">
+                      <Radio checked={!isButtonImage} label="기본 버튼" onChange={() => set({ buttonType: 'default' })} />
+                      <Radio checked={isButtonImage} label="이미지 버튼 업로드" onChange={() => set({ buttonType: 'image' })} />
+                    </div>
                   </Field>
+
+                  {!isButtonImage ? (
+                    <>
+                      <Field label="모양">
+                        <div className="launcher-set__icons">
+                          {LAUNCHER_SHAPES.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={['launcher-set__icon-opt', config.buttonShape === opt.value && 'is-active']
+                                .filter(Boolean)
+                                .join(' ')}
+                              onClick={() => set({ buttonShape: opt.value })}
+                              aria-pressed={config.buttonShape === opt.value}
+                            >
+                              <span className={`launcher-set__shape launcher-set__shape--${opt.value}`} aria-hidden="true" />
+                              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                                {opt.label}
+                              </Typography>
+                            </button>
+                          ))}
+                        </div>
+                      </Field>
+
+                      <Field label="버튼색">
+                        <ColorField value={config.bgColor} onChange={(c) => set({ bgColor: c })} />
+                      </Field>
+                    </>
+                  ) : (
+                    <Field label="버튼 이미지">
+                      <div className="launcher-set__upload">
+                        <div
+                          className="launcher-set__upload-field"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => buttonFileRef.current?.click()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              buttonFileRef.current?.click()
+                            }
+                          }}
+                        >
+                          <Textfield
+                            placeholder="이미지를 업로드해 주세요."
+                            value={buttonImageExists ? getImageName(config.buttonImage) : ''}
+                            readOnly
+                            status={buttonUploadError ? 'negative' : 'normal'}
+                            trailingButton={{ label: buttonImageExists ? '변경' : '불러오기', variant: 'normal' }}
+                          />
+                        </div>
+                        <input ref={buttonFileRef} type="file" accept="image/jpeg,image/png" onChange={handleButtonFile} hidden />
+                        <span
+                          className={['launcher-set__caption', buttonUploadError && 'is-error'].filter(Boolean).join(' ')}
+                        >
+                          {buttonUploadError || '* Jpg, Png · 최대 2MB · 투명 배경 PNG 권장'}
+                        </span>
+                      </div>
+                    </Field>
+                  )}
                 </Section>
 
                 <Section

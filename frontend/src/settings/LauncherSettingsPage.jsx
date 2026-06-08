@@ -1,6 +1,6 @@
 // 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린.
-// 상단바(뒤로가기+이름 / 다크모드+기본값으로+저장) + 좌측 탭(플로팅 런처 버튼 / 대화방) + 본문.
-// 플로팅 런처 버튼 탭: 좌 미리보기 / 우 설정 패널. 대화방 탭: 준비 중 placeholder.
+// 상단바(뒤로가기+이름 / 다크모드+기본값으로+저장) + 좌측 탭(런처/대화방/응답) + 본문.
+// 런처·대화방 탭: 좌 미리보기 / 우 설정 패널. 챗봇 응답 설정 탭: 준비 중 placeholder.
 // 저장 누르기 전까진 미반영, 뒤로가기/새로고침 시 이탈 가드.
 
 import { useEffect, useRef, useState } from 'react'
@@ -26,6 +26,7 @@ import {
   GREETING_WEIGHTS,
   LAUNCHER_ICONS,
   LAUNCHER_SHAPES,
+  defaultChatroomConfig,
   defaultLauncherConfig,
   loadLauncher,
   saveLauncher,
@@ -33,6 +34,7 @@ import {
 import { isLowContrast } from '../lib/contrast.js'
 import ColorField from './ColorField.jsx'
 import LauncherPreview from './LauncherPreview.jsx'
+import ChatroomPreview from './ChatroomPreview.jsx'
 import './LauncherSettingsPage.css'
 
 const TEXT_SIZES = [13, 14, 15, 16, 18]
@@ -77,6 +79,16 @@ function Section({ icon, title, toggle, disabled, note, children }) {
   )
 }
 
+/** 스위치 행 — 좌측 토글 + 라벨. 봇 설정 패널(ChatMessageConfig)과 동일 패턴 */
+function SwitchRow({ label, active, onChange }) {
+  return (
+    <div className="launcher-set__switch-row">
+      <Switch size="small" active={active} onChange={onChange} aria-label={label} />
+      <span className="launcher-set__switch-row__label">{label}</span>
+    </div>
+  )
+}
+
 /** 카드 안 필드 — 작은 라벨 + 컨트롤 */
 function Field({ label, children }) {
   return (
@@ -107,6 +119,10 @@ export default function LauncherSettingsPage() {
   const [uploadError, setUploadError] = useState('')
   const buttonFileRef = useRef(null)
   const [buttonUploadError, setButtonUploadError] = useState('')
+  const profileFileRef = useRef(null)
+  const [profileUploadError, setProfileUploadError] = useState('')
+  const bgFileRef = useRef(null)
+  const [bgUploadError, setBgUploadError] = useState('')
 
   const showToast = (msg) => {
     setToast(msg)
@@ -146,6 +162,8 @@ export default function LauncherSettingsPage() {
   }, [entry, navigate])
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }))
+  const setChatroom = (patch) =>
+    setConfig((prev) => ({ ...prev, chatroom: { ...prev.chatroom, ...patch } }))
 
   /* 이미지 파일 읽기 — 검증 통과 시 onDone({name,url}), 실패 시 onError(메시지) */
   const readImageFile = (e, { onDone, onError }) => {
@@ -173,6 +191,12 @@ export default function LauncherSettingsPage() {
   const handleButtonFile = (e) =>
     readImageFile(e, { onDone: (img) => set({ buttonImage: img }), onError: setButtonUploadError })
 
+  const handleProfileFile = (e) =>
+    readImageFile(e, { onDone: (img) => setChatroom({ profileImage: img }), onError: setProfileUploadError })
+
+  const handleBgFile = (e) =>
+    readImageFile(e, { onDone: (img) => setChatroom({ bgImage: img }), onError: setBgUploadError })
+
   /* 저장 — 현재 편집값을 덮어쓰기 저장 */
   const handleSave = () => {
     const finalName = name.trim() || entry.name
@@ -185,9 +209,15 @@ export default function LauncherSettingsPage() {
   }
 
   const handleReset = () => {
-    setConfig(defaultLauncherConfig())
-    setUploadError('')
-    setButtonUploadError('')
+    if (tab === 'chatroom') {
+      setChatroom(defaultChatroomConfig())
+      setProfileUploadError('')
+      setBgUploadError('')
+    } else {
+      setConfig((prev) => ({ ...defaultLauncherConfig(), chatroom: prev.chatroom }))
+      setUploadError('')
+      setButtonUploadError('')
+    }
   }
 
   if (!entry) return null
@@ -204,9 +234,17 @@ export default function LauncherSettingsPage() {
   const greetingContrastLow =
     config.greetingOn && isLowContrast(config.greetingTextColor, config.greetingBgColor)
 
+  /* 대화방 설정 파생값 */
+  const chatroom = config.chatroom
+  const profileImageExists = hasImage(chatroom.profileImage)
+  const isChatBgColor = chatroom.bgType === 'color'
+  const isChatBgImage = chatroom.bgType === 'image'
+  const chatBgImageExists = hasImage(chatroom.bgImage)
+
   const TABS = [
-    { key: 'launcher', label: '플로팅 런처 버튼', icon: 'bubble' },
-    { key: 'chatroom', label: '대화방', icon: 'message' },
+    { key: 'launcher', label: '플로팅 런처 버튼 설정', icon: 'bubble' },
+    { key: 'chatroom', label: '대화방 설정', icon: 'message' },
+    { key: 'response', label: '챗봇 응답 설정', icon: 'list' },
   ]
 
   return (
@@ -269,7 +307,7 @@ export default function LauncherSettingsPage() {
             onClick={toggleTheme}
             aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
           />
-          {tab === 'launcher' && (
+          {tab !== 'response' && (
             <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
           )}
           <Button variant="solid" color="primary" size="small" label="저장" onClick={handleSave} />
@@ -535,11 +573,189 @@ export default function LauncherSettingsPage() {
                 </Section>
               </section>
             </div>
+          ) : tab === 'chatroom' ? (
+            <div className="launcher-set__body">
+              {/* 좌측 미리보기 */}
+              <section className="launcher-set__preview">
+                <ChatroomPreview config={config} />
+              </section>
+
+              {/* 우측 설정 패널 */}
+              <section className="launcher-set__panel sidebar-scroll">
+                {/* 1. 챗봇 프로필 */}
+                <Section icon="agent" title="챗봇 프로필">
+                  <div className="lset-field">
+                    <SwitchRow
+                      label="챗봇 이름"
+                      active={chatroom.botNameOn}
+                      onChange={() => setChatroom({ botNameOn: !chatroom.botNameOn })}
+                    />
+                    {chatroom.botNameOn && (
+                      <Textfield
+                        placeholder="챗봇"
+                        value={chatroom.botName}
+                        onChange={(e) => setChatroom({ botName: e.target.value })}
+                        aria-label="챗봇 이름"
+                      />
+                    )}
+                  </div>
+
+                  <Field label="프로필 사진">
+                    <div className="launcher-set__upload">
+                      <div
+                        className="launcher-set__upload-field"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => profileFileRef.current?.click()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            profileFileRef.current?.click()
+                          }
+                        }}
+                      >
+                        <Textfield
+                          placeholder="이미지를 업로드해 주세요."
+                          value={profileImageExists ? getImageName(chatroom.profileImage) : ''}
+                          readOnly
+                          status={profileUploadError ? 'negative' : 'normal'}
+                          trailingButton={{ label: profileImageExists ? '변경' : '불러오기', variant: 'normal' }}
+                        />
+                      </div>
+                      <input ref={profileFileRef} type="file" accept="image/jpeg,image/png" onChange={handleProfileFile} hidden />
+                      <span className={['launcher-set__caption', profileUploadError && 'is-error'].filter(Boolean).join(' ')}>
+                        {profileUploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장 · 미설정 시 기본 아바타'}
+                      </span>
+                    </div>
+                  </Field>
+                </Section>
+
+                {/* 2. 대화방 */}
+                <Section icon="message" title="대화방">
+                  <div className="lset-field">
+                    <SwitchRow
+                      label="대화방 이름"
+                      active={chatroom.roomTitleOn}
+                      onChange={() => setChatroom({ roomTitleOn: !chatroom.roomTitleOn })}
+                    />
+                    {chatroom.roomTitleOn && (
+                      <Textfield
+                        placeholder="챗봇"
+                        value={chatroom.roomTitle}
+                        onChange={(e) => setChatroom({ roomTitle: e.target.value })}
+                        aria-label="대화방 이름"
+                      />
+                    )}
+                  </div>
+
+                  <div className="lset-field">
+                    <SwitchRow
+                      label="온라인 표시 사용"
+                      active={chatroom.onlineIndicator}
+                      onChange={() => setChatroom({ onlineIndicator: !chatroom.onlineIndicator })}
+                    />
+                    <span className="launcher-set__caption">
+                      켜면 대화방 이름 옆에 연결 상태 점이 표시돼요. (연결=파랑 · 불안정=주황 · 끊김=회색)
+                    </span>
+                  </div>
+
+                  <div className="lset-field">
+                    <SwitchRow
+                      label="사용자 발화 상단 고정"
+                      active={chatroom.pinUserToTop}
+                      onChange={() => setChatroom({ pinUserToTop: !chatroom.pinUserToTop })}
+                    />
+                    <span className="launcher-set__caption">
+                      켜면 사용자가 메시지를 보낼 때 직전 대화가 위로 밀리고, 보낸 메시지가 화면 상단에 고정돼요.
+                    </span>
+                  </div>
+                </Section>
+
+                {/* 3. 대화방 UI */}
+                <Section icon="palette" title="대화방 UI">
+                  <div className="lset-field">
+                    <SwitchRow
+                      label="다크/라이트 모드 사용"
+                      active={chatroom.themeSupport}
+                      onChange={() => setChatroom({ themeSupport: !chatroom.themeSupport })}
+                    />
+                    <span className="launcher-set__caption">
+                      켜면 라이트/다크에 자동으로 맞춰지며, 고정 배경(색상/사진)은 비활성화돼요.
+                    </span>
+                  </div>
+
+                  {/* 배경 — 다크/라이트 모드 사용 중에는 비활성 */}
+                  <div className={['launcher-set__group', chatroom.themeSupport && 'is-disabled'].filter(Boolean).join(' ')}>
+                    <Field label="대화방 배경">
+                      <div className="launcher-set__radios">
+                        <Radio checked={isChatBgColor} label="색상" onChange={() => setChatroom({ bgType: 'color' })} />
+                        <Radio checked={isChatBgImage} label="사진" onChange={() => setChatroom({ bgType: 'image' })} />
+                      </div>
+
+                      {isChatBgImage && (
+                        <div className="launcher-set__upload">
+                          <div
+                            className="launcher-set__upload-field"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => bgFileRef.current?.click()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                bgFileRef.current?.click()
+                              }
+                            }}
+                          >
+                            <Textfield
+                              placeholder="이미지를 업로드해 주세요."
+                              value={chatBgImageExists ? getImageName(chatroom.bgImage) : ''}
+                              readOnly
+                              status={bgUploadError ? 'negative' : 'normal'}
+                              trailingButton={{ label: chatBgImageExists ? '변경' : '불러오기', variant: 'normal' }}
+                            />
+                          </div>
+                          <input ref={bgFileRef} type="file" accept="image/jpeg,image/png" onChange={handleBgFile} hidden />
+                          <span className={['launcher-set__caption', bgUploadError && 'is-error'].filter(Boolean).join(' ')}>
+                            {bgUploadError || '* Jpg, Png · 최대 2MB'}
+                          </span>
+                        </div>
+                      )}
+                    </Field>
+
+                    <Field label={isChatBgColor ? '대화방 배경색' : '대화방 배경색 (색상 선택 시 활성)'}>
+                      <ColorField
+                        value={chatroom.bgColor}
+                        onChange={(c) => setChatroom({ bgColor: c })}
+                        disabled={!isChatBgColor}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field label="메시지 입력 안내 문구">
+                    <Textfield
+                      placeholder="메시지를 입력해 주세요"
+                      value={chatroom.inputPlaceholder}
+                      onChange={(e) => setChatroom({ inputPlaceholder: e.target.value })}
+                      aria-label="메시지 입력 안내 문구"
+                    />
+                  </Field>
+
+                  <Field label="폰트">
+                    <div className="launcher-set__sizes">
+                      <button type="button" className="launcher-set__size-opt is-active" aria-pressed="true" disabled>
+                        Pretendard
+                      </button>
+                    </div>
+                    <span className="launcher-set__caption">* 현재 Pretendard만 지원해요.</span>
+                  </Field>
+                </Section>
+              </section>
+            </div>
           ) : (
             <div className="dze__placeholder">
-              <Icon name="message" size={32} color="var(--color-label-assistive)" />
+              <Icon name="list" size={32} color="var(--color-label-assistive)" />
               <Typography variant="body-2-normal" color="var(--color-label-alternative)" as="p">
-                대화방 디자인은 곧 제공될 예정이에요.
+                챗봇 응답 설정은 곧 제공될 예정이에요.
               </Typography>
             </div>
           )}

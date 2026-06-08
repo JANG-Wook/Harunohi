@@ -1,0 +1,54 @@
+/* 대화방 미리보기 — 실제 ChatRoom(360px) 을 카드처럼 감싸고 대화 배경만 오버라이드. */
+
+.crp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+  padding: var(--spacing-24);
+}
+
+.crp__host {
+  height: 100%;
+  max-height: 680px;
+  display: flex;
+  border-radius: var(--spacing-20);
+  overflow: hidden;
+  border: 1px solid var(--color-line-solid-normal);
+  box-shadow: 0 12px 40px -8px rgba(23, 23, 23, 0.24);
+}
+
+/* 헤더 제목 + 연결 상태 점 */
+.crp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.crp-dot {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border-radius: var(--radius-full);
+  display: inline-block;
+  flex-shrink: 0;
+  animation: crp-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes crp-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* 대화 영역 배경 — 사용자 설정값(색/사진)을 CSS 변수로 주입 */
+.crp__host .chat-room-scroll {
+  background-color: var(--crp-bg, transparent);
+  background-image: var(--crp-bg-image, none);
+  background-size: cover;
+  background-position: center;
+}

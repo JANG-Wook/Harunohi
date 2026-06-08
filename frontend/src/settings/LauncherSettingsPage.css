@@ -279,6 +279,33 @@
   pointer-events: none;
 }
 
+/* 카드 안 필드 묶음 — 일부 필드만 함께 비활성할 때 (예: 다크모드 사용 중 배경) */
+.launcher-set__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+
+.launcher-set__group.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 스위치 행 — 좌측 토글 + 라벨 (봇 설정 패널과 동일) */
+.launcher-set__switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+
+.launcher-set__switch-row__label {
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-body-2);
+}
+
 /* 카드 안 필드 (라벨 + 컨트롤) */
 .lset-field {
   display: flex;

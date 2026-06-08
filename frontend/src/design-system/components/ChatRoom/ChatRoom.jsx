@@ -1018,6 +1018,8 @@ export default function ChatRoom({
   onMessageAction,
   resetDisabled = false,
   closeDisabled = false,
+  // 사용자 발화 상단 고정 — 보낼 때 최신 사용자 메시지를 화면 상단으로. false 면 일반(하단) 스크롤
+  pinUserToTop = true,
   children,
 }) {
   const [inputValue, setInputValue] = useState(initialValue)
@@ -1042,7 +1044,8 @@ export default function ChatRoom({
   // 최신 유저 메시지가 상단으로 스크롤 가능하도록 최소 스페이서 높이 계산
   useLayoutEffect(() => {
     if (!scrollContainerRef.current || !spacerRef.current) return
-    if (messages.length === 0 || !latestUserMsgRef.current) {
+    // 상단 고정 미사용이면 스페이서 불필요
+    if (!pinUserToTop || messages.length === 0 || !latestUserMsgRef.current) {
       spacerRef.current.style.height = '0px'
       return
     }
@@ -1055,19 +1058,21 @@ export default function ChatRoom({
       + container.scrollTop
     const needed = Math.max(0, msgTop + containerH - naturalH)
     spacerRef.current.style.height = needed + 'px'
-  }, [messages])
+  }, [messages, pinUserToTop])
 
   useLayoutEffect(() => {
     if (!pendingScrollRef.current || !scrollContainerRef.current) return
+    pendingScrollRef.current = false
+    const container = scrollContainerRef.current
+    // 상단 고정 미사용 — 일반 채팅처럼 하단으로 스크롤
+    if (!pinUserToTop) {
+      container.scrollTop = container.scrollHeight
+      return
+    }
     // 스크롤 대상은 "최신 사용자 메시지" — 버튼 클릭으로 user+bot 두 이벤트가 동시에 추가될 때도
     // 사용자가 무엇을 선택/입력했는지가 화면 상단에 보이도록 함. 사용자 메시지가 없으면 스킵.
     const target = latestUserMsgRef.current
-    if (!target) {
-      pendingScrollRef.current = false
-      return
-    }
-    pendingScrollRef.current = false
-    const container = scrollContainerRef.current
+    if (!target) return
     const delta = target.getBoundingClientRect().top - container.getBoundingClientRect().top
     container.scrollTop += delta
   }, [messages.length])

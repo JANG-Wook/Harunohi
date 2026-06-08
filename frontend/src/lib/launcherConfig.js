@@ -26,6 +26,26 @@ export const LAUNCHER_SHAPES = [
   { value: 'square', label: '사각형' },
 ]
 
+/** 대화방 설정 기본값 — config.chatroom 에 중첩 저장.
+    프로필은 실제 ChatRoom 아바타(이미지 전용)에 맞춰 사진만 지원(없으면 기본 아바타). */
+export function defaultChatroomConfig() {
+  return {
+    botNameOn: true,            // 챗봇 이름 표시 여부
+    botName: '챗봇',            // 메시지마다 아바타 옆에 붙는 봇 라벨
+    roomTitleOn: true,          // 대화방 이름 표시 여부
+    roomTitle: '챗봇',          // 대화방 헤더 제목
+    onlineIndicator: true,      // 헤더 이름 옆 연결 상태 점(깜빡임) 표시 여부
+    pinUserToTop: true,         // 사용자 발화 상단 고정 — 보낼 때마다 직전 대화가 밀리고 발화가 상단에 위치
+    profileImage: '',           // { name, url } | '' — 없으면 ChatRoom 기본 아바타
+    themeSupport: true,         // 다크/라이트 모드 사용 — true 면 테마 배경 따름, 고정 배경 비활성
+    bgType: 'color',            // 'color' | 'image' — 대화방 배경 (themeSupport=false 일 때 적용)
+    bgColor: '#F5F6F8',         // 대화방 배경색 (bgType==='color' 일 때)
+    bgImage: '',                // { name, url } | ''
+    inputPlaceholder: '메시지를 입력해 주세요',
+    font: 'pretendard',         // 현재 1종(고정)
+  }
+}
+
 /** 진입 메시지 글자 굵기 — 디자인 시스템 weight 토큰 매핑 */
 export const GREETING_WEIGHTS = [
   { value: 'regular', label: '얇게', css: 400 },
@@ -50,6 +70,7 @@ export function defaultLauncherConfig() {
     greetingTextSize: 15,         // px
     greetingTextWeight: 'medium', // 'regular'(얇게) | 'medium'(보통) | 'bold'(굵게)
     greetingBgColor: '#0066FF',
+    chatroom: defaultChatroomConfig(), // 대화방 설정 (중첩)
   }
 }
 
@@ -63,6 +84,12 @@ function fillConfig(config) {
   // 제거된 옛 모양값(bubble) 보정 — 원형으로 승계
   if (!['circle', 'rounded', 'square'].includes(merged.buttonShape)) {
     merged.buttonShape = 'circle'
+  }
+  // 대화방 설정 깊은 병합 — 기존 데이터(chatroom 없음)도 기본값 보강
+  merged.chatroom = { ...defaultChatroomConfig(), ...(config?.chatroom ?? {}) }
+  // 제거된 옛 배경값(default) 보정 — color 로 승계(테마 추종은 themeSupport 가 담당)
+  if (!['color', 'image'].includes(merged.chatroom.bgType)) {
+    merged.chatroom.bgType = 'color'
   }
   return merged
 }

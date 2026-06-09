@@ -5,91 +5,9 @@
 
 import { useMemo } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
-import { getImageUrl, hasImage, PH } from '../lib/chatMessageDefaults.js'
+import { responseToChatMessage } from '../lib/chatRoomMapping.js'
 import { interpolate, interpolateLink } from '../lib/templateEngine.js'
 import './SimulatorChat.css'
-
-const botAvatar = '/T1_parksy/bot-avatar.svg'
-
-/** 응답(step) 의 messageConfig → ChatRoom 봇 메시지 객체로 변환.
- *  ChatMessagePreview 의 매핑 로직과 같은 규약 + 변수 치환 적용. */
-function responseToChatMessage(messageId, response, { disabled, timestamp, variables = [], botName = '챗봇' }) {
-  // 짧은 헬퍼 — 모든 텍스트 필드에 변수 치환
-  const I = (s) => interpolate(s, variables)
-  const cfg = response.messageConfig
-  if (!cfg || !cfg.cfg?.messageOn) {
-    // 메시지 토글이 꺼진 응답 — 안내만 표시
-    return {
-      id: messageId,
-      type: 'bot',
-      botName: '챗봇 이름',
-      avatarSrc: botAvatar,
-      mode: 'single',
-      messageOn: false,
-      title: '(메시지 토글이 꺼져 있어 표시할 내용이 없습니다)',
-      titleOn: true,
-      textOn: true,
-      bodyOn: false,
-      buttonOn: false,
-      timestamp,
-      disabled,
-    }
-  }
-
-  const { cfg: c, texts = {}, imageFile, mode, carouselCards = [], form } = cfg
-  const perMode = cfg.perMode?.[mode]
-
-  // 캐로셀 카드 → ChatRoom 캐로셀 카드 형식으로 매핑 (텍스트는 모두 변수 치환)
-  const cards = carouselCards.map((card) => ({
-    id: card.id,
-    title: I(card.title?.trim()) || PH.title,
-    body: I(card.body?.trim()) || PH.body,
-    mainButton: I(card.mainLabel?.trim()) || PH.mainLabel,
-    subButton: I(card.subLabel?.trim()) || PH.subLabel,
-    imageSrc: getImageUrl(card.imageFile) || undefined,
-    imageOn: card.imageOn && hasImage(card.imageFile),
-    textOn: card.textOn,
-    buttonOn: card.buttonOn,
-    titleOn: card.titleOn,
-    bodyOn: card.bodyOn,
-    mainOn: card.mainOn,
-    subOn: card.subOn,
-  }))
-
-  return {
-    id: messageId,
-    type: 'bot',
-    botName: '챗봇 이름',
-    avatarSrc: botAvatar,
-    mode,
-    title: I(texts.title?.trim()) || PH.title,
-    body: I(texts.body?.trim()) || PH.body,
-    accordionText: I(texts.accordion?.trim()) || PH.accordion,
-    mainButton: I(texts.mainLabel?.trim()) || PH.mainLabel,
-    subButton: I(texts.subLabel?.trim()) || PH.subLabel,
-    imageSrc: getImageUrl(imageFile) || undefined,
-    imageOn: c.imageOn && hasImage(imageFile),
-    textOn: c.textOn,
-    buttonOn: c.buttonOn,
-    titleOn: c.titleOn,
-    bodyOn: c.bodyOn,
-    accordionOn: c.accordionOn,
-    mainOn: c.mainOn,
-    subOn: c.subOn,
-    carouselCards: cards,
-    quickItems: (perMode?.quickList ?? []).map((q) => I(q.label?.trim()) || PH.quickItem),
-    quickButtonOn: !!perMode?.quickButtonOn,
-    messageBannerOn: !!perMode?.messageBannerOn,
-    bannerSrc: getImageUrl(perMode?.bannerFile) || undefined,
-    formDescription: form?.description ?? '',
-    formPlaceholder: form?.guideText ?? '',
-    formTimePlaceholder: form?.timeGuideText ?? '',
-    formType: form?.type ?? 'textfield',
-    formOptions: form?.options ?? [],
-    timestamp,
-    disabled,
-  }
-}
 
 /** session.history → ChatRoom messages 배열.
  *  ChatRoom 은 user/bot 두 타입만 인식. 시스템 안내는 user 타입에 시각 구분 텍스트로 변환.

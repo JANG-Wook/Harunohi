@@ -2,11 +2,37 @@
 // 봇 이름→헤더 title, 입력 안내→placeholder, 프로필→메시지 아바타(없으면 기본),
 // 대화방 배경(색/사진)→.chat-room-scroll 오버라이드. 미리보기라 액션 버튼은 비활성.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import { getImageUrl, hasImage } from '../lib/chatMessageDefaults.js'
 import { DEFAULT_BOT_AVATAR } from '../lib/defaultBotAvatar.js'
 import './ChatroomPreview.css'
+
+// 미리보기에 띄울 웰컴메시지 — 제목 텍스트만 표시.
+const WELCOME_TITLE = '안녕하세요. 무엇을 도와드릴까요?'
+
+/** 미리보기용 봇 메시지 — 제목 텍스트만 표시(나머지 항목은 모두 끔). */
+function buildWelcomeMessage(id, botName, avatarSrc) {
+  return {
+    id,
+    type: 'bot',
+    botName,
+    avatarSrc,
+    timestamp: '09:41',
+    mode: 'single',
+    textOn: true,
+    titleOn: true,
+    title: WELCOME_TITLE,
+    bodyOn: false,
+    accordionOn: false,
+    imageOn: false,
+    buttonOn: false,
+    mainOn: false,
+    subOn: false,
+    messageBannerOn: false,
+    quickButtonOn: false,
+  }
+}
 
 // 연결 상태 점 — 실제론 네트워크 상태(연결=파랑/불안정=주황/끊김=회색)지만,
 // 미리보기에선 세 색을 2초씩 순환해 보여준다. 깜빡임은 CSS.
@@ -25,29 +51,6 @@ function StatusDot() {
   return <span className="crp-dot" style={{ background: DOT_COLORS[i] }} aria-hidden="true" />
 }
 
-/** 텍스트 전용 봇 메시지 — 버튼/이미지/아코디언 등은 모두 끔 */
-function botText(id, body, botName, avatarSrc) {
-  return {
-    id,
-    type: 'bot',
-    botName,
-    avatarSrc,
-    timestamp: '',
-    mode: 'single',
-    textOn: true,
-    titleOn: false,
-    bodyOn: true,
-    body,
-    accordionOn: false,
-    imageOn: false,
-    buttonOn: false,
-    mainOn: false,
-    subOn: false,
-    messageBannerOn: false,
-    quickButtonOn: false,
-  }
-}
-
 export default function ChatroomPreview({ config }) {
   const c = config.chatroom
   // 챗봇 이름 — 끄면 메시지 라벨 숨김(빈 문자열)
@@ -63,16 +66,24 @@ export default function ChatroomPreview({ config }) {
     hostStyle = { '--crp-bg': c.bgColor, '--crp-bg-image': 'none' }
   }
 
-  // 라이브 미리보기 — 참조가 매 렌더 바뀌면 ChatRoom 내부 메시지가 리셋되므로 메모이즈.
-  // 이름/아바타가 바뀔 때만 시드 갱신(그때 데모 대화는 초기화됨).
-  const messages = useMemo(
-    () => [
-      botText('m1', '안녕하세요! 무엇을 도와드릴까요?', msgBotName, avatarSrc),
-      { id: 'm2', type: 'user', text: '예약하고 싶어요.' },
-      botText('m3', '네, 원하시는 날짜를 알려주세요.', msgBotName, avatarSrc),
-    ],
-    [msgBotName, avatarSrc],
-  )
+  // 라이브 미리보기 대화 — 웰컴메시지 1개로 시작. 사용자가 무엇을 입력하든 같은 웰컴 응답을 echo.
+  // 봇 이름/아바타(설정값)가 바뀌면 시드를 다시 만들어 대화 초기화.
+  const seqRef = useRef(0)
+  const [convo, setConvo] = useState(() => [buildWelcomeMessage('w0', msgBotName, avatarSrc)])
+  useEffect(() => {
+    seqRef.current = 0
+    setConvo([buildWelcomeMessage('w0', msgBotName, avatarSrc)])
+  }, [msgBotName, avatarSrc])
+
+  // 발화 전송 — 사용자 메시지 + 동일 웰컴 응답을 이어 붙인다.
+  const handleSend = (text) => {
+    const n = (seqRef.current += 1)
+    setConvo((prev) => [
+      ...prev,
+      { id: `u${n}`, type: 'user', text },
+      buildWelcomeMessage(`w${n}`, msgBotName, avatarSrc),
+    ])
+  }
 
   // 헤더 제목 — 대화방 이름(켜짐+값 있을 때) + 온라인 표시 점
   const showRoomTitle = c.roomTitleOn && !!c.roomTitle
@@ -91,7 +102,8 @@ export default function ChatroomPreview({ config }) {
         <ChatRoom
           title={titleNode}
           placeholder={c.inputPlaceholder || '메시지를 입력해 주세요'}
-          initialMessages={messages}
+          initialMessages={convo}
+          onSend={handleSend}
           pinUserToTop={c.pinUserToTop}
           resetDisabled
           closeDisabled

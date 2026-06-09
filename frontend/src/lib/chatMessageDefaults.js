@@ -108,17 +108,17 @@ export function isLinkComplete(link) {
 export function defaultCarouselCard(id) {
   return {
     id,
-    imageOn: true,
+    imageOn: false,
     textOn: true,
     titleOn: true,
     bodyOn: true,
     buttonOn: true,
     mainOn: true,
-    subOn: true,
-    title: '',
-    body: '',
-    mainLabel: '',
-    subLabel: '',
+    subOn: false,
+    title: '제목 텍스트',
+    body: '본문 텍스트',
+    mainLabel: '메인 버튼',
+    subLabel: '서브 버튼',
     mainLink: defaultLink(),
     subLink: defaultLink(),
     imageFile: '',
@@ -135,6 +135,16 @@ export function defaultPerModeExtras() {
       { id: 1, label: '', link: defaultLink() },
       { id: 2, label: '', link: defaultLink() },
     ],
+  }
+}
+
+/** 새 응답 기본 perMode — 퀵 버튼 ON("처음으로"), 배너 OFF. 단일/캐로셀/입력폼에 사용 */
+function filledPerModeExtras() {
+  return {
+    messageBannerOn: false,
+    bannerFile: '',
+    quickButtonOn: true,
+    quickList: [{ id: 1, label: '처음으로', link: defaultLink() }],
   }
 }
 
@@ -184,22 +194,22 @@ export function createDefaultMessageConfig() {
     // 메시지 본문 토글 (모든 모드에 적용)
     cfg: {
       messageOn: true,
-      imageOn: true,
+      imageOn: false,
       textOn: true,
       titleOn: true,
       bodyOn: true,
-      accordionOn: true,
+      accordionOn: false,
       buttonOn: true,
       mainOn: true,
-      subOn: true,
+      subOn: false,
     },
     mode: 'single',
     texts: {
-      title: '',
-      body: '',
+      title: '제목 텍스트',
+      body: '본문 텍스트',
       accordion: '',
-      mainLabel: '',
-      subLabel: '',
+      mainLabel: '메인 버튼',
+      subLabel: '서브 버튼',
       mainLink: defaultLink(),
       subLink: defaultLink(),
     },
@@ -219,9 +229,9 @@ export function createDefaultMessageConfig() {
     },
     // 모드별 메시지 레벨 부가 설정 (배너, 퀵 버튼) — 단일/캐로셀/입력폼/RAG/분기 각각 독립
     perMode: {
-      single: defaultPerModeExtras(),
-      carousel: defaultPerModeExtras(),
-      inputForm: defaultPerModeExtras(),
+      single: filledPerModeExtras(),
+      carousel: filledPerModeExtras(),
+      inputForm: filledPerModeExtras(),
       rag: defaultPerModeExtras(),
       branch: defaultPerModeExtras(),
       api: defaultPerModeExtras(),

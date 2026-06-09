@@ -6,15 +6,13 @@
 import { useMemo } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import {
-  PH,
   defaultPerModeExtras,
   getImageUrl,
+  hasImage,
   sampleDescFor,
   samplePlaceholderFor,
   sampleTimePlaceholderFor,
 } from '../lib/chatMessageDefaults.js'
-import chatbotImg from '/T1_parksy/Chatbot img.png'
-import chatbotBanner from '/T1_parksy/Chatbot Banner.png'
 import './ChatMessagePreview.css'
 
 // SVG 는 public 폴더에서 URL 문자열로 직접 참조 (svgr 변환 우회)
@@ -31,21 +29,22 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
 
   const isCarousel = mode === 'carousel'
 
+  // 빈 값은 빈 대로 — placeholder 폴백 없음. 빈 라벨 퀵 버튼은 제외.
   const quickPreview = useMemo(() => {
-    if (!quickList || quickList.length === 0) return [PH.quickItem]
-    return quickList.map((it) => it.label.trim() || PH.quickItem)
+    if (!quickList) return []
+    return quickList.map((it) => it.label.trim()).filter(Boolean)
   }, [quickList])
 
   const carouselPreview = useMemo(
     () =>
       carouselCards.map((c) => ({
         id: c.id,
-        title: c.title.trim() || PH.title,
-        body: c.body.trim() || PH.body,
-        mainButton: c.mainLabel.trim() || PH.mainLabel,
-        subButton: c.subLabel.trim() || PH.subLabel,
-        imageSrc: getImageUrl(c.imageFile) || chatbotImg,
-        imageOn: c.imageOn,
+        title: c.title.trim(),
+        body: c.body.trim(),
+        mainButton: c.mainLabel.trim(),
+        subButton: c.subLabel.trim(),
+        imageSrc: getImageUrl(c.imageFile),
+        imageOn: c.imageOn && hasImage(c.imageFile),
         textOn: c.textOn,
         buttonOn: c.buttonOn,
         titleOn: c.titleOn,
@@ -71,16 +70,16 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         formTimePlaceholder: form.timeGuideText.trim() || sampleTimePlaceholderFor(form.type),
         formType: form.type,
         formOptions: form.options.map((o) => ({ ...o, label: o.label.trim() || `옵션 ${o.id}` })),
-        title: texts.title.trim() || PH.title,
-        body: texts.body.trim() || PH.body,
-        accordionText: texts.accordion.trim() || PH.accordion,
-        mainButton: texts.mainLabel.trim() || PH.mainLabel,
-        subButton: texts.subLabel.trim() || PH.subLabel,
+        title: texts.title.trim(),
+        body: texts.body.trim(),
+        accordionText: texts.accordion.trim(),
+        mainButton: texts.mainLabel.trim(),
+        subButton: texts.subLabel.trim(),
         timestamp: '09:41',
-        imageSrc: getImageUrl(imageFile) || chatbotImg,
-        bannerSrc: getImageUrl(bannerFile) || chatbotBanner,
+        imageSrc: getImageUrl(imageFile),
+        bannerSrc: getImageUrl(bannerFile),
         quickItems: quickPreview,
-        imageOn: cfg.imageOn,
+        imageOn: cfg.imageOn && hasImage(imageFile),
         textOn: cfg.textOn,
         buttonOn: cfg.buttonOn,
         titleOn: cfg.titleOn,
@@ -88,8 +87,8 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         accordionOn: cfg.accordionOn,
         mainOn: cfg.mainOn,
         subOn: cfg.subOn,
-        messageBannerOn,
-        quickButtonOn,
+        messageBannerOn: messageBannerOn && hasImage(bannerFile),
+        quickButtonOn: quickButtonOn && quickPreview.length > 0,
       },
     ],
     [

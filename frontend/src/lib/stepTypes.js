@@ -6,7 +6,7 @@
 //
 // 변수명은 호환을 위해 step / createEmptyStep 등 유지하나 UI 명칭은 "응답".
 
-import { createDefaultMessageConfig, hasImage, isLinkComplete } from './chatMessageDefaults.js'
+import { createDefaultMessageConfig, defaultLink, hasImage, isLinkComplete } from './chatMessageDefaults.js'
 
 let stepSeq = 0
 export const nextStepId = () => `step_${Date.now().toString(36)}_${stepSeq++}`
@@ -94,9 +94,53 @@ export function createEmptyScenario(name = '새 시나리오') {
   }
 }
 
-/** 신규 봇용 기본 시나리오 + 웰컴 응답 — 트리거가 웰컴을 가리키도록 */
+/** 완성된 웰컴 예시 응답 — 첫 진입 시 모든 항목이 채워진 완성형을 보여준다(모든 토글 on).
+ *  이미지/배너는 public 의 예시 에셋 사용. */
+function makeWelcomeExampleStep() {
+  const base = createDefaultMessageConfig()
+  const config = {
+    ...base,
+    // 예시는 모든 항목 on (새 응답 기본값과 무관하게 명시)
+    cfg: {
+      messageOn: true,
+      imageOn: true,
+      textOn: true,
+      titleOn: true,
+      bodyOn: true,
+      accordionOn: true,
+      buttonOn: true,
+      mainOn: true,
+      subOn: true,
+    },
+    texts: {
+      ...base.texts,
+      title: '안녕하세요. 무엇을 도와드릴까요?',
+      body: '자주 묻는 질문, 영업시간, 환불, 배송 안내를 확인하실 수 있어요. 아래 버튼을 눌러 시작해 보세요.',
+      accordion: '고객센터: 123',
+      mainLabel: '자주 묻는 질문',
+      subLabel: '환불 안내',
+    },
+    imageFile: { name: 'image_ex.png', url: '/image_ex.png' },
+    perMode: {
+      ...base.perMode,
+      single: {
+        ...base.perMode.single,
+        messageBannerOn: true,
+        bannerFile: { name: 'banner_ex.png', url: '/banner_ex.png' },
+        quickButtonOn: true,
+        quickList: [
+          { id: 1, label: '영업 시간', link: defaultLink() },
+          { id: 2, label: '배송 안내', link: defaultLink() },
+        ],
+      },
+    },
+  }
+  return { id: nextStepId(), name: '웰컴메시지', messageConfig: config }
+}
+
+/** 신규 봇용 기본 시나리오 + 완성된 웰컴 예시 — 트리거가 웰컴을 가리키도록 */
 export function makeDefaultScenarioWithWelcome() {
-  const welcome = { ...createEmptyStep(), name: '웰컴메시지' }
+  const welcome = makeWelcomeExampleStep()
   const sc = createEmptyScenario('기본 시나리오')
   return { ...sc, responses: [welcome], triggerTargetResponseId: welcome.id }
 }

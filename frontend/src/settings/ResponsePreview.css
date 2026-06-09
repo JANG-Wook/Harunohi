@@ -1,0 +1,152 @@
+/* 챗봇 응답 미리보기 — 구조/여백은 토큰, 색·크기·둥글기는 inline style(사용자 데이터) */
+
+.rsp {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 대화방 배경 — themeSupport 면 테마 배경(토큰), 아니면 inline 으로 색/사진 오버라이드 */
+.rsp__host {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--spacing-24);
+  box-sizing: border-box;
+  background: var(--color-bg-normal-alternative);
+}
+
+.rsp__msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  width: 320px;
+  max-width: 100%;
+}
+
+.rsp__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.rsp__name {
+  font-size: var(--font-size-label-1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-label-1-reading);
+  color: var(--color-label-neutral);
+  white-space: nowrap;
+}
+
+/* 말풍선 — 외곽선 두께/모양은 토큰, 색은 inline */
+.rsp__bubble {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  width: 100%;
+  padding: var(--spacing-20);
+  border: 1px solid;
+  border-radius: var(--spacing-12);
+  box-sizing: border-box;
+}
+
+.rsp__textarea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  width: 100%;
+}
+
+.rsp__texts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  padding: 0 var(--spacing-4);
+  box-sizing: border-box;
+}
+
+.rsp__title {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-body-2-normal);
+  word-break: break-word;
+}
+
+.rsp__body {
+  margin: 0;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body-2-normal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rsp__accordion {
+  margin: 0;
+  padding: 0 var(--spacing-4);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body-2-normal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* '더 보기' 토글 — 설정 대상 아님(고정 토큰 스타일) */
+.rsp__more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-label-assistive);
+  font-size: var(--font-size-label-2);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.rsp__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* 메인/서브 버튼 — 둥글기/글자크기/색은 inline */
+.rsp__btn {
+  width: 100%;
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.rsp__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+  width: 100%;
+}
+
+/* 퀵버튼 칩 — 둥글기/글자크기/색은 inline */
+.rsp__chip {
+  padding: var(--spacing-6) var(--spacing-12);
+  border: 1px solid;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.rsp__time {
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-regular);
+  line-height: 14px;
+  color: var(--color-label-alternative);
+  white-space: nowrap;
+}

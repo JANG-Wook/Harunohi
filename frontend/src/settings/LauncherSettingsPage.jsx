@@ -29,6 +29,7 @@ import {
   LAUNCHER_SHAPES,
   defaultChatroomConfig,
   defaultLauncherConfig,
+  defaultResponseConfig,
   loadLauncher,
   saveLauncher,
 } from '../lib/launcherConfig.js'
@@ -36,6 +37,7 @@ import { isLowContrast } from '../lib/contrast.js'
 import ColorField from './ColorField.jsx'
 import LauncherPreview from './LauncherPreview.jsx'
 import ChatroomPreview from './ChatroomPreview.jsx'
+import ResponsePreview from './ResponsePreview.jsx'
 import './LauncherSettingsPage.css'
 
 const TEXT_SIZES = [13, 14, 15, 16, 18]
@@ -86,6 +88,26 @@ function CheckRow({ label, active, onChange }) {
     <div className="launcher-set__check-row">
       <Checkbox size="small" state={active ? 'checked' : 'unchecked'} onChange={onChange} aria-label={label} />
       <span className="launcher-set__check-row__label" onClick={onChange}>{label}</span>
+    </div>
+  )
+}
+
+/** 숫자 입력 필드 — 크기/둥글기(px)용. min~max 로 클램프 */
+function NumberField({ value, onChange, min = 0, max = 999, suffix = 'px' }) {
+  return (
+    <div className="lset-number">
+      <input
+        type="number"
+        className="lset-number__input"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(e) => {
+          const n = Number(e.target.value)
+          if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)))
+        }}
+      />
+      <span className="lset-number__suffix">{suffix}</span>
     </div>
   )
 }
@@ -165,6 +187,8 @@ export default function LauncherSettingsPage() {
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }))
   const setChatroom = (patch) =>
     setConfig((prev) => ({ ...prev, chatroom: { ...prev.chatroom, ...patch } }))
+  const setResponse = (patch) =>
+    setConfig((prev) => ({ ...prev, response: { ...prev.response, ...patch } }))
 
   /* 이미지 파일 읽기 — 검증 통과 시 onDone({name,url}), 실패 시 onError(메시지) */
   const readImageFile = (e, { onDone, onError }) => {
@@ -211,8 +235,30 @@ export default function LauncherSettingsPage() {
 
   const handleReset = () => {
     if (tab === 'chatroom') {
-      setChatroom(defaultChatroomConfig())
+      // 대화방 설정 = 정체성/동작만 초기화 (UI/배경은 대화방 UI 설정 탭 소관)
+      const d = defaultChatroomConfig()
+      setChatroom({
+        botNameOn: d.botNameOn,
+        botName: d.botName,
+        roomTitleOn: d.roomTitleOn,
+        roomTitle: d.roomTitle,
+        onlineIndicator: d.onlineIndicator,
+        pinUserToTop: d.pinUserToTop,
+        profileImage: d.profileImage,
+      })
       setProfileUploadError('')
+    } else if (tab === 'response') {
+      // 대화방 UI 설정 = 응답 스타일 + 대화방 UI(테마/배경/입력/폰트) 초기화
+      const d = defaultChatroomConfig()
+      setResponse(defaultResponseConfig())
+      setChatroom({
+        themeSupport: d.themeSupport,
+        bgType: d.bgType,
+        bgColor: d.bgColor,
+        bgImage: d.bgImage,
+        inputPlaceholder: d.inputPlaceholder,
+        font: d.font,
+      })
       setBgUploadError('')
     } else {
       setConfig((prev) => ({ ...defaultLauncherConfig(), chatroom: prev.chatroom }))
@@ -237,6 +283,10 @@ export default function LauncherSettingsPage() {
 
   /* 대화방 설정 파생값 */
   const chatroom = config.chatroom
+  /* 응답 스타일 파생값 */
+  const response = config.response
+  /* 다크/라이트 모드 사용 시 색상 설정은 테마가 지배 → 비활성 (크기/둥글기는 유지) */
+  const themed = chatroom.themeSupport
   const profileImageExists = hasImage(chatroom.profileImage)
   const isChatBgColor = chatroom.bgType === 'color'
   const isChatBgImage = chatroom.bgType === 'image'
@@ -245,7 +295,7 @@ export default function LauncherSettingsPage() {
   const TABS = [
     { key: 'launcher', label: '플로팅 런처 버튼 설정', icon: 'bubble' },
     { key: 'chatroom', label: '대화방 설정', icon: 'message' },
-    { key: 'response', label: '챗봇 응답 설정', icon: 'list' },
+    { key: 'response', label: '대화방 UI 설정', icon: 'palette' },
   ]
 
   return (
@@ -308,9 +358,7 @@ export default function LauncherSettingsPage() {
             onClick={toggleTheme}
             aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
           />
-          {tab !== 'response' && (
-            <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
-          )}
+          <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
           <Button variant="solid" color="primary" size="small" label="저장" onClick={handleSave} />
         </div>
       </header>
@@ -671,9 +719,19 @@ export default function LauncherSettingsPage() {
                     </span>
                   </div>
                 </Section>
+              </section>
+            </div>
+          ) : (
+            <div className="launcher-set__body">
+              {/* 좌측 미리보기 */}
+              <section className="launcher-set__preview">
+                <ResponsePreview config={config} />
+              </section>
 
-                {/* 3. 대화방 UI */}
-                <Section icon="palette" title="대화방 UI">
+              {/* 우측 설정 패널 */}
+              <section className="launcher-set__panel sidebar-scroll">
+                {/* 다크/라이트 모드 — 색상 설정의 마스터. 켜면 색은 테마가 지배 */}
+                <Section icon="palette" title="다크/라이트 모드">
                   <div className="lset-field">
                     <CheckRow
                       label="다크/라이트 모드 사용"
@@ -681,13 +739,15 @@ export default function LauncherSettingsPage() {
                       onChange={() => setChatroom({ themeSupport: !chatroom.themeSupport })}
                     />
                     <span className="launcher-set__caption">
-                      켜면 라이트/다크에 자동으로 맞춰지며, 고정 배경(색상/사진)은 비활성화돼요.
+                      켜면 라이트/다크에 자동으로 맞춰지며, 색상 설정(말풍선·텍스트·버튼·배경)은 비활성화돼요.
                     </span>
                   </div>
+                </Section>
 
-                  {/* 배경 — 다크/라이트 모드 사용 중에는 비활성 */}
-                  <div className={['launcher-set__group', chatroom.themeSupport && 'is-disabled'].filter(Boolean).join(' ')}>
-                    <Field label="대화방 배경">
+                {/* 대화방 배경 — 다크/라이트 모드 사용 중에는 비활성 */}
+                <Section icon="paletteFill" title="대화방 배경">
+                  <div className={['launcher-set__group', themed && 'is-disabled'].filter(Boolean).join(' ')}>
+                    <Field label="배경 유형">
                       <div className="launcher-set__radios">
                         <Radio checked={isChatBgColor} label="색상" onChange={() => setChatroom({ bgType: 'color' })} />
                         <Radio checked={isChatBgImage} label="사진" onChange={() => setChatroom({ bgType: 'image' })} />
@@ -723,7 +783,7 @@ export default function LauncherSettingsPage() {
                       )}
                     </Field>
 
-                    <Field label={isChatBgColor ? '대화방 배경색' : '대화방 배경색 (색상 선택 시 활성)'}>
+                    <Field label={isChatBgColor ? '배경색' : '배경색 (색상 선택 시 활성)'}>
                       <ColorField
                         value={chatroom.bgColor}
                         onChange={(c) => setChatroom({ bgColor: c })}
@@ -731,7 +791,10 @@ export default function LauncherSettingsPage() {
                       />
                     </Field>
                   </div>
+                </Section>
 
+                {/* 입력창 / 폰트 — 테마 영향 없음 */}
+                <Section icon="pencil" title="입력창 · 폰트">
                   <Field label="메시지 입력 안내 문구">
                     <Textfield
                       placeholder="메시지를 입력해 주세요"
@@ -750,14 +813,94 @@ export default function LauncherSettingsPage() {
                     <span className="launcher-set__caption">* 현재 Pretendard만 지원해요.</span>
                   </Field>
                 </Section>
+
+                {/* 말풍선 */}
+                <Section icon="message" title="말풍선">
+                  <Field label="배경색">
+                    <ColorField value={response.bubbleBgColor} onChange={(c) => setResponse({ bubbleBgColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="외곽색">
+                    <ColorField value={response.bubbleBorderColor} onChange={(c) => setResponse({ bubbleBorderColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
+
+                {/* 제목 텍스트 */}
+                <Section icon="textFormat" title="제목 텍스트">
+                  <Field label="크기">
+                    <NumberField value={response.titleSize} onChange={(v) => setResponse({ titleSize: v })} min={8} max={48} />
+                  </Field>
+                  <Field label="색">
+                    <ColorField value={response.titleColor} onChange={(c) => setResponse({ titleColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
+
+                {/* 본문 텍스트 */}
+                <Section icon="documentText" title="본문 텍스트">
+                  <Field label="크기">
+                    <NumberField value={response.bodySize} onChange={(v) => setResponse({ bodySize: v })} min={8} max={48} />
+                  </Field>
+                  <Field label="색">
+                    <ColorField value={response.bodyColor} onChange={(c) => setResponse({ bodyColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
+
+                {/* 펼치기 텍스트 */}
+                <Section icon="list" title="펼치기 텍스트" note="‘더 보기’ 버튼 자체는 설정하지 않아요.">
+                  <Field label="크기">
+                    <NumberField value={response.accordionSize} onChange={(v) => setResponse({ accordionSize: v })} min={8} max={48} />
+                  </Field>
+                  <Field label="색">
+                    <ColorField value={response.accordionColor} onChange={(c) => setResponse({ accordionColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
+
+                {/* 버튼 */}
+                <Section icon="square" title="버튼">
+                  <Field label="둥글기">
+                    <NumberField value={response.buttonRadius} onChange={(v) => setResponse({ buttonRadius: v })} min={0} max={999} />
+                  </Field>
+                  <Field label="텍스트 크기">
+                    <NumberField value={response.buttonTextSize} onChange={(v) => setResponse({ buttonTextSize: v })} min={8} max={32} />
+                  </Field>
+                  <Field label="메인 버튼 색">
+                    <ColorField value={response.mainButtonColor} onChange={(c) => setResponse({ mainButtonColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="메인 버튼 외곽선 색">
+                    <ColorField value={response.mainButtonBorderColor} onChange={(c) => setResponse({ mainButtonBorderColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="메인 버튼 텍스트 색">
+                    <ColorField value={response.mainButtonTextColor} onChange={(c) => setResponse({ mainButtonTextColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="서브 버튼 색">
+                    <ColorField value={response.subButtonColor} onChange={(c) => setResponse({ subButtonColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="서브 버튼 외곽선 색">
+                    <ColorField value={response.subButtonBorderColor} onChange={(c) => setResponse({ subButtonBorderColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="서브 버튼 텍스트 색">
+                    <ColorField value={response.subButtonTextColor} onChange={(c) => setResponse({ subButtonTextColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
+
+                {/* 퀵버튼 */}
+                <Section icon="tag" title="퀵버튼">
+                  <Field label="둥글기">
+                    <NumberField value={response.quickRadius} onChange={(v) => setResponse({ quickRadius: v })} min={0} max={999} />
+                  </Field>
+                  <Field label="텍스트 크기">
+                    <NumberField value={response.quickTextSize} onChange={(v) => setResponse({ quickTextSize: v })} min={8} max={32} />
+                  </Field>
+                  <Field label="텍스트 색">
+                    <ColorField value={response.quickTextColor} onChange={(c) => setResponse({ quickTextColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="퀵버튼 색">
+                    <ColorField value={response.quickColor} onChange={(c) => setResponse({ quickColor: c })} disabled={themed} />
+                  </Field>
+                  <Field label="퀵버튼 외곽선 색">
+                    <ColorField value={response.quickBorderColor} onChange={(c) => setResponse({ quickBorderColor: c })} disabled={themed} />
+                  </Field>
+                </Section>
               </section>
-            </div>
-          ) : (
-            <div className="dze__placeholder">
-              <Icon name="list" size={32} color="var(--color-label-assistive)" />
-              <Typography variant="body-2-normal" color="var(--color-label-alternative)" as="p">
-                챗봇 응답 설정은 곧 제공될 예정이에요.
-              </Typography>
             </div>
           )}
         </main>

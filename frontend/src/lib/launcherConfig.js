@@ -46,6 +46,41 @@ export function defaultChatroomConfig() {
   }
 }
 
+/** 챗봇 응답(메시지) 스타일 기본값 — config.response 에 중첩 저장.
+    색/크기/둥글기는 고객사 브랜드 데이터라 미리보기에 inline style 로 적용된다.
+    크기/둥글기 단위는 px. 기본값은 현재 디자인 시스템 모습과 맞췄다. */
+export function defaultResponseConfig() {
+  return {
+    // 제목 텍스트
+    titleSize: 15,
+    titleColor: '#2E2F33',
+    // 본문 텍스트
+    bodySize: 15,
+    bodyColor: '#2E2F33',
+    // 펼치기(아코디언) 텍스트 — '더 보기' 버튼 자체는 설정 대상 아님
+    accordionSize: 15,
+    accordionColor: '#2E2F33',
+    // 버튼 — 둥글기/텍스트 크기는 메인·서브 공통, 색은 개별
+    buttonRadius: 12,
+    buttonTextSize: 14,
+    mainButtonColor: '#0066FF',
+    mainButtonBorderColor: '#0066FF',
+    mainButtonTextColor: '#FFFFFF',
+    subButtonColor: '#FFFFFF',
+    subButtonBorderColor: '#0066FF',
+    subButtonTextColor: '#0066FF',
+    // 퀵버튼
+    quickRadius: 999,
+    quickTextSize: 14,
+    quickTextColor: '#0066FF',
+    quickColor: '#FFFFFF',
+    quickBorderColor: '#0066FF',
+    // 말풍선
+    bubbleBgColor: '#FFFFFF',
+    bubbleBorderColor: '#E1E2E4',
+  }
+}
+
 /** 진입 메시지 글자 굵기 — 디자인 시스템 weight 토큰 매핑 */
 export const GREETING_WEIGHTS = [
   { value: 'regular', label: '얇게', css: 400 },
@@ -71,6 +106,7 @@ export function defaultLauncherConfig() {
     greetingTextWeight: 'medium', // 'regular'(얇게) | 'medium'(보통) | 'bold'(굵게)
     greetingBgColor: '#0066FF',
     chatroom: defaultChatroomConfig(), // 대화방 설정 (중첩)
+    response: defaultResponseConfig(), // 챗봇 응답 스타일 (중첩)
   }
 }
 
@@ -91,6 +127,8 @@ function fillConfig(config) {
   if (!['color', 'image'].includes(merged.chatroom.bgType)) {
     merged.chatroom.bgType = 'color'
   }
+  // 응답 스타일 깊은 병합 — 기존 데이터(response 없음)도 기본값 보강
+  merged.response = { ...defaultResponseConfig(), ...(config?.response ?? {}) }
   return merged
 }
 

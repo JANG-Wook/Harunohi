@@ -8,7 +8,6 @@ import Button from '../design-system/components/Button/Button.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
-import Menu from '../design-system/components/Menu/Menu.jsx'
 import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import SimulatorModal from '../simulator/SimulatorModal.jsx'
 import { useTheme } from '../lib/useTheme.js'
@@ -26,14 +25,6 @@ function nameInputCh(s) {
   return Math.max(w, 16) + 2
 }
 
-/** ISO 문자열 → "2026.05.23 14:30" 형식 */
-function formatVersionLabel(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 
 export default function BotWorkspaceLayout() {
   const navigate = useNavigate()
@@ -81,33 +72,13 @@ export default function BotWorkspaceLayout() {
     setSimulatorOpen(true)
   }, [])
 
-  /* 버전 목록 + 현재 선택 (자식에서 보고) */
-  const [versions, setVersions] = useState([])
-  const [currentVersionId, setCurrentVersionId] = useState(null)
-  const setVersionInfo = useCallback((vs, cur) => {
-    setVersions(vs)
-    setCurrentVersionId(cur)
-  }, [])
+  /* 버전 정보 — 상단바 UI 제거됨. 자식(BotCanvasPage) 계약 유지를 위해 no-op 으로 둔다. */
+  const setVersionInfo = useCallback(() => {}, [])
 
-  /* 다이얼로그 상태 — 이탈 가드 + 버전 변경 가드 + 토스트 */
+  /* 다이얼로그 상태 — 이탈 가드 + 토스트 */
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false)
-  const [pendingVersionId, setPendingVersionId] = useState(null) // null 이면 다이얼로그 닫힘
   const [toast, setToast] = useState(null) // null 이면 닫힘, string 이면 표시
   const toastTimerRef = useRef(null)
-
-  /* 버전 셀렉터 드롭다운 */
-  const [versionMenuOpen, setVersionMenuOpen] = useState(false)
-  const versionMenuRef = useRef(null)
-  useEffect(() => {
-    if (!versionMenuOpen) return
-    const handler = (e) => {
-      if (versionMenuRef.current && !versionMenuRef.current.contains(e.target)) {
-        setVersionMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [versionMenuOpen])
 
   const showToast = useCallback((message) => {
     setToast(message)
@@ -185,34 +156,11 @@ export default function BotWorkspaceLayout() {
     navigate('/app/bots')
   }, [navigate])
 
-  /* 버전 항목 클릭 — dirty 면 확인 다이얼로그, 아니면 즉시 로드 */
-  const handleVersionClick = useCallback(
-    (versionId) => {
-      setVersionMenuOpen(false)
-      if (versionId === currentVersionId) return
-      if (isDirty) {
-        setPendingVersionId(versionId)
-      } else {
-        versionLoaderRef.current?.(versionId)
-      }
-    },
-    [currentVersionId, isDirty],
-  )
-
-  const handleConfirmVersionLoad = useCallback(() => {
-    if (pendingVersionId) versionLoaderRef.current?.(pendingVersionId)
-    setPendingVersionId(null)
-  }, [pendingVersionId])
-
-  /* 다이얼로그 열림 시 Esc 키 + 배경 스크롤 잠금 */
+  /* 이탈 가드 다이얼로그 열림 시 Esc 키 + 배경 스크롤 잠금 */
   useEffect(() => {
-    const open = confirmLeaveOpen || pendingVersionId !== null
-    if (!open) return
+    if (!confirmLeaveOpen) return
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        setConfirmLeaveOpen(false)
-        setPendingVersionId(null)
-      }
+      if (e.key === 'Escape') setConfirmLeaveOpen(false)
     }
     document.body.style.overflow = 'hidden'
     document.addEventListener('keydown', onKey)
@@ -220,15 +168,7 @@ export default function BotWorkspaceLayout() {
       document.body.style.overflow = ''
       document.removeEventListener('keydown', onKey)
     }
-  }, [confirmLeaveOpen, pendingVersionId])
-
-  /* 버전 셀렉터 라벨 — 가장 최근 정렬 (savedAt 기준 내림차순) */
-  const sortedVersions = useMemo(
-    () => [...versions].sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1)),
-    [versions],
-  )
-  const currentVersion = versions.find((v) => v.id === currentVersionId) ?? null
-  const versionLabel = currentVersion ? formatVersionLabel(currentVersion.savedAt) : '저장된 버전 없음'
+  }, [confirmLeaveOpen])
 
   const outletCtx = useMemo(
     () => ({
@@ -293,41 +233,10 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 중앙 — 버전 셀렉터 + 저장 버튼 */}
-        <div className="bot-workspace__center">
-          <div className="bot-workspace__version" ref={versionMenuRef}>
-            <button
-              type="button"
-              className="bot-workspace__version-trigger"
-              disabled={sortedVersions.length === 0}
-              onClick={() => setVersionMenuOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={versionMenuOpen}
-            >
-              <span className="bot-workspace__version-label">{versionLabel}</span>
-              {sortedVersions.length > 0 && <Icon name="chevronDown" size={14} />}
-            </button>
-            {versionMenuOpen && sortedVersions.length > 0 && (
-              <div className="bot-workspace__version-menu">
-                <Menu
-                  items={sortedVersions.map((v) => ({
-                    label: formatVersionLabel(v.savedAt),
-                    active: v.id === currentVersionId,
-                    onClick: () => handleVersionClick(v.id),
-                  }))}
-                />
-              </div>
-            )}
-          </div>
-          <Button
-            variant="outlined"
-            color="assistive"
-            size="small"
-            label="저장"
-            onClick={handleSave}
-          />
-        </div>
+        {/* 중앙 — 비움(그리드 정렬 유지용). 배포 버튼은 일단 제거 */}
+        <div className="bot-workspace__center" />
 
+        {/* 우측 — 다크모드 + 시뮬레이터 + 저장 */}
         <div className="bot-workspace__actions">
           <IconButtonOutlined
             icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
@@ -346,8 +255,8 @@ export default function BotWorkspaceLayout() {
             variant="solid"
             color="primary"
             size="small"
-            label={botStatus === 'active' ? '운영 중' : '배포'}
-            onClick={handlePublish}
+            label="저장"
+            onClick={handleSave}
           />
         </div>
       </header>
@@ -370,28 +279,6 @@ export default function BotWorkspaceLayout() {
             body="지금 나가면 변경한 내용이 사라집니다. 정말 나가시겠어요?"
             primaryAction={{ label: '나가기', variant: 'negative', onClick: handleConfirmLeave }}
             secondaryAction={{ label: '취소', onClick: () => setConfirmLeaveOpen(false) }}
-          />
-        </div>
-      )}
-
-      {/* 버전 변경 가드 다이얼로그 */}
-      {pendingVersionId !== null && (
-        <div
-          className="bot-workspace__modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setPendingVersionId(null)
-          }}
-        >
-          <Alert
-            platform="web"
-            title="저장하지 않은 변경 사항이 있어요"
-            body="다른 버전을 불러오면 지금까지의 변경 사항이 사라집니다. 계속하시겠어요?"
-            primaryAction={{
-              label: '불러오기',
-              variant: 'negative',
-              onClick: handleConfirmVersionLoad,
-            }}
-            secondaryAction={{ label: '취소', onClick: () => setPendingVersionId(null) }}
           />
         </div>
       )}

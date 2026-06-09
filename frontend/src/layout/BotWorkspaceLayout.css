@@ -104,51 +104,6 @@
   gap: var(--spacing-8);
 }
 
-/* 버전 셀렉터 — DS 에 trigger+menu 결합 컴포넌트 없어 토큰으로 직접 구현 */
-.bot-workspace__version {
-  position: relative;
-  display: flex;
-  justify-content: center;
-}
-
-.bot-workspace__version-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-6);
-  padding: var(--spacing-6) var(--spacing-10);
-  background: transparent;
-  border: 1px solid var(--color-line-solid-normal);
-  border-radius: var(--spacing-8);
-  font-family: inherit;
-  font-size: var(--font-size-label-1);
-  color: var(--color-label-normal);
-  cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.bot-workspace__version-trigger:hover:not(:disabled) {
-  background: var(--color-fill-alternative);
-  border-color: var(--color-line-solid-strong);
-}
-
-.bot-workspace__version-trigger:disabled {
-  cursor: not-allowed;
-  color: var(--color-label-assistive);
-}
-
-.bot-workspace__version-label {
-  font-feature-settings: 'tnum';
-}
-
-.bot-workspace__version-menu {
-  position: absolute;
-  top: calc(100% + var(--spacing-4));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  min-width: 240px;
-}
-
 .bot-workspace__body {
   flex: 1;
   min-height: 0;

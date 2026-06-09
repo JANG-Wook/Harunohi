@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Alert from '../design-system/components/Alert/Alert.jsx'
 import Button from '../design-system/components/Button/Button.jsx'
+import Checkbox from '../design-system/components/Checkbox/Checkbox.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonNormal from '../design-system/components/IconButton/IconButtonNormal.jsx'
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
@@ -79,12 +80,12 @@ function Section({ icon, title, toggle, disabled, note, children }) {
   )
 }
 
-/** 스위치 행 — 좌측 토글 + 라벨. 봇 설정 패널(ChatMessageConfig)과 동일 패턴 */
-function SwitchRow({ label, active, onChange }) {
+/** 체크 행 — 좌측 체크박스 + 라벨. 섹션(상위=스위치) 아래 하위 항목용. 응답 설정과 동일한 위계 표현 */
+function CheckRow({ label, active, onChange }) {
   return (
-    <div className="launcher-set__switch-row">
-      <Switch size="small" active={active} onChange={onChange} aria-label={label} />
-      <span className="launcher-set__switch-row__label">{label}</span>
+    <div className="launcher-set__check-row">
+      <Checkbox size="small" state={active ? 'checked' : 'unchecked'} onChange={onChange} aria-label={label} />
+      <span className="launcher-set__check-row__label" onClick={onChange}>{label}</span>
     </div>
   )
 }
@@ -585,7 +586,7 @@ export default function LauncherSettingsPage() {
                 {/* 1. 챗봇 프로필 */}
                 <Section icon="agent" title="챗봇 프로필">
                   <div className="lset-field">
-                    <SwitchRow
+                    <CheckRow
                       label="챗봇 이름"
                       active={chatroom.botNameOn}
                       onChange={() => setChatroom({ botNameOn: !chatroom.botNameOn })}
@@ -633,7 +634,7 @@ export default function LauncherSettingsPage() {
                 {/* 2. 대화방 */}
                 <Section icon="message" title="대화방">
                   <div className="lset-field">
-                    <SwitchRow
+                    <CheckRow
                       label="대화방 이름"
                       active={chatroom.roomTitleOn}
                       onChange={() => setChatroom({ roomTitleOn: !chatroom.roomTitleOn })}
@@ -649,7 +650,7 @@ export default function LauncherSettingsPage() {
                   </div>
 
                   <div className="lset-field">
-                    <SwitchRow
+                    <CheckRow
                       label="온라인 표시 사용"
                       active={chatroom.onlineIndicator}
                       onChange={() => setChatroom({ onlineIndicator: !chatroom.onlineIndicator })}
@@ -660,7 +661,7 @@ export default function LauncherSettingsPage() {
                   </div>
 
                   <div className="lset-field">
-                    <SwitchRow
+                    <CheckRow
                       label="사용자 발화 상단 고정"
                       active={chatroom.pinUserToTop}
                       onChange={() => setChatroom({ pinUserToTop: !chatroom.pinUserToTop })}
@@ -674,7 +675,7 @@ export default function LauncherSettingsPage() {
                 {/* 3. 대화방 UI */}
                 <Section icon="palette" title="대화방 UI">
                   <div className="lset-field">
-                    <SwitchRow
+                    <CheckRow
                       label="다크/라이트 모드 사용"
                       active={chatroom.themeSupport}
                       onChange={() => setChatroom({ themeSupport: !chatroom.themeSupport })}

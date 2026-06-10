@@ -36,6 +36,7 @@ export function defaultChatroomConfig() {
     roomTitle: '챗봇',          // 대화방 헤더 제목
     onlineIndicator: true,      // 헤더 이름 옆 연결 상태 점(깜빡임) 표시 여부
     pinUserToTop: true,         // 사용자 발화 상단 고정 — 보낼 때마다 직전 대화가 밀리고 발화가 상단에 위치
+    inputExpandable: true,      // 메시지 입력창 확장 사용 — 켜면 클릭 시 입력창이 textarea 로 확장
     profileImage: '',           // { name, url } | '' — 없으면 ChatRoom 기본 아바타
     themeSupport: true,         // 다크/라이트 모드 사용 — true 면 테마 배경 따름, 고정 배경 비활성
     bgType: 'color',            // 'color' | 'image' — 대화방 배경 (themeSupport=false 일 때 적용)

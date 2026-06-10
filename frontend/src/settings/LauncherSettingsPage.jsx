@@ -444,15 +444,11 @@ export default function LauncherSettingsPage() {
                             value={imageExists ? getImageName(config.iconImage) : ''}
                             readOnly
                             status={uploadError ? 'negative' : 'normal'}
+                            description={uploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장'}
                             trailingButton={{ label: imageExists ? '변경' : '불러오기', variant: 'normal' }}
                           />
                         </div>
                         <input ref={fileRef} type="file" accept="image/jpeg,image/png" onChange={handleFile} hidden />
-                        <span
-                          className={['launcher-set__caption', uploadError && 'is-error'].filter(Boolean).join(' ')}
-                        >
-                          {uploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장'}
-                        </span>
                       </div>
                     )}
                   </Field>
@@ -523,15 +519,11 @@ export default function LauncherSettingsPage() {
                             value={buttonImageExists ? getImageName(config.buttonImage) : ''}
                             readOnly
                             status={buttonUploadError ? 'negative' : 'normal'}
+                            description={buttonUploadError || '* Jpg, Png · 최대 2MB · 투명 배경 PNG 권장'}
                             trailingButton={{ label: buttonImageExists ? '변경' : '불러오기', variant: 'normal' }}
                           />
                         </div>
                         <input ref={buttonFileRef} type="file" accept="image/jpeg,image/png" onChange={handleButtonFile} hidden />
-                        <span
-                          className={['launcher-set__caption', buttonUploadError && 'is-error'].filter(Boolean).join(' ')}
-                        >
-                          {buttonUploadError || '* Jpg, Png · 최대 2MB · 투명 배경 PNG 권장'}
-                        </span>
                       </div>
                     </Field>
                   )}
@@ -668,13 +660,11 @@ export default function LauncherSettingsPage() {
                           value={profileImageExists ? getImageName(chatroom.profileImage) : ''}
                           readOnly
                           status={profileUploadError ? 'negative' : 'normal'}
+                          description={profileUploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장 · 미설정 시 기본 아바타'}
                           trailingButton={{ label: profileImageExists ? '변경' : '불러오기', variant: 'normal' }}
                         />
                       </div>
                       <input ref={profileFileRef} type="file" accept="image/jpeg,image/png" onChange={handleProfileFile} hidden />
-                      <span className={['launcher-set__caption', profileUploadError && 'is-error'].filter(Boolean).join(' ')}>
-                        {profileUploadError || '* Jpg, Png · 최대 2MB · 정사각형 비율 권장 · 미설정 시 기본 아바타'}
-                      </span>
                     </div>
                   </Field>
                 </Section>
@@ -716,6 +706,17 @@ export default function LauncherSettingsPage() {
                     />
                     <span className="launcher-set__caption">
                       켜면 사용자가 메시지를 보낼 때 직전 대화가 위로 밀리고, 보낸 메시지가 화면 상단에 고정돼요.
+                    </span>
+                  </div>
+
+                  <div className="lset-field">
+                    <CheckRow
+                      label="메시지 입력창 확장 사용"
+                      active={chatroom.inputExpandable}
+                      onChange={() => setChatroom({ inputExpandable: !chatroom.inputExpandable })}
+                    />
+                    <span className="launcher-set__caption">
+                      켜면 입력창을 누를 때 입력 영역이 확장돼요. 끄면 확장 없이 한 줄에 그대로 입력돼요.
                     </span>
                   </div>
                 </Section>
@@ -772,13 +773,11 @@ export default function LauncherSettingsPage() {
                               value={chatBgImageExists ? getImageName(chatroom.bgImage) : ''}
                               readOnly
                               status={bgUploadError ? 'negative' : 'normal'}
+                              description={bgUploadError || '* Jpg, Png · 최대 2MB'}
                               trailingButton={{ label: chatBgImageExists ? '변경' : '불러오기', variant: 'normal' }}
                             />
                           </div>
                           <input ref={bgFileRef} type="file" accept="image/jpeg,image/png" onChange={handleBgFile} hidden />
-                          <span className={['launcher-set__caption', bgUploadError && 'is-error'].filter(Boolean).join(' ')}>
-                            {bgUploadError || '* Jpg, Png · 최대 2MB'}
-                          </span>
                         </div>
                       )}
                     </Field>

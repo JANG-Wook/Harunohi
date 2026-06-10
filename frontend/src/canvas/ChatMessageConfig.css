@@ -103,19 +103,26 @@
   gap: var(--spacing-8);
 }
 
+/* 필드 라벨 — DS Textfield heading 톤과 통일(body-2 / semibold / label-neutral) */
 .cmc-field__label {
-  font-size: var(--font-size-label-2);
-  line-height: var(--line-height-label-2);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-label-alternative);
-  letter-spacing: var(--letter-spacing-label-2);
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-neutral);
+  letter-spacing: var(--letter-spacing-body-2);
 }
 
-/* Check block */
+/* Check block — 체크 타이틀이 이끄는 하위 묶음 */
 .cmc-check {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12);
+}
+
+/* 묶음 사이 옅은 구분선 — 첫 묶음 제외. 카드 gap(20)과 대칭이 되도록 위쪽 여백 부여 */
+.cmc-check + .cmc-check {
+  border-top: 1px solid var(--color-line-alternative);
+  padding-top: var(--spacing-20);
 }
 
 .cmc-check__head {
@@ -124,12 +131,13 @@
   gap: var(--spacing-8);
 }
 
+/* 그룹 타이틀 — 하위 필드 라벨(body-2)보다 한 단계 크게(body-1) 위계 확보 */
 .cmc-check__label {
-  font-size: var(--font-size-label-1);
-  line-height: var(--line-height-label-1-normal);
+  font-size: var(--font-size-body-1);
+  line-height: var(--line-height-body-1-normal);
   font-weight: var(--font-weight-semibold);
   color: var(--color-label-normal);
-  letter-spacing: var(--letter-spacing-label-1);
+  letter-spacing: var(--letter-spacing-body-1);
   cursor: pointer;
   user-select: none;
 }
@@ -181,23 +189,17 @@
   color: var(--color-status-negative);
 }
 
-.cmc-file__caption {
-  font-size: var(--font-size-caption-1);
-  line-height: var(--line-height-caption-1);
-  color: var(--color-label-assistive);
-  letter-spacing: var(--letter-spacing-caption-1);
-}
-
-.cmc-file__caption--error {
-  color: var(--color-status-negative);
-}
-
-
 /* Quick button item */
 .cmc-quick {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12);
+}
+
+/* 퀵 버튼 묶음 사이 옅은 구분선 — 첫 묶음 제외(메인/서브 버튼과 동일 패턴) */
+.cmc-quick + .cmc-quick {
+  border-top: 1px solid var(--color-line-alternative);
+  padding-top: var(--spacing-20);
 }
 
 .cmc-quick__head {
@@ -210,12 +212,13 @@
   margin: calc(-1 * var(--spacing-8));
 }
 
+/* 그룹 타이틀 — 하위 필드 라벨(body-2)보다 크게(body-1), 다른 묶음 타이틀과 통일 */
 .cmc-quick__label {
-  font-size: var(--font-size-label-1);
-  line-height: var(--line-height-label-1-normal);
+  font-size: var(--font-size-body-1);
+  line-height: var(--line-height-body-1-normal);
   font-weight: var(--font-weight-semibold);
   color: var(--color-label-normal);
-  letter-spacing: var(--letter-spacing-label-1);
+  letter-spacing: var(--letter-spacing-body-1);
 }
 
 /* Form options */

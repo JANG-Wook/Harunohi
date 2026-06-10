@@ -271,6 +271,7 @@ function FileUploadCard({ value, onChange, caption = FILE_CAPTION_IMAGE, require
             value={displayName}
             readOnly
             status={showNegative ? 'negative' : 'normal'}
+            description={error || caption}
             trailingButton={{ label: fileExists ? '변경' : '불러오기', variant: 'normal' }}
             trailingContent={
               fileExists ? (
@@ -293,13 +294,6 @@ function FileUploadCard({ value, onChange, caption = FILE_CAPTION_IMAGE, require
             hidden
           />
         </div>
-        <span
-          className={['cmc-file__caption', error && 'cmc-file__caption--error']
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {error || caption}
-        </span>
       </div>
     </SectionCard>
   )

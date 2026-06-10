@@ -105,6 +105,7 @@ export default function ChatroomPreview({ config }) {
           initialMessages={convo}
           onSend={handleSend}
           pinUserToTop={c.pinUserToTop}
+          inputExpandable={c.inputExpandable}
           resetDisabled
           closeDisabled
         />

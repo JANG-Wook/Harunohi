@@ -315,12 +315,20 @@
   gap: var(--spacing-8);
 }
 
+/* 카드 안 묶음(필드) 사이 옅은 구분선 — 첫 묶음 제외.
+   카드 gap(20)과 대칭이 되도록 위쪽 여백 부여. 세 탭(런처/대화방/대화방 UI) 공통 */
+.launcher-set__panel .lset-card > .lset-field + .lset-field {
+  border-top: 1px solid var(--color-line-alternative);
+  padding-top: var(--spacing-20);
+}
+
+/* 필드 라벨 — DS Textfield heading 톤과 통일(body-2 / semibold / label-neutral) */
 .lset-field__label {
-  font-size: var(--font-size-label-2);
-  line-height: var(--line-height-label-2);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-label-alternative);
-  letter-spacing: var(--letter-spacing-label-2);
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-neutral);
+  letter-spacing: var(--letter-spacing-body-2);
 }
 
 /* 숫자 입력 필드 (크기/둥글기) */

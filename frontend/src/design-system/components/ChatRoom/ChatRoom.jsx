@@ -831,10 +831,10 @@ const INPUT_CONTAINER_STYLE = {
   flexShrink:      0,
 }
 
-function ChatInput({ value, onChange, placeholder, onPlus, onSend }) {
+function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = true }) {
   const textareaRef = useRef(null)
   const [focused, setFocused] = useState(false)
-  const expanded = focused
+  const expanded = expandable && focused
 
   const handlePillClick = () => {
     setFocused(true)
@@ -893,39 +893,73 @@ function ChatInput({ value, onChange, placeholder, onPlus, onSend }) {
   return (
     <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center' }}>
       <ActionButton onClick={onPlus} iconName="plus" ariaLabel="추가" iconColor="var(--color-bg-normal)" />
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={placeholder || '메시지 입력'}
-        onClick={handlePillClick}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            handlePillClick()
-          }
-        }}
-        style={{
-          flex:            1,
-          height:          '36px',
-          backgroundColor: 'var(--color-bg-normal-alternative)',
-          borderRadius:    '20px',
-          display:         'flex',
-          alignItems:      'center',
-          padding:         '0 var(--spacing-16)',
-          cursor:          'text',
-          overflow:        'hidden',
-        }}
-      >
-        <span style={{
-          fontSize:      'var(--font-size-label-1)',
-          lineHeight:    'var(--line-height-label-1-normal)',
-          color:         value.length > 0 ? 'var(--color-label-normal)' : 'var(--color-label-alternative)',
-          letterSpacing: 'var(--letter-spacing-label-1)',
-          whiteSpace:    'nowrap',
-          overflow:      'hidden',
-          textOverflow:  'ellipsis',
-        }}>{value.length > 0 ? value : placeholder}</span>
-      </div>
+      {expandable ? (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={placeholder || '메시지 입력'}
+          onClick={handlePillClick}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              handlePillClick()
+            }
+          }}
+          style={{
+            flex:            1,
+            height:          '36px',
+            backgroundColor: 'var(--color-bg-normal-alternative)',
+            borderRadius:    '20px',
+            display:         'flex',
+            alignItems:      'center',
+            padding:         '0 var(--spacing-16)',
+            cursor:          'text',
+            overflow:        'hidden',
+          }}
+        >
+          <span style={{
+            fontSize:      'var(--font-size-label-1)',
+            lineHeight:    'var(--line-height-label-1-normal)',
+            color:         value.length > 0 ? 'var(--color-label-normal)' : 'var(--color-label-alternative)',
+            letterSpacing: 'var(--letter-spacing-label-1)',
+            whiteSpace:    'nowrap',
+            overflow:      'hidden',
+            textOverflow:  'ellipsis',
+          }}>{value.length > 0 ? value : placeholder}</span>
+        </div>
+      ) : (
+        // 확장 미사용 — 클릭해도 펼치지 않고 한 줄 그대로 입력
+        <input
+          type="text"
+          className="chatroom-inline-input"
+          aria-label={placeholder || '메시지 입력'}
+          value={value}
+          placeholder={placeholder}
+          onChange={e => onChange(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault()
+              onSend()
+            }
+          }}
+          style={{
+            flex:            1,
+            height:          '36px',
+            backgroundColor: 'var(--color-bg-normal-alternative)',
+            borderRadius:    '20px',
+            border:          'none',
+            outline:         'none',
+            padding:         '0 var(--spacing-16)',
+            fontSize:        'var(--font-size-label-1)',
+            lineHeight:      'var(--line-height-label-1-normal)',
+            color:           'var(--color-label-normal)',
+            letterSpacing:   'var(--letter-spacing-label-1)',
+            fontFamily:      'var(--font-family-base)',
+            boxSizing:       'border-box',
+            minWidth:        0,
+          }}
+        />
+      )}
       <ActionButton
         onClick={onSend}
         iconName="sendFill"
@@ -1021,6 +1055,8 @@ export default function ChatRoom({
   closeDisabled = false,
   // 사용자 발화 상단 고정 — 보낼 때 최신 사용자 메시지를 화면 상단으로. false 면 일반(하단) 스크롤
   pinUserToTop = true,
+  // 메시지 입력창 확장 — true 면 클릭 시 textarea 로 확장, false 면 확장 없이 한 줄 입력
+  inputExpandable = true,
   children,
 }) {
   const [inputValue, setInputValue] = useState(initialValue)
@@ -1199,6 +1235,7 @@ export default function ChatRoom({
         placeholder={placeholder}
         onPlus={onPlus}
         onSend={handleSend}
+        expandable={inputExpandable}
       />
     </div>
   )

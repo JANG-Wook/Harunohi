@@ -6,9 +6,12 @@
 
 import { useState } from 'react'
 import Avatar from '../design-system/components/Avatar/Avatar.jsx'
+import { ChatHeader, ChatInput, ChatStatusBar } from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
+import TextButton from '../design-system/components/TextButton/TextButton.jsx'
+import { ChatPreviewTitle } from './ChatroomPreview.jsx'
 import { PH, getImageUrl, hasImage } from '../lib/chatMessageDefaults.js'
-import { DEFAULT_BOT_AVATAR } from '../lib/defaultBotAvatar.js'
+import { buildProfileAvatar } from '../lib/profileAvatar.js'
 import './ResponsePreview.css'
 
 const QUICK_SAMPLE = [PH.quickItem, PH.quickItem]
@@ -18,6 +21,13 @@ export default function ResponsePreview({ config }) {
   const c = config.chatroom
   const themed = c.themeSupport
   const [expanded, setExpanded] = useState(true)
+
+  // 챗봇 프로필(대화방 UI 설정 탭 소관) — 이름 on/off·텍스트, 아바타(아이콘/이미지/사용 안함)
+  const msgBotName = c.botNameOn ? (c.botName || '챗봇') : ''
+  const showAvatar = c.profileType !== 'none'
+  const avatarSrc = c.profileType === 'image' && hasImage(c.profileImage)
+    ? getImageUrl(c.profileImage)
+    : buildProfileAvatar(c.profileIcon, c.profileIconBgColor, c.profileIconColor)
 
   // 대화방 배경 — themeSupport 면 테마 배경(토큰), 아니면 색상/사진 고정
   let hostStyle
@@ -47,13 +57,19 @@ export default function ResponsePreview({ config }) {
 
   return (
     <div className="rsp">
-      <div className={['rsp__host', themed && 'is-themed'].filter(Boolean).join(' ')} style={hostStyle}>
-        <div className="rsp__msg">
-          {/* 아바타 + 봇 라벨 — 응답 스타일과 무관한 미리보기 chrome */}
-          <div className="rsp__head">
-            <Avatar variant="person" size="small" src={DEFAULT_BOT_AVATAR} />
-            <span className="rsp__name">챗봇</span>
-          </div>
+      {/* 디바이스 프레임 — 대화방 미리보기와 동일(상태바 + 헤더 + 비활성 입력창) */}
+      <div className="rsp__device">
+        <ChatStatusBar />
+        <ChatHeader title={<ChatPreviewTitle chatroom={c} />} resetDisabled closeDisabled />
+        <div className="rsp__host chat-room-scroll" style={hostStyle}>
+          <div className="rsp__msg">
+          {/* 아바타 + 봇 라벨 — 챗봇 프로필 설정 반영(둘 다 꺼지면 행 숨김) */}
+          {(showAvatar || msgBotName) && (
+            <div className="rsp__head">
+              {showAvatar && <Avatar variant="person" size="small" src={avatarSrc} />}
+              {msgBotName && <span className="rsp__name">{msgBotName}</span>}
+            </div>
+          )}
 
           {/* 말풍선 */}
           <div className="rsp__bubble" style={{ background: bubbleBg, borderColor: bubbleBorder }}>
@@ -67,11 +83,17 @@ export default function ResponsePreview({ config }) {
                   {PH.accordion}
                 </p>
               )}
-              {/* '더 보기' 버튼 자체는 설정 대상 아님 — DS 기본 모양 유지 */}
-              <button type="button" className="rsp__more" onClick={() => setExpanded((v) => !v)}>
-                <span>{expanded ? '접기' : '더 보기'}</span>
-                <Icon name={expanded ? 'chevronUpSmall' : 'chevronDownSmall'} size={16} />
-              </button>
+              {/* '더 보기' 토글 — 설정 대상 아님. DS TextButton 그대로 사용(실제 ChatRoom 과 동일) */}
+              <div style={{ display: 'flex', width: '100%' }}>
+                <TextButton
+                  color="assistive"
+                  size="small"
+                  label={expanded ? '접기' : '더 보기'}
+                  trailingIcon={<Icon name={expanded ? 'chevronUpSmall' : 'chevronDownSmall'} size={16} />}
+                  onClick={() => setExpanded((v) => !v)}
+                  className="chatroom-fullwidth-btn"
+                />
+              </div>
             </div>
 
             <div className="rsp__buttons">
@@ -107,7 +129,10 @@ export default function ResponsePreview({ config }) {
           </div>
 
           <span className="rsp__time">09:41</span>
+          </div>
         </div>
+        {/* 입력창 — 미리보기라 비활성 */}
+        <ChatInput disabled value="" placeholder={c.inputPlaceholder || '메시지를 입력해 주세요'} />
       </div>
     </div>
   )

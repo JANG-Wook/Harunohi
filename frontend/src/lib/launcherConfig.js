@@ -37,7 +37,11 @@ export function defaultChatroomConfig() {
     onlineIndicator: true,      // 헤더 이름 옆 연결 상태 점(깜빡임) 표시 여부
     pinUserToTop: true,         // 사용자 발화 상단 고정 — 보낼 때마다 직전 대화가 밀리고 발화가 상단에 위치
     inputExpandable: true,      // 메시지 입력창 확장 사용 — 켜면 클릭 시 입력창이 textarea 로 확장
-    profileImage: '',           // { name, url } | '' — 없으면 ChatRoom 기본 아바타
+    profileType: 'icon',        // 'icon'(기본 아이콘) | 'image'(이미지 업로드)
+    profileIcon: 'robot',       // 기본 아이콘 종류 — profileAvatar.js PROFILE_ICONS ('flower'|'robot'|'face')
+    profileIconColor: '#0066FF', // 기본 아이콘 전경색 (흰 눈/미소는 고정)
+    profileIconBgColor: '#EAF1FF', // 기본 아이콘 배경색
+    profileImage: '',           // { name, url } | '' — profileType==='image' 일 때 사용
     themeSupport: true,         // 다크/라이트 모드 사용 — true 면 테마 배경 따름, 고정 배경 비활성
     bgType: 'color',            // 'color' | 'image' — 대화방 배경 (themeSupport=false 일 때 적용)
     bgColor: '#F5F6F8',         // 대화방 배경색 (bgType==='color' 일 때)
@@ -49,34 +53,37 @@ export function defaultChatroomConfig() {
 
 /** 챗봇 응답(메시지) 스타일 기본값 — config.response 에 중첩 저장.
     색/크기/둥글기는 고객사 브랜드 데이터라 미리보기에 inline style 로 적용된다.
-    크기/둥글기 단위는 px. 기본값은 현재 디자인 시스템 모습과 맞췄다. */
+    기본값은 실제 DS ChatRoom 렌더와 동일하게 맞췄다. DS 는 알파 색(label-neutral .88,
+    line-neutral .16 등)을 쓰는데 ColorField 는 6자리 hex 만 받으므로 "흰 배경 합성값"으로 변환.
+    (기본 흰 배경 기준 일치. 단위 px) */
 export function defaultResponseConfig() {
   return {
-    // 제목 텍스트
+    // 제목/본문/펼치기 텍스트 — body-2(15), 색은 label-neutral(.88)→흰 배경 합성 #47484B
     titleSize: 15,
-    titleColor: '#2E2F33',
-    // 본문 텍스트
+    titleColor: '#47484B',
     bodySize: 15,
-    bodyColor: '#2E2F33',
-    // 펼치기(아코디언) 텍스트 — '더 보기' 버튼 자체는 설정 대상 아님
+    bodyColor: '#47484B',
+    // 펼치기(아코디언) — '더 보기' 버튼 자체는 설정 대상 아님
     accordionSize: 15,
-    accordionColor: '#2E2F33',
-    // 버튼 — 둥글기/텍스트 크기는 메인·서브 공통, 색은 개별
-    buttonRadius: 12,
-    buttonTextSize: 14,
+    accordionColor: '#47484B',
+    // 버튼 — DS Button(large): 둥글기 14, 글자 16. 둥글기/글자 크기는 메인·서브 공통
+    buttonRadius: 14,
+    buttonTextSize: 16,
+    // 메인 = solid primary (테두리 없음 → bg 와 동일 색으로 숨김)
     mainButtonColor: '#0066FF',
     mainButtonBorderColor: '#0066FF',
     mainButtonTextColor: '#FFFFFF',
+    // 서브 = outlined primary: 외곽선 line-neutral(.16)→#E8E9EA, 텍스트만 primary
     subButtonColor: '#FFFFFF',
-    subButtonBorderColor: '#0066FF',
+    subButtonBorderColor: '#E8E9EA',
     subButtonTextColor: '#0066FF',
-    // 퀵버튼
-    quickRadius: 999,
+    // 퀵버튼 = Chip(outlined small): 둥글기 8, 외곽선 line-neutral #E8E9EA, 텍스트 label-alternative(.61)→#858688
+    quickRadius: 8,
     quickTextSize: 14,
-    quickTextColor: '#0066FF',
+    quickTextColor: '#858688',
     quickColor: '#FFFFFF',
-    quickBorderColor: '#0066FF',
-    // 말풍선
+    quickBorderColor: '#E8E9EA',
+    // 말풍선 — bg-normal / line-solid-normal
     bubbleBgColor: '#FFFFFF',
     bubbleBorderColor: '#E1E2E4',
   }
@@ -127,6 +134,12 @@ function fillConfig(config) {
   // 제거된 옛 배경값(default) 보정 — color 로 승계(테마 추종은 themeSupport 가 담당)
   if (!['color', 'image'].includes(merged.chatroom.bgType)) {
     merged.chatroom.bgType = 'color'
+  }
+  // 프로필 타입 보정 — 옛 데이터(profileType 없음)는 업로드 이미지 유무로 승계
+  if (!['icon', 'image', 'none'].includes(merged.chatroom.profileType)) {
+    const pImg = merged.chatroom.profileImage
+    const pHasImg = !!(typeof pImg === 'string' ? pImg : pImg?.url)
+    merged.chatroom.profileType = pHasImg ? 'image' : 'icon'
   }
   // 응답 스타일 깊은 병합 — 기존 데이터(response 없음)도 기본값 보강
   merged.response = { ...defaultResponseConfig(), ...(config?.response ?? {}) }

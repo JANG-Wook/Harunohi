@@ -50,7 +50,7 @@ function StatusIconBattery() {
   )
 }
 
-function ChatStatusBar() {
+export function ChatStatusBar() {
   return (
     <div style={{
       height:          '44px',
@@ -75,7 +75,7 @@ function ChatStatusBar() {
   )
 }
 
-function ChatHeader({ title, onReset, onClose, resetDisabled = false, closeDisabled = false }) {
+export function ChatHeader({ title, onReset, onClose, resetDisabled = false, closeDisabled = false }) {
   return (
     <div style={{
       display:        'flex',
@@ -715,6 +715,8 @@ function BotMessageWrapper({
   // 외부에서 버튼/캐로셀/퀵/폼 클릭을 받기 위한 콜백 + disabled
   onMainClick, onSubClick, onCardMainClick, onCardSubClick, onQuickClick, onFormSubmit,
   disabled = false,
+  // 프로필 사진(아바타) 표시 여부 — false 면 이름만 노출
+  showAvatar = true,
 }) {
   const avatar = avatarSrc ?? companyAvatar
   return (
@@ -726,7 +728,7 @@ function BotMessageWrapper({
       width:         '100%',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-8)' }}>
-        <Avatar variant="person" size="small" src={avatar} />
+        {showAvatar && <Avatar variant="person" size="small" src={avatar} />}
         <span style={{
           fontSize:      'var(--font-size-label-1)',
           fontWeight:    'var(--font-weight-medium)',
@@ -831,10 +833,10 @@ const INPUT_CONTAINER_STYLE = {
   flexShrink:      0,
 }
 
-function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = true }) {
+export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = true, disabled = false }) {
   const textareaRef = useRef(null)
   const [focused, setFocused] = useState(false)
-  const expanded = expandable && focused
+  const expanded = !disabled && expandable && focused
 
   const handlePillClick = () => {
     setFocused(true)
@@ -842,6 +844,36 @@ function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = 
 
   const handleBlur = () => {
     setFocused(false)
+  }
+
+  // 비활성 — 미리보기 등에서 입력 바를 보여주되 상호작용 차단(흐리게)
+  if (disabled) {
+    return (
+      <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center', opacity: 0.5, pointerEvents: 'none' }}>
+        <ActionButton iconName="plus" ariaLabel="추가" iconColor="var(--color-bg-normal)" />
+        <div style={{
+          flex:            1,
+          height:          '36px',
+          backgroundColor: 'var(--color-bg-normal-alternative)',
+          borderRadius:    '20px',
+          display:         'flex',
+          alignItems:      'center',
+          padding:         '0 var(--spacing-16)',
+          overflow:        'hidden',
+        }}>
+          <span style={{
+            fontSize:      'var(--font-size-label-1)',
+            lineHeight:    'var(--line-height-label-1-normal)',
+            color:         'var(--color-label-alternative)',
+            letterSpacing: 'var(--letter-spacing-label-1)',
+            whiteSpace:    'nowrap',
+            overflow:      'hidden',
+            textOverflow:  'ellipsis',
+          }}>{placeholder}</span>
+        </div>
+        <ActionButton iconName="sendFill" iconColor="var(--color-bg-normal)" bgColor="var(--color-line-solid-normal)" />
+      </div>
+    )
   }
 
   if (expanded) {
@@ -1192,6 +1224,7 @@ export default function ChatRoom({
                         bannerSrc={msg.bannerSrc}
                         quickItems={msg.quickItems}
                         avatarSrc={msg.avatarSrc}
+                        showAvatar={msg.showAvatar}
                         imageOn={msg.imageOn}
                         textOn={msg.textOn}
                         buttonOn={msg.buttonOn}

@@ -184,6 +184,9 @@
   min-height: 0;
   display: grid;
   grid-template-columns: 1fr minmax(380px, 460px);
+  /* 행을 콘텐츠가 아니라 확정 높이로 채움 — 탭(패널 높이)에 따라 미리보기 셀 크기가
+     변하지 않도록. 패널은 내부(sidebar-scroll)에서 스크롤, 미리보기는 일정 크기 유지 */
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--spacing-24);
 }
 
@@ -251,6 +254,14 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-label-normal);
   letter-spacing: var(--letter-spacing-body-2);
+}
+
+/* 제목 옆 인라인 안내 — 다크/라이트 모드로 색상 컨트롤이 숨겨질 때 */
+.lset-section__head-note {
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  color: var(--color-label-alternative);
+  letter-spacing: var(--letter-spacing-label-2);
 }
 
 /* 섹션 안내 문구 — 비활성 사유 등 */

@@ -2,21 +2,44 @@
 
 .rsp {
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: stretch;
-  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: var(--spacing-24);
   box-sizing: border-box;
 }
 
-/* 대화방 배경 — themeSupport 면 테마 배경(토큰), 아니면 inline 으로 색/사진 오버라이드 */
+/* 디바이스 프레임 — 대화방 미리보기(.crp__host)와 동일 스펙(radius-20 · 테두리 · 그림자).
+   .crp__host 는 ChatRoom(360px 콘텐츠)을 감싸 border-box outer = 콘텐츠 360 + 테두리 2 = 362.
+   여기도 border-box(전역 리셋) 기준 width:362 로 맞춰 콘텐츠 360 + 테두리 = outer 362 동일.
+   (content-box 로 하면 테두리가 높이에도 더해져 2px 어긋나므로 border-box 유지) */
+.rsp__device {
+  width: 362px;
+  max-width: 100%;
+  height: 100%;
+  max-height: 680px;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--spacing-20);
+  overflow: hidden;
+  border: 1px solid var(--color-line-solid-normal);
+  box-shadow: 0 12px 40px -8px rgba(23, 23, 23, 0.24);
+  background: var(--color-bg-normal);
+}
+
+/* 대화 배경 영역 — themeSupport 면 테마 배경(bg-normal), 아니면 inline 으로 색/사진 오버라이드.
+   패딩은 실제 ChatRoom 콘텐츠 영역과 동일(상 12 / 좌우 20 / 하 20) */
 .rsp__host {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: var(--spacing-24);
+  padding: var(--spacing-12) var(--spacing-20) var(--spacing-20);
   box-sizing: border-box;
-  background: var(--color-bg-normal-alternative);
+  background: var(--color-bg-normal);
 }
 
 .rsp__msg {
@@ -24,8 +47,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-12);
-  width: 320px;
-  max-width: 100%;
+  width: 100%;
 }
 
 .rsp__head {
@@ -38,6 +60,7 @@
   font-size: var(--font-size-label-1);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-label-1-reading);
+  letter-spacing: var(--letter-spacing-heading-1);
   color: var(--color-label-neutral);
   white-space: nowrap;
 }
@@ -94,21 +117,6 @@
   word-break: break-word;
 }
 
-/* '더 보기' 토글 — 설정 대상 아님(고정 토큰 스타일) */
-.rsp__more {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  align-self: flex-start;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-label-assistive);
-  font-size: var(--font-size-label-2);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-
 .rsp__buttons {
   display: flex;
   flex-direction: column;
@@ -116,10 +124,10 @@
   width: 100%;
 }
 
-/* 메인/서브 버튼 — 둥글기/글자크기/색은 inline */
+/* 메인/서브 버튼 — 둥글기/글자크기/색은 inline. 패딩은 DS Button(large)과 동일 */
 .rsp__btn {
   width: 100%;
-  padding: var(--spacing-12) var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-24);
   border: 1px solid;
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
@@ -134,9 +142,9 @@
   width: 100%;
 }
 
-/* 퀵버튼 칩 — 둥글기/글자크기/색은 inline */
+/* 퀵버튼 칩 — 둥글기/글자크기/색은 inline. 패딩은 DS Chip(small)과 동일 */
 .rsp__chip {
-  padding: var(--spacing-6) var(--spacing-12);
+  padding: var(--spacing-6) var(--spacing-10);
   border: 1px solid;
   font-weight: var(--font-weight-medium);
   line-height: 1.2;

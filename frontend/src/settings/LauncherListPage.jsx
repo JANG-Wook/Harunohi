@@ -155,7 +155,7 @@ export default function LauncherListPage() {
     <div className="lc">
       <div className="lc__header">
         <Typography variant="title-2" weight="bold" as="h1">
-          챗봇 디자인
+          챗봇 설정 목록
         </Typography>
         <Button variant="solid" color="primary" size="medium" label="챗봇 디자인 만들기" onClick={openCreate} />
       </div>

@@ -12,9 +12,9 @@ import './ConsoleLayout.css'
 // children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
 const NAV_ITEMS = [
   { key: 'dashboard', to: '/app/dashboard', label: '대시보드', icon: 'home', disabled: true },
-  { key: 'bots', to: '/app/bots', label: '챗봇', icon: 'agent' },
+  { key: 'bots', to: '/app/bots', label: '챗봇 빌더', icon: 'agent' },
   // 챗봇 디자인 — 단일 항목. 클릭 시 챗봇 디자인 목록으로. (런처/대화방은 디자인 에디터 내부 탭)
-  { key: 'chatbot-ui', to: '/app/chatbot-ui/launcher', label: '챗봇 디자인', icon: 'palette' },
+  { key: 'chatbot-ui', to: '/app/chatbot-ui/launcher', label: '챗봇 설정', icon: 'tune' },
   { key: 'analytics', to: '/app/analytics', label: '분석', icon: 'column', disabled: true },
   { key: 'knowledge', to: '/app/assets/knowledge', label: '지식베이스', icon: 'book', disabled: true },
   { key: 'settings', to: '/app/settings', label: '설정', icon: 'setting', disabled: true },

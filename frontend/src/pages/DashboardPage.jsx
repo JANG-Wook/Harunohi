@@ -254,7 +254,7 @@ export default function DashboardPage() {
     <div className="dashboard">
       <div className="dashboard__header">
         <Typography variant="title-2" weight="bold" as="h1">
-          챗봇
+          챗봇 목록
         </Typography>
         <Button
           variant="solid"

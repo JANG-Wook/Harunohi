@@ -321,7 +321,7 @@ export default function LauncherSettingsPage() {
   const response = config.response
   /* 다크/라이트 모드 사용 시 색상 설정은 테마가 지배 → 숨김(크기/둥글기/입력/폰트는 유지) */
   const themed = chatroom.themeSupport
-  const THEME_NOTE = '색상은 다크/라이트 모드를 따라요'
+  const THEME_NOTE = '다크/라이트 모드 사용'
   const profileImageExists = hasImage(chatroom.profileImage)
   const isChatBgColor = chatroom.bgType === 'color'
   const isChatBgImage = chatroom.bgType === 'image'
@@ -683,7 +683,7 @@ export default function LauncherSettingsPage() {
                       onChange={() => setChatroom({ onlineIndicator: !chatroom.onlineIndicator })}
                     />
                     <span className="launcher-set__caption">
-                      켜면 대화방 이름 옆에 연결 상태 점이 표시돼요. (연결=파랑 · 불안정=주황 · 끊김=회색)
+                      대화방 이름 옆에 연결 상태 점이 표시됩니다. (연결=파랑 · 불안정=주황 · 끊김=회색)
                     </span>
                   </div>
 
@@ -694,7 +694,7 @@ export default function LauncherSettingsPage() {
                       onChange={() => setChatroom({ pinUserToTop: !chatroom.pinUserToTop })}
                     />
                     <span className="launcher-set__caption">
-                      켜면 사용자가 메시지를 보낼 때 직전 대화가 위로 밀리고, 보낸 메시지가 화면 상단에 고정돼요.
+                      사용자가 메시지를 보낼 때 직전 대화가 위로 밀리고, 보낸 메시지가 화면 상단에 고정됩니다.
                     </span>
                   </div>
 
@@ -705,7 +705,7 @@ export default function LauncherSettingsPage() {
                       onChange={() => setChatroom({ inputExpandable: !chatroom.inputExpandable })}
                     />
                     <span className="launcher-set__caption">
-                      켜면 입력창을 누를 때 입력 영역이 확장돼요. 끄면 확장 없이 한 줄에 그대로 입력돼요.
+                      입력창을 누를 때 입력 영역이 확장됩니다.
                     </span>
                   </div>
                 </Section>
@@ -729,7 +729,7 @@ export default function LauncherSettingsPage() {
                       onChange={() => setChatroom({ themeSupport: !chatroom.themeSupport })}
                     />
                     <span className="launcher-set__caption">
-                      켜면 라이트/다크에 자동으로 맞춰지며, 색상 설정은 숨겨지고 테마를 따라요.
+                      시스템 테마에 자동으로 맞춰지며, 색상 설정은 숨겨지고 테마를 따릅니다.
                     </span>
                   </div>
                 </Section>
@@ -756,17 +756,17 @@ export default function LauncherSettingsPage() {
                     <div className="launcher-set__radios">
                       <Radio
                         checked={chatroom.profileType === 'icon'}
-                        label="기본 아이콘"
+                        label="아이콘"
                         onChange={() => setChatroom({ profileType: 'icon' })}
                       />
                       <Radio
                         checked={chatroom.profileType === 'image'}
-                        label="이미지 업로드"
+                        label="이미지"
                         onChange={() => setChatroom({ profileType: 'image' })}
                       />
                       <Radio
                         checked={chatroom.profileType === 'none'}
-                        label="사용 안함"
+                        label="미사용"
                         onChange={() => setChatroom({ profileType: 'none' })}
                       />
                     </div>
@@ -825,11 +825,6 @@ export default function LauncherSettingsPage() {
                       </div>
                     )}
 
-                    {chatroom.profileType === 'none' && (
-                      <span className="launcher-set__caption">
-                        대화방 메시지에 프로필 사진이 표시되지 않아요.
-                      </span>
-                    )}
                   </Field>
 
                   {chatroom.profileType === 'icon' && (
@@ -889,7 +884,7 @@ export default function LauncherSettingsPage() {
                 </Section>
 
                 {/* 6. 응답 펼치기 텍스트 */}
-                <Section icon="list" title="응답 펼치기 텍스트" note="‘더 보기’ 버튼 자체는 설정하지 않아요." headNote={themed ? THEME_NOTE : undefined}>
+                <Section icon="list" title="응답 펼치기 텍스트" headNote={themed ? THEME_NOTE : undefined}>
                   <Field label="크기">
                     <NumberField value={response.accordionSize} onChange={(v) => setResponse({ accordionSize: v })} min={8} max={48} />
                   </Field>
@@ -1021,7 +1016,6 @@ export default function LauncherSettingsPage() {
                         Pretendard
                       </button>
                     </div>
-                    <span className="launcher-set__caption">* 현재 Pretendard만 지원해요.</span>
                   </Field>
                 </Section>
               </section>

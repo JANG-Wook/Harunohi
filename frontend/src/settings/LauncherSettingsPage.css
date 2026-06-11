@@ -258,10 +258,10 @@
 
 /* 제목 옆 인라인 안내 — 다크/라이트 모드로 색상 컨트롤이 숨겨질 때 */
 .lset-section__head-note {
-  font-size: var(--font-size-label-2);
-  line-height: var(--line-height-label-2);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
   color: var(--color-label-alternative);
-  letter-spacing: var(--letter-spacing-label-2);
+  letter-spacing: var(--letter-spacing-caption-1);
 }
 
 /* 섹션 안내 문구 — 비활성 사유 등 */
@@ -449,10 +449,12 @@
   cursor: pointer;
 }
 
+/* 설명/헬퍼 텍스트 — DS description 레벨(label-1 / label-alternative)로 통일 */
 .launcher-set__caption {
-  font-size: var(--font-size-caption-1);
-  line-height: var(--line-height-caption-1);
-  color: var(--color-label-assistive);
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  letter-spacing: var(--letter-spacing-label-1);
+  color: var(--color-label-alternative);
 }
 
 .launcher-set__caption.is-error {

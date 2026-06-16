@@ -1,0 +1,151 @@
+/* 버전 관리 모달 — 저장 모달과 동일한 셸 + 버전 행 목록 */
+
+.vmm__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-material-dimmer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 1000;
+}
+
+.vmm__modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: var(--shadow-normal-large);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vmm__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.vmm__body {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-8) var(--spacing-12);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* 버전 행 — 좌(이름+배지) / 우(액션) */
+.vmm__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  min-height: var(--spacing-48);
+  padding: var(--spacing-8);
+  border-radius: var(--spacing-8);
+}
+
+.vmm__row:hover {
+  background: var(--color-fill-alternative);
+}
+
+.vmm__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.vmm__info-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+
+/* 버전 설명 — 저장 시 입력한 내용 */
+.vmm__desc {
+  margin: 0;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  letter-spacing: var(--letter-spacing-caption-1);
+  color: var(--color-label-alternative);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.vmm__name {
+  font-size: var(--font-size-body-2);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body-2-normal);
+  letter-spacing: var(--letter-spacing-body-2);
+  color: var(--color-label-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vmm__badge {
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-7);
+  border-radius: var(--spacing-6);
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-caption-1);
+  letter-spacing: var(--letter-spacing-caption-1);
+}
+
+.vmm__badge--current {
+  color: var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+}
+
+.vmm__badge--deployed {
+  color: var(--color-status-positive);
+  background: color-mix(in srgb, var(--color-status-positive) 12%, transparent);
+}
+
+.vmm__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+/* 삭제 확인 Alert — 버전 관리 모달(z-index 1000) 위에 표시 */
+.vmm__alert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+}
+
+/* 인라인 이름 편집 — 입력 + 저장/취소 */
+.vmm__edit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+.vmm__edit > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.vmm__edit-actions {
+  display: flex;
+  gap: var(--spacing-4);
+  flex-shrink: 0;
+  padding-top: var(--spacing-2);
+}
+
+.vmm__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}

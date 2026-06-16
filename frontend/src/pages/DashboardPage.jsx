@@ -63,6 +63,19 @@ function loadBotList() {
         createdAt = times[0] ?? null
         updatedAt = times[times.length - 1] ?? null
       }
+      // 최신/배포 버전명 — 최신은 마지막 버전, 배포는 deployedVersionId(없으면 운영 중이면 현재 버전).
+      // 저장 전 옛 버전은 name 이 없을 수 있어 인덱스 기반("버전 N")으로 폴백.
+      let latestVersionName = null
+      let deployedVersionName = null
+      if (Array.isArray(parsed?.versions) && parsed.versions.length > 0) {
+        const vs = parsed.versions
+        const nameOf = (i) => vs[i]?.name ?? `버전 ${i + 1}`
+        latestVersionName = nameOf(vs.length - 1)
+        const depId =
+          parsed.deployedVersionId ?? (parsed.status === 'active' ? parsed.currentVersionId : null)
+        const depIdx = vs.findIndex((v) => v.id === depId)
+        deployedVersionName = depIdx >= 0 ? nameOf(depIdx) : null
+      }
       list.push({
         id: botId,
         name: decodeURIComponent(botId),
@@ -70,6 +83,8 @@ function loadBotList() {
         status: parsed?.status === 'active' ? 'active' : 'draft',
         createdAt,
         updatedAt,
+        latestVersionName,
+        deployedVersionName,
       })
     } catch {
       // 손상된 항목은 무시
@@ -299,6 +314,15 @@ export default function DashboardPage() {
                 </span>
                 <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
                   응답 {bot.responseCount}개
+                </Typography>
+              </div>
+              {/* 최신 버전 / 배포 버전 */}
+              <div className="dashboard__card-versions">
+                <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
+                  최신 버전 {bot.latestVersionName ?? '—'}
+                </Typography>
+                <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
+                  배포 버전 {bot.deployedVersionName ?? '미배포'}
                 </Typography>
               </div>
               {/* 최초 생성일 / 마지막 수정일 — versions[] 의 savedAt 기준 */}

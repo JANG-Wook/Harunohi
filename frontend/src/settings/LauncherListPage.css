@@ -49,6 +49,14 @@
   overflow: hidden;
 }
 
+/* 버전 표시 — 최신/배포 버전명. 생성일·수정일 위에 위치 */
+.lc__card-versions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
 .lc__card-dates {
   display: flex;
   flex-direction: column;

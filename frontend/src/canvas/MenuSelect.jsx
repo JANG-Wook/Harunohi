@@ -12,6 +12,7 @@ export default function MenuSelect({
   placeholder = '값',
   status = 'normal',
   disabled = false,
+  size = 'medium',
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -35,6 +36,7 @@ export default function MenuSelect({
         forceFocused={open}
         status={status}
         disabled={disabled}
+        size={size}
       />
       {open && !disabled && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 30 }}>

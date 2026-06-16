@@ -17,8 +17,10 @@ import {
   createLauncher,
   defaultLauncherConfig,
   deleteLauncher,
+  deployedVersion,
   ensureDefaultLauncher,
   isLauncherNameTaken,
+  latestVersion,
   loadLauncherList,
   renameLauncher,
 } from '../lib/launcherConfig.js'
@@ -174,6 +176,14 @@ export default function LauncherListPage() {
             <Typography variant="headline-2" weight="semibold" as="span">
               {entry.name}
             </Typography>
+            <div className="lc__card-versions">
+              <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
+                최신 버전 {latestVersion(entry)?.name ?? '—'}
+              </Typography>
+              <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
+                배포 버전 {deployedVersion(entry)?.name ?? '미배포'}
+              </Typography>
+            </div>
             <div className="lc__card-dates">
               <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
                 최초 생성일 {formatDate(entry.createdAt)}

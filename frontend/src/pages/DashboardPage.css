@@ -80,6 +80,13 @@
 }
 
 /* 최초 생성일 / 마지막 수정일 — 카드 하단 메타 정보 */
+.dashboard__card-versions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
 .dashboard__card-dates {
   display: flex;
   flex-direction: column;

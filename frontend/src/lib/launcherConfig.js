@@ -122,6 +122,19 @@ function keyFor(id) {
   return `${STORAGE_PREFIX}${id}`
 }
 
+/** 버전 id 생성 — 앱 런타임이라 Date.now/Math.random 사용 가능 */
+function newVersionId() {
+  return `v_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+}
+
+/** 저장 엔트리에 현재 버전 config 를 펼쳐 런타임 형태로 — 에디터/미리보기가 entry.config 를 바로 쓰도록 */
+function withCurrentConfig(entry) {
+  const current =
+    entry.versions.find((v) => v.id === entry.currentVersionId) ??
+    entry.versions[entry.versions.length - 1]
+  return { ...entry, currentVersionId: current.id, config: current.config }
+}
+
 /** config 누락 필드를 기본값으로 보강 */
 function fillConfig(config) {
   const merged = { ...defaultLauncherConfig(), ...config }
@@ -146,22 +159,43 @@ function fillConfig(config) {
   return merged
 }
 
-/** 저장된 원본(parsed)을 현재 모델(단일 config)로 정규화.
-    구버전(versions[] 보유) 데이터는 적용본 → 없으면 최신 버전의 config 로 접는다. */
+/** 저장 원본(parsed)을 현재 모델(versions 보유)로 정규화.
+    - versions[] 포맷: 그대로 보강(이름/설명 없으면 채움).
+    - 단일 config 포맷: 버전 1개("버전 1")로 승계.
+    반환은 런타임 형태(현재 버전 config 가 entry.config 로 펼쳐짐). */
 function migrateEntry(parsed) {
   if (!parsed?.id) return null
-  let config = parsed.config
-  if (!config && Array.isArray(parsed.versions) && parsed.versions.length > 0) {
-    const applied = parsed.versions.find((v) => v.id === parsed.appliedVersionId)
-    config = (applied ?? parsed.versions[parsed.versions.length - 1]).config
+  const createdAt = parsed.createdAt
+  let versions
+  if (Array.isArray(parsed.versions) && parsed.versions.length > 0) {
+    versions = parsed.versions.map((v, i) => ({
+      id: v.id ?? newVersionId(),
+      name: v.name ?? `버전 ${i + 1}`,
+      description: v.description ?? '',
+      config: fillConfig(v.config),
+      createdAt: v.createdAt ?? v.savedAt ?? createdAt,
+    }))
+  } else {
+    versions = [
+      { id: newVersionId(), name: '버전 1', description: '', config: fillConfig(parsed.config), createdAt },
+    ]
   }
-  return {
+  const ids = versions.map((v) => v.id)
+  const currentVersionId = ids.includes(parsed.currentVersionId)
+    ? parsed.currentVersionId
+    : ids.includes(parsed.appliedVersionId)
+      ? parsed.appliedVersionId
+      : versions[versions.length - 1].id
+  const deployedVersionId = ids.includes(parsed.deployedVersionId) ? parsed.deployedVersionId : null
+  return withCurrentConfig({
     id: parsed.id,
     name: parsed.name ?? '',
-    config: fillConfig(config),
-    createdAt: parsed.createdAt,
-    updatedAt: parsed.updatedAt ?? parsed.createdAt,
-  }
+    createdAt,
+    updatedAt: parsed.updatedAt ?? createdAt,
+    versions,
+    currentVersionId,
+    deployedVersionId,
+  })
 }
 
 /** 저장된 디자인 전체 목록 — 최근 수정순. 손상 항목은 무시 */
@@ -198,41 +232,127 @@ export function loadLauncher(id) {
   }
 }
 
+/** 저장은 stored 형태로 — 런타임 파생 필드(config)는 저장하지 않는다 */
 function writeEntry(entry) {
-  window.localStorage.setItem(keyFor(entry.id), JSON.stringify(entry))
+  const { config, ...stored } = entry
+  window.localStorage.setItem(keyFor(entry.id), JSON.stringify(stored))
 }
 
-/** 디자인 신규 생성 */
+/** 디자인 신규 생성 — config 를 버전 1개("버전 1")로 시작 */
 export function createLauncher({ id, name, config, nowIso }) {
   if (typeof window === 'undefined') return null
-  const entry = { id, name, config: fillConfig(config), createdAt: nowIso, updatedAt: nowIso }
-  writeEntry(entry)
-  return entry
-}
-
-/** 설정 저장(덮어쓰기). createdAt 은 기존 값 유지, 이름도 함께 반영 */
-export function saveLauncher({ id, name, config, nowIso }) {
-  if (typeof window === 'undefined') return null
-  const existing = loadLauncher(id)
+  const version = { id: newVersionId(), name: '버전 1', description: '', config: fillConfig(config), createdAt: nowIso }
   const entry = {
     id,
-    name: name ?? existing?.name ?? '',
-    config: fillConfig(config),
-    createdAt: existing?.createdAt ?? nowIso,
+    name,
+    createdAt: nowIso,
     updatedAt: nowIso,
+    versions: [version],
+    currentVersionId: version.id,
+    deployedVersionId: null,
   }
   writeEntry(entry)
-  return entry
+  return withCurrentConfig(entry)
 }
 
-/** 이름만 변경 */
+/** 새 버전 저장 — 현재 설정값을 명명된 버전으로 추가하고 현재 버전으로 지정.
+ *  versionName 은 런처 내 유일해야 한다(호출부 검증 + 여기서도 가드). */
+export function saveLauncherVersion({ id, name, versionName, description, config, nowIso }) {
+  if (typeof window === 'undefined') return null
+  const entry = loadLauncher(id)
+  if (!entry) return null
+  const trimmed = (versionName || '').trim()
+  if (!trimmed || isVersionNameTaken(entry.versions, trimmed)) return null
+  const version = {
+    id: newVersionId(),
+    name: trimmed,
+    description: (description ?? '').trim(),
+    config: fillConfig(config),
+    createdAt: nowIso,
+  }
+  const next = {
+    id,
+    name: name ?? entry.name,
+    createdAt: entry.createdAt,
+    updatedAt: nowIso,
+    versions: [...entry.versions, version],
+    currentVersionId: version.id,
+    deployedVersionId: entry.deployedVersionId,
+  }
+  writeEntry(next)
+  return withCurrentConfig(next)
+}
+
+/** 버전 이름 변경 — 디자인 내 유일해야 함(빈값·중복이면 무시) */
+export function renameLauncherVersion({ id, versionId, name, nowIso }) {
+  if (typeof window === 'undefined') return null
+  const entry = loadLauncher(id)
+  if (!entry) return null
+  const trimmed = (name || '').trim()
+  if (!trimmed || isVersionNameTaken(entry.versions, trimmed, versionId)) return null
+  const versions = entry.versions.map((v) => (v.id === versionId ? { ...v, name: trimmed } : v))
+  const next = {
+    id,
+    name: entry.name,
+    createdAt: entry.createdAt,
+    updatedAt: nowIso,
+    versions,
+    currentVersionId: entry.currentVersionId,
+    deployedVersionId: entry.deployedVersionId,
+  }
+  writeEntry(next)
+  return withCurrentConfig(next)
+}
+
+/** 버전 삭제 — 최소 1개는 유지. 현재 버전 삭제 시 최신으로, 배포 버전 삭제 시 배포 해제 */
+export function deleteLauncherVersion({ id, versionId, nowIso }) {
+  if (typeof window === 'undefined') return null
+  const entry = loadLauncher(id)
+  if (!entry || entry.versions.length <= 1) return null
+  const versions = entry.versions.filter((v) => v.id !== versionId)
+  if (versions.length === entry.versions.length) return null // 없는 id
+  const currentVersionId =
+    entry.currentVersionId === versionId ? versions[versions.length - 1].id : entry.currentVersionId
+  const deployedVersionId = entry.deployedVersionId === versionId ? null : entry.deployedVersionId
+  const next = {
+    id,
+    name: entry.name,
+    createdAt: entry.createdAt,
+    updatedAt: nowIso,
+    versions,
+    currentVersionId,
+    deployedVersionId,
+  }
+  writeEntry(next)
+  return withCurrentConfig(next)
+}
+
+/** 이름만 변경(런처 이름) — 버전은 그대로 */
 export function renameLauncher({ id, name, nowIso }) {
   if (typeof window === 'undefined') return null
   const entry = loadLauncher(id)
   if (!entry) return null
   const next = { ...entry, name, updatedAt: nowIso }
   writeEntry(next)
-  return next
+  return withCurrentConfig(next)
+}
+
+/** 최신(가장 최근 생성) 버전 — 목록 "최신 버전명" 용 */
+export function latestVersion(entry) {
+  return entry?.versions?.length ? entry.versions[entry.versions.length - 1] : null
+}
+
+/** 배포 버전 — 미배포면 null (배포 기능 미구현, 자리만) */
+export function deployedVersion(entry) {
+  if (!entry?.deployedVersionId) return null
+  return entry.versions?.find((v) => v.id === entry.deployedVersionId) ?? null
+}
+
+/** 버전명 중복 검사 — 같은 이름의 다른 버전이 있으면 true */
+export function isVersionNameTaken(versions, versionName, excludeId = null) {
+  const t = (versionName || '').trim()
+  if (!t) return false
+  return (versions ?? []).some((v) => v.name === t && v.id !== excludeId)
 }
 
 export function deleteLauncher(id) {

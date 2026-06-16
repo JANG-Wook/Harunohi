@@ -45,8 +45,10 @@ export default function Select({
   leadingIcon  = '',
   onRemoveChip = null,
   onClick      = null,
+  size         = 'medium', // 'medium'(기본 48px) | 'small'(컴팩트 ~36px)
   className    = '',
 }) {
+  const isSmall = size === 'small'
   const isChipMode   = render === 'chip'
   const chips        = isChipMode ? (Array.isArray(value) ? value : []) : []
   const hasValue     = isChipMode ? chips.length > 0 : Boolean(value)
@@ -77,8 +79,8 @@ export default function Select({
     display:         'flex',
     alignItems:      'center',
     gap:             'var(--spacing-12)',
-    padding:         'var(--spacing-12)',
-    borderRadius:    'var(--spacing-12)',
+    padding:         isSmall ? 'var(--spacing-7) var(--spacing-12)' : 'var(--spacing-12)',
+    borderRadius:    isSmall ? 'var(--spacing-10)' : 'var(--spacing-12)',
     border:          'none',
     outline:         isFocused ? `2px solid ${focusBorderColor}` : 'none',
     outlineOffset:   isFocused ? '-1px' : '0',
@@ -123,10 +125,10 @@ export default function Select({
 
   const textStyle = {
     flex:          '1 0 0',
-    fontSize:      'var(--font-size-body-1)',
+    fontSize:      isSmall ? 'var(--font-size-label-1)' : 'var(--font-size-body-1)',
     fontWeight:    'var(--font-weight-regular)',
-    lineHeight:    'var(--line-height-body-1-normal)',
-    letterSpacing: 'var(--letter-spacing-body-1)',
+    lineHeight:    isSmall ? 'var(--line-height-label-1-normal)' : 'var(--line-height-body-1-normal)',
+    letterSpacing: isSmall ? 'var(--letter-spacing-label-1)' : 'var(--letter-spacing-body-1)',
     color:         disabled
       ? (hasValue ? 'var(--color-label-alternative)' : 'var(--color-label-disable)')
       : (hasValue ? 'var(--color-label-normal)'      : 'var(--color-label-assistive)'),

@@ -10,6 +10,7 @@
 }
 
 .dze__topbar {
+  position: relative;
   flex-shrink: 0;
   height: 56px;
   display: flex;
@@ -19,6 +20,22 @@
   padding: 0 var(--spacing-24) 0 var(--spacing-12);
   background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-line-solid-normal);
+}
+
+/* 중앙 버전 드롭다운 + 관리 버튼 — 좌/우 폭과 무관하게 상단바 정중앙 고정 */
+.dze__topbar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  z-index: 1;
+}
+
+.dze__version-select {
+  min-width: 180px;
 }
 
 .dze__topbar-left {

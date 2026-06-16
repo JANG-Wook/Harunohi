@@ -30,15 +30,20 @@ import {
   defaultChatroomConfig,
   defaultLauncherConfig,
   defaultResponseConfig,
+  deleteLauncherVersion,
   loadLauncher,
-  saveLauncher,
+  renameLauncherVersion,
+  saveLauncherVersion,
 } from '../lib/launcherConfig.js'
 import { isLowContrast } from '../lib/contrast.js'
 import { PROFILE_ICONS, buildProfileAvatar } from '../lib/profileAvatar.js'
+import MenuSelect from '../canvas/MenuSelect.jsx'
 import ColorField from './ColorField.jsx'
 import LauncherPreview from './LauncherPreview.jsx'
 import ChatroomPreview from './ChatroomPreview.jsx'
 import ResponsePreview from './ResponsePreview.jsx'
+import SaveVersionModal from './SaveVersionModal.jsx'
+import VersionManagerModal from './VersionManagerModal.jsx'
 import './LauncherSettingsPage.css'
 
 const TEXT_SIZES = [13, 14, 15, 16, 18]
@@ -163,6 +168,11 @@ export default function LauncherSettingsPage() {
   const [tab, setTab] = useState('launcher') // 'launcher' | 'chatroom'
   const [config, setConfig] = useState(() => entry?.config ?? defaultLauncherConfig())
   const [name, setName] = useState(() => entry?.name ?? '')
+  /* 버전 — 현재 보고 있는 버전 id + 저장 모달 + dirty 상태에서 버전 전환 시 확인 */
+  const [currentVersionId, setCurrentVersionId] = useState(() => entry?.currentVersionId ?? null)
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const [versionManagerOpen, setVersionManagerOpen] = useState(false)
+  const [pendingVersionId, setPendingVersionId] = useState(null)
   const [editingName, setEditingName] = useState(false)
   const nameBeforeEditRef = useRef('') // Esc 취소 시 되돌릴 값
   const [toast, setToast] = useState(null)
@@ -251,15 +261,55 @@ export default function LauncherSettingsPage() {
   const handleBgFile = (e) =>
     readImageFile(e, { onDone: (img) => setChatroom({ bgImage: img }), onError: setBgUploadError })
 
-  /* 저장 — 현재 편집값을 덮어쓰기 저장 */
-  const handleSave = () => {
+  /* 저장 — 버전명/설명을 받기 위해 모달을 연다 */
+  const handleSave = () => setSaveModalOpen(true)
+
+  /* 모달에서 버전명/설명 확정 → 새 버전으로 저장 */
+  const handleVersionSubmit = ({ name: versionName, description }) => {
     const finalName = name.trim() || entry.name
-    const next = saveLauncher({ id: launcherId, name: finalName, config, nowIso: new Date().toISOString() })
+    const next = saveLauncherVersion({
+      id: launcherId,
+      name: finalName,
+      versionName,
+      description,
+      config,
+      nowIso: new Date().toISOString(),
+    })
     if (!next) return
     setEntry(next)
     setName(finalName)
+    setCurrentVersionId(next.currentVersionId)
     setSavedSnapshot(snapshotOf(finalName, config))
-    showToast('저장했어요.')
+    setSaveModalOpen(false)
+    showToast(`'${versionName}' 버전으로 저장했어요.`)
+  }
+
+  /* 버전 전환 — 해당 버전 설정값을 에디터에 적용. 저장 안 한 변경이 있으면 확인 후 전환 */
+  const applyVersion = (versionId) => {
+    const v = entry?.versions?.find((x) => x.id === versionId)
+    if (!v) return
+    setConfig(v.config)
+    setCurrentVersionId(versionId)
+    setSavedSnapshot(snapshotOf(name, v.config))
+  }
+  const handleSelectVersion = (versionId) => {
+    if (versionId === currentVersionId) return
+    if (isDirty) setPendingVersionId(versionId)
+    else applyVersion(versionId)
+  }
+
+  /* 버전 관리 — 이름 변경 / 삭제. 삭제로 현재 버전이 바뀌면 에디터도 동기화 */
+  const handleVersionRename = (versionId, versionName) => {
+    const next = renameLauncherVersion({ id: launcherId, versionId, name: versionName, nowIso: new Date().toISOString() })
+    if (next) setEntry(next)
+  }
+  const handleVersionDelete = (versionId) => {
+    const next = deleteLauncherVersion({ id: launcherId, versionId, nowIso: new Date().toISOString() })
+    if (!next) return
+    setEntry(next)
+    setCurrentVersionId(next.currentVersionId)
+    setConfig(next.config)
+    setSavedSnapshot(snapshotOf(name, next.config))
   }
 
   const handleReset = () => {
@@ -383,6 +433,26 @@ export default function LauncherSettingsPage() {
               •
             </span>
           )}
+        </div>
+
+        {/* 중앙 — 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
+        <div className="dze__topbar-center">
+          <div className="dze__version-select">
+            <MenuSelect
+              value={currentVersionId}
+              onChange={handleSelectVersion}
+              options={(entry?.versions ?? []).map((v) => ({ value: v.id, label: v.name })).reverse()}
+              placeholder="버전 선택"
+              size="small"
+            />
+          </div>
+          <Button
+            variant="outlined"
+            color="assistive"
+            size="small"
+            label="버전 관리"
+            onClick={() => setVersionManagerOpen(true)}
+          />
         </div>
 
         {/* 우측 — 다크모드(하루노히 테마) + 기본값으로 + 저장 */}
@@ -1048,6 +1118,50 @@ export default function LauncherSettingsPage() {
             body="지금 나가면 변경한 내용이 사라집니다. 정말 나가시겠어요?"
             primaryAction={{ label: '나가기', variant: 'negative', onClick: () => navigate(LIST_PATH) }}
             secondaryAction={{ label: '취소', onClick: () => setConfirmLeaveOpen(false) }}
+          />
+        </div>
+      )}
+
+      {/* 버전 저장 모달 — 버전명/설명 입력 */}
+      <SaveVersionModal
+        open={saveModalOpen}
+        versions={entry?.versions ?? []}
+        onSubmit={handleVersionSubmit}
+        onClose={() => setSaveModalOpen(false)}
+      />
+
+      {/* 버전 관리 모달 — 이름 변경 / 삭제 */}
+      <VersionManagerModal
+        open={versionManagerOpen}
+        versions={entry?.versions ?? []}
+        currentVersionId={currentVersionId}
+        deployedVersionId={entry?.deployedVersionId}
+        onRename={handleVersionRename}
+        onDelete={handleVersionDelete}
+        onClose={() => setVersionManagerOpen(false)}
+      />
+
+      {/* 버전 전환 확인 — 저장 안 한 변경이 있을 때 */}
+      {pendingVersionId && (
+        <div
+          className="launcher-set__leave-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPendingVersionId(null)
+          }}
+        >
+          <Alert
+            platform="web"
+            title="저장하지 않은 변경 사항이 있어요"
+            body="다른 버전으로 전환하면 저장하지 않은 변경 내용이 사라집니다. 전환할까요?"
+            primaryAction={{
+              label: '전환',
+              variant: 'negative',
+              onClick: () => {
+                applyVersion(pendingVersionId)
+                setPendingVersionId(null)
+              },
+            }}
+            secondaryAction={{ label: '취소', onClick: () => setPendingVersionId(null) }}
           />
         </div>
       )}

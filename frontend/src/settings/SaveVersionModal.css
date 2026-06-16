@@ -1,0 +1,45 @@
+/* 버전 저장 모달 — DS 에 폼 모달이 없어 토큰으로 직접 구성 */
+
+.svm__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-material-dimmer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 1000;
+}
+
+.svm__modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: var(--shadow-normal-large);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.svm__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.svm__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding: var(--spacing-20);
+}
+
+.svm__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+}

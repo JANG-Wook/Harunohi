@@ -350,52 +350,68 @@ function migrateInlineApisToRegistry(version) {
   }
 }
 
+/** 버전 메타 보강 — 이름 없는 옛 버전은 "버전 N", 설명은 빈 문자열로 */
+function withVersionMeta(v, index) {
+  return { ...v, name: v.name ?? `버전 ${index + 1}`, description: v.description ?? '' }
+}
+
 function loadFromStorage(botId) {
   try {
     const raw = window.localStorage.getItem(storageKey(botId))
-    if (!raw) return { versions: [], currentVersionId: null, status: 'draft' }
+    if (!raw) return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft' }
     const parsed = JSON.parse(raw)
     if (parsed && Array.isArray(parsed.versions)) {
-      // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API 마이그레이션
-      const versions = parsed.versions.map((v) =>
-        migrateSsoField(migrateFormFields(migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))))),
+      // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API + 버전 메타
+      const versions = parsed.versions.map((v, i) =>
+        withVersionMeta(
+          migrateSsoField(migrateFormFields(migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))))),
+          i,
+        ),
       )
-      return {
-        versions,
-        currentVersionId:
-          parsed.currentVersionId ?? parsed.versions[parsed.versions.length - 1]?.id ?? null,
-        status: parsed.status === 'active' ? 'active' : 'draft',
-      }
+      const currentVersionId =
+        parsed.currentVersionId ?? parsed.versions[parsed.versions.length - 1]?.id ?? null
+      const status = parsed.status === 'active' ? 'active' : 'draft'
+      const ids = versions.map((v) => v.id)
+      // 배포 버전 — 명시값 우선, 없으면 운영 중(active) 봇은 현재 버전을 배포본으로 승계
+      const deployedVersionId = ids.includes(parsed.deployedVersionId)
+        ? parsed.deployedVersionId
+        : status === 'active' && ids.includes(currentVersionId)
+          ? currentVersionId
+          : null
+      return { versions, currentVersionId, deployedVersionId, status }
     }
     // 더 오래된 포맷 — versions 자체가 없고 steps 만 있음
     if (parsed && Array.isArray(parsed.steps)) {
-      const legacy = migrateSsoField(
-        migrateFormFields(
-          migrateInlineApisToRegistry(
-            migrateVersionLinks(
-              migrateLegacyVersion({
-                id: `v_${Date.now()}_legacy`,
-                savedAt: new Date().toISOString(),
-                steps: parsed.steps,
-                positions: parsed.positions ?? {},
-                triggerTargetStepId: parsed.triggerTargetStepId ?? null,
-              }),
+      const legacy = withVersionMeta(
+        migrateSsoField(
+          migrateFormFields(
+            migrateInlineApisToRegistry(
+              migrateVersionLinks(
+                migrateLegacyVersion({
+                  id: `v_${Date.now()}_legacy`,
+                  savedAt: new Date().toISOString(),
+                  steps: parsed.steps,
+                  positions: parsed.positions ?? {},
+                  triggerTargetStepId: parsed.triggerTargetStepId ?? null,
+                }),
+              ),
             ),
           ),
         ),
+        0,
       )
-      return { versions: [legacy], currentVersionId: legacy.id, status: 'draft' }
+      return { versions: [legacy], currentVersionId: legacy.id, deployedVersionId: null, status: 'draft' }
     }
   } catch {
     // ignore
   }
-  return { versions: [], currentVersionId: null, status: 'draft' }
+  return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft' }
 }
 
-function writeToStorage(botId, versions, currentVersionId, status) {
+function writeToStorage(botId, versions, currentVersionId, status, deployedVersionId = null) {
   window.localStorage.setItem(
     storageKey(botId),
-    JSON.stringify({ versions, currentVersionId, status }),
+    JSON.stringify({ versions, currentVersionId, status, deployedVersionId }),
   )
 }
 
@@ -433,6 +449,7 @@ function CanvasInner() {
 
   const [versions, setVersions] = useState(initial.versions)
   const [currentVersionId, setCurrentVersionId] = useState(initial.currentVersionId)
+  const [deployedVersionId, setDeployedVersionId] = useState(initial.deployedVersionId)
   const [botStatus, setBotStatus] = useState(initial.status)
 
   const [scenarios, setScenarios] = useState(initialScenarios)
@@ -548,6 +565,7 @@ function CanvasInner() {
     nodes,
     versions,
     currentVersionId,
+    deployedVersionId,
     botStatus,
     variables,
     apis,
@@ -558,18 +576,21 @@ function CanvasInner() {
     nodes,
     versions,
     currentVersionId,
+    deployedVersionId,
     botStatus,
     variables,
     apis,
   }
 
-  const handleSave = useCallback(() => {
+  /* 저장 — 버전명/설명을 받아 새 버전으로 기록. (BotWorkspaceLayout 모달에서 호출) */
+  const handleSave = useCallback((meta = {}) => {
     const {
       scenarios: scs,
       currentScenarioId: curScId,
       nodes: n,
       versions: vs,
       botStatus: bs,
+      deployedVersionId: dep,
       variables: vars,
       apis: aps,
     } = stateRef.current
@@ -577,11 +598,13 @@ function CanvasInner() {
     const newVersion = {
       id: nextVersionId(),
       savedAt: new Date().toISOString(),
+      name: (meta.name || '').trim() || `버전 ${vs.length + 1}`,
+      description: (meta.description || '').trim(),
       ...payload,
     }
     const nextVersions = [...vs, newVersion]
     try {
-      writeToStorage(botId, nextVersions, newVersion.id, bs)
+      writeToStorage(botId, nextVersions, newVersion.id, bs, dep)
       setVersions(nextVersions)
       setCurrentVersionId(newVersion.id)
       setSavedSnapshot(JSON.stringify(payload))
@@ -596,8 +619,9 @@ function CanvasInner() {
   const handlePublish = useCallback(() => {
     const { versions: vs, currentVersionId: cur } = stateRef.current
     try {
-      writeToStorage(botId, vs, cur, 'active')
+      writeToStorage(botId, vs, cur, 'active', cur)
       setBotStatus('active')
+      setDeployedVersionId(cur)
       return true
     } catch {
       return false
@@ -642,6 +666,47 @@ function CanvasInner() {
     [setNodes],
   )
 
+  /* 버전 이름 변경 — 봇 내 유일해야 함 */
+  const handleRenameVersion = useCallback(
+    (versionId, name) => {
+      const trimmed = (name || '').trim()
+      const { versions: vs, currentVersionId: cur, deployedVersionId: dep, botStatus: bs } = stateRef.current
+      if (!trimmed || vs.some((v) => v.name === trimmed && v.id !== versionId)) return false
+      const next = vs.map((v) => (v.id === versionId ? { ...v, name: trimmed } : v))
+      try {
+        writeToStorage(botId, next, cur, bs, dep)
+        setVersions(next)
+        return true
+      } catch {
+        return false
+      }
+    },
+    [botId],
+  )
+
+  /* 버전 삭제 — 최소 1개 유지. 현재 버전 삭제 시 최신으로 전환, 배포 버전 삭제 시 배포 해제 */
+  const handleDeleteVersion = useCallback(
+    (versionId) => {
+      const { versions: vs, currentVersionId: cur, deployedVersionId: dep, botStatus: bs } = stateRef.current
+      if (vs.length <= 1) return false
+      const next = vs.filter((v) => v.id !== versionId)
+      if (next.length === vs.length) return false
+      const nextCur = cur === versionId ? next[next.length - 1].id : cur
+      const nextDep = dep === versionId ? null : dep
+      try {
+        writeToStorage(botId, next, nextCur, bs, nextDep)
+        setVersions(next)
+        setDeployedVersionId(nextDep)
+        // 현재 보던 버전을 지웠으면 최신 버전 내용으로 에디터 교체
+        if (cur === versionId) handleLoadVersion(nextCur)
+        return true
+      } catch {
+        return false
+      }
+    },
+    [botId, handleLoadVersion],
+  )
+
   useEffect(() => {
     layoutCtx?.setDirty?.(isDirty)
   }, [isDirty, layoutCtx])
@@ -662,6 +727,11 @@ function CanvasInner() {
   }, [handlePublish, layoutCtx])
 
   useEffect(() => {
+    layoutCtx?.registerVersionActions?.({ rename: handleRenameVersion, delete: handleDeleteVersion })
+    return () => layoutCtx?.registerVersionActions?.(null)
+  }, [handleRenameVersion, handleDeleteVersion, layoutCtx])
+
+  useEffect(() => {
     layoutCtx?.registerSimulatorPayload?.(getSimulatorPayload)
     return () => layoutCtx?.registerSimulatorPayload?.(null)
   }, [getSimulatorPayload, layoutCtx])
@@ -671,11 +741,12 @@ function CanvasInner() {
   }, [botStatus, layoutCtx])
 
   useEffect(() => {
-    layoutCtx?.setVersionInfo?.(
-      versions.map((v) => ({ id: v.id, savedAt: v.savedAt })),
+    layoutCtx?.setVersionInfo?.({
+      versions: versions.map((v) => ({ id: v.id, name: v.name, description: v.description, savedAt: v.savedAt })),
       currentVersionId,
-    )
-  }, [versions, currentVersionId, layoutCtx])
+      deployedVersionId,
+    })
+  }, [versions, currentVersionId, deployedVersionId, layoutCtx])
 
   /* ── 응답 편집 헬퍼 ─────────────────────────────────────────── */
 

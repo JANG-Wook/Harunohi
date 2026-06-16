@@ -101,7 +101,13 @@
 .bot-workspace__center {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-8);
+}
+
+/* 중앙 버전 드롭다운 폭 */
+.bot-workspace__version-select {
+  min-width: 200px;
 }
 
 .bot-workspace__body {

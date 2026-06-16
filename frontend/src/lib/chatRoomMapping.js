@@ -4,6 +4,7 @@
 // 호출부에서 반환 객체를 spread 해 botName/avatarSrc 를 덮어쓸 수 있다(대화방 미리보기).
 
 import { getImageUrl, hasImage, PH } from './chatMessageDefaults.js'
+import { isRunsEmpty, mapRunsText } from './richText.js'
 import { interpolate } from './templateEngine.js'
 
 const botAvatar = '/T1_parksy/bot-avatar.svg'
@@ -13,6 +14,8 @@ const botAvatar = '/T1_parksy/bot-avatar.svg'
 export function responseToChatMessage(messageId, response, { disabled, timestamp, variables = [], botName = '챗봇' }) {
   // 짧은 헬퍼 — 모든 텍스트 필드에 변수 치환
   const I = (s) => interpolate(s, variables)
+  // 리치 텍스트(runs/평문) — run 별로 변수 치환(굵기 보존), 비었으면 placeholder 평문
+  const R = (v, ph) => (isRunsEmpty(v) ? ph : mapRunsText(v, I))
   const cfg = response.messageConfig
   if (!cfg || !cfg.cfg?.messageOn) {
     // 메시지 토글이 꺼진 응답 — 안내만 표시
@@ -39,8 +42,8 @@ export function responseToChatMessage(messageId, response, { disabled, timestamp
   // 캐로셀 카드 → ChatRoom 캐로셀 카드 형식으로 매핑 (텍스트는 모두 변수 치환)
   const cards = carouselCards.map((card) => ({
     id: card.id,
-    title: I(card.title?.trim()) || PH.title,
-    body: I(card.body?.trim()) || PH.body,
+    title: R(card.title, PH.title),
+    body: R(card.body, PH.body),
     mainButton: I(card.mainLabel?.trim()) || PH.mainLabel,
     subButton: I(card.subLabel?.trim()) || PH.subLabel,
     imageSrc: getImageUrl(card.imageFile) || undefined,
@@ -59,9 +62,9 @@ export function responseToChatMessage(messageId, response, { disabled, timestamp
     botName: '챗봇 이름',
     avatarSrc: botAvatar,
     mode,
-    title: I(texts.title?.trim()) || PH.title,
-    body: I(texts.body?.trim()) || PH.body,
-    accordionText: I(texts.accordion?.trim()) || PH.accordion,
+    title: R(texts.title, PH.title),
+    body: R(texts.body, PH.body),
+    accordionText: R(texts.accordion, PH.accordion),
     mainButton: I(texts.mainLabel?.trim()) || PH.mainLabel,
     subButton: I(texts.subLabel?.trim()) || PH.subLabel,
     imageSrc: getImageUrl(imageFile) || undefined,

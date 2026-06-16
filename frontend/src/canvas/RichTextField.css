@@ -1,0 +1,102 @@
+/* 인라인 굵기 편집 필드 — DS Textfield 와 동일한 박스 톤 + 굵기 툴바(세그먼트) */
+
+.rtf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+/* ── 굵기 툴바 ── */
+.rtf__toolbar {
+  display: flex;
+  gap: var(--spacing-6);
+}
+
+.rtf__weight {
+  min-width: var(--spacing-40);
+  padding: var(--spacing-6) var(--spacing-12);
+  border-radius: var(--spacing-8);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-elevated);
+  color: var(--color-label-neutral);
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1-normal);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.rtf__weight:hover {
+  background: var(--color-fill-alternative);
+}
+
+/* 클릭 순간 반응 */
+.rtf__weight:active {
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+}
+
+/* 토글 켜짐 — 선택 영역이 볼드일 때(라벨은 인라인으로 볼드체) */
+.rtf__weight.is-active {
+  border-color: var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 8%, transparent);
+  color: var(--color-primary-normal);
+}
+
+/* ── 입력 박스 — DS Textfield 의 inset 보더/라운드/패딩 톤 ── */
+.rtf__box {
+  position: relative;
+  padding: var(--spacing-12);
+  border-radius: var(--spacing-12);
+  background: var(--color-bg-transparent);
+  box-shadow: inset 0 0 0 1px var(--color-line-neutral), var(--shadow-normal-xsmall);
+}
+
+.rtf--negative .rtf__box {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-status-negative) 28%, transparent),
+    var(--shadow-normal-xsmall);
+}
+
+/* 포커스 시 DS 와 동일한 2px 아웃라인 */
+.rtf__box:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--color-primary-normal) 43%, transparent);
+  outline-offset: -1px;
+  box-shadow: var(--shadow-normal-xsmall);
+}
+
+.rtf--negative .rtf__box:focus-within {
+  outline-color: color-mix(in srgb, var(--color-status-negative) 43%, transparent);
+}
+
+/* placeholder — 빈 상태에서만 표시되는 오버레이 */
+.rtf__placeholder {
+  position: absolute;
+  top: var(--spacing-12);
+  left: var(--spacing-12);
+  pointer-events: none;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-1);
+  line-height: var(--line-height-body-1-normal);
+  letter-spacing: var(--letter-spacing-body-1);
+  color: var(--color-label-assistive);
+}
+
+/* ProseMirror 본체 — DS input 과 동일 타이포 */
+.rtf__editor .rtf__content {
+  outline: none;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-1);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body-1-normal);
+  letter-spacing: var(--letter-spacing-body-1);
+  color: var(--color-label-normal);
+  caret-color: var(--color-primary-normal);
+  word-break: break-word;
+}
+
+.rtf__editor--multiline .rtf__content {
+  min-height: calc(var(--line-height-body-1-normal) * 3);
+  white-space: pre-wrap;
+}
+
+.rtf__content p {
+  margin: 0;
+}

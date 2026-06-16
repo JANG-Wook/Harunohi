@@ -8,11 +8,12 @@ import IconButtonNormal from '../design-system/components/IconButton/IconButtonN
 import Switch from '../design-system/components/Switch/Switch.jsx'
 import Tab from '../design-system/components/Tab/Tab.jsx'
 import TextButton from '../design-system/components/TextButton/TextButton.jsx'
-import Textarea from '../design-system/components/Textfield/Textarea.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import ApiPicker from './ApiPicker.jsx'
 import MenuSelect from './MenuSelect.jsx'
+import RichTextField from './RichTextField.jsx'
 import SsoConfig from './SsoConfig.jsx'
+import { isRunsEmpty } from '../lib/richText.js'
 import {
   ACTION_TYPES,
   FILE_CAPTION_BANNER,
@@ -606,11 +607,12 @@ export default function ChatMessageConfig({
                     onChange={toggleCardChild('titleOn', 'textOn', (isCarousel || isInputForm) ? ['titleOn', 'bodyOn'] : ['titleOn', 'bodyOn', 'accordionOn'])}
                     label="제목 텍스트"
                   >
-                    <Textfield
+                    <RichTextField
                       placeholder={PH.title}
                       value={activeCard.title}
-                      onChange={(e) => setCardText('title')(e.target.value)}
-                      status={!activeCard.title?.trim() ? 'negative' : 'normal'}
+                      onChange={setCardText('title')}
+                      status={isRunsEmpty(activeCard.title) ? 'negative' : 'normal'}
+                      ariaLabel="제목 텍스트"
                     />
                   </CheckBlock>
 
@@ -619,12 +621,13 @@ export default function ChatMessageConfig({
                     onChange={toggleCardChild('bodyOn', 'textOn', (isCarousel || isInputForm) ? ['titleOn', 'bodyOn'] : ['titleOn', 'bodyOn', 'accordionOn'])}
                     label="본문 텍스트"
                   >
-                    <Textarea
+                    <RichTextField
                       placeholder={PH.body}
-                      resize="fixed"
+                      multiline
                       value={activeCard.body}
-                      onChange={(e) => setCardText('body')(e.target.value)}
-                      status={!activeCard.body?.trim() ? 'negative' : 'normal'}
+                      onChange={setCardText('body')}
+                      status={isRunsEmpty(activeCard.body) ? 'negative' : 'normal'}
+                      ariaLabel="본문 텍스트"
                     />
                   </CheckBlock>
 
@@ -634,12 +637,13 @@ export default function ChatMessageConfig({
                       onChange={toggleCardChild('accordionOn', 'textOn', ['titleOn', 'bodyOn', 'accordionOn'])}
                       label="아코디언 텍스트"
                     >
-                      <Textarea
+                      <RichTextField
                         placeholder={PH.accordion}
-                        resize="fixed"
+                        multiline
                         value={activeCard.accordion}
-                        onChange={(e) => setCardText('accordion')(e.target.value)}
-                        status={!activeCard.accordion?.trim() ? 'negative' : 'normal'}
+                        onChange={setCardText('accordion')}
+                        status={isRunsEmpty(activeCard.accordion) ? 'negative' : 'normal'}
+                        ariaLabel="아코디언 텍스트"
                       />
                     </CheckBlock>
                   )}

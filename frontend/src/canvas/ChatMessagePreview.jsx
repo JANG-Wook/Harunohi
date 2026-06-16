@@ -13,10 +13,14 @@ import {
   samplePlaceholderFor,
   sampleTimePlaceholderFor,
 } from '../lib/chatMessageDefaults.js'
+import { isRunsEmpty, toRuns } from '../lib/richText.js'
 import './ChatMessagePreview.css'
 
 // SVG 는 public 폴더에서 URL 문자열로 직접 참조 (svgr 변환 우회)
 const botAvatar = '/T1_parksy/bot-avatar.svg'
+
+// 텍스트(runs/평문)를 렌더용으로 정규화 — 비었으면 '' 로 보내 BotTextArea 가 숨기게 함
+const rich = (v) => (isRunsEmpty(v) ? '' : toRuns(v))
 
 const DEFAULT_HEIGHT = '780px'
 
@@ -39,8 +43,8 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
     () =>
       carouselCards.map((c) => ({
         id: c.id,
-        title: c.title.trim(),
-        body: c.body.trim(),
+        title: rich(c.title),
+        body: rich(c.body),
         mainButton: c.mainLabel.trim(),
         subButton: c.subLabel.trim(),
         imageSrc: getImageUrl(c.imageFile),
@@ -70,9 +74,9 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
         formTimePlaceholder: form.timeGuideText.trim() || sampleTimePlaceholderFor(form.type),
         formType: form.type,
         formOptions: form.options.map((o) => ({ ...o, label: o.label.trim() || `옵션 ${o.id}` })),
-        title: texts.title.trim(),
-        body: texts.body.trim(),
-        accordionText: texts.accordion.trim(),
+        title: rich(texts.title),
+        body: rich(texts.body),
+        accordionText: rich(texts.accordion),
         mainButton: texts.mainLabel.trim(),
         subButton: texts.subLabel.trim(),
         timestamp: '09:41',

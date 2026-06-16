@@ -8,4 +8,7 @@ import mockApiPlugin from './src/mocks/mockApiPlugin.js'
 export default defineConfig({
   plugins: [svgr(), react(), mockApiPlugin()],
   server: { port: 5178 },
+  // Tiptap(@tiptap/react)이 React 를 별도 인스턴스로 번들하면 "Invalid hook call" 발생 → 단일 React 로 강제
+  resolve: { dedupe: ['react', 'react-dom'] },
+  optimizeDeps: { include: ['react', 'react-dom', '@tiptap/react'] },
 })

@@ -7,6 +7,7 @@
 // 변수명은 호환을 위해 step / createEmptyStep 등 유지하나 UI 명칭은 "응답".
 
 import { createDefaultMessageConfig, defaultLink, hasImage, isLinkComplete } from './chatMessageDefaults.js'
+import { isRunsEmpty } from './richText.js'
 
 let stepSeq = 0
 export const nextStepId = () => `step_${Date.now().toString(36)}_${stepSeq++}`
@@ -114,7 +115,7 @@ function makeWelcomeExampleStep() {
     },
     texts: {
       ...base.texts,
-      title: '안녕하세요. 무엇을 도와드릴까요?',
+      title: [{ text: '안녕하세요. 무엇을 도와드릴까요?', weight: 'bold' }],
       body: '자주 묻는 질문, 영업시간, 환불, 배송 안내를 확인하실 수 있어요. 아래 버튼을 눌러 시작해 보세요.',
       accordion: '고객센터: 123',
       mainLabel: '자주 묻는 질문',
@@ -176,9 +177,9 @@ export function isStepComplete(step) {
   if (mode === 'single') {
     if (cfg.imageOn && !hasImage(imageFile)) return false
     if (cfg.textOn) {
-      if (cfg.titleOn && !texts.title?.trim()) return false
-      if (cfg.bodyOn && !texts.body?.trim()) return false
-      if (cfg.accordionOn && !texts.accordion?.trim()) return false
+      if (cfg.titleOn && isRunsEmpty(texts.title)) return false
+      if (cfg.bodyOn && isRunsEmpty(texts.body)) return false
+      if (cfg.accordionOn && isRunsEmpty(texts.accordion)) return false
     }
     if (cfg.buttonOn) {
       if (cfg.mainOn && (!texts.mainLabel?.trim() || !isLinkComplete(texts.mainLink))) return false
@@ -191,8 +192,8 @@ export function isStepComplete(step) {
     for (const card of carouselCards) {
       if (card.imageOn && !hasImage(card.imageFile)) return false
       if (card.textOn) {
-        if (card.titleOn && !card.title?.trim()) return false
-        if (card.bodyOn && !card.body?.trim()) return false
+        if (card.titleOn && isRunsEmpty(card.title)) return false
+        if (card.bodyOn && isRunsEmpty(card.body)) return false
       }
       if (card.buttonOn) {
         if (card.mainOn && (!card.mainLabel?.trim() || !isLinkComplete(card.mainLink))) return false

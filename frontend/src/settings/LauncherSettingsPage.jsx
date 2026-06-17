@@ -336,9 +336,17 @@ export default function LauncherSettingsPage() {
         profileIconBgColor: d.profileIconBgColor,
         profileImage: d.profileImage,
         themeSupport: d.themeSupport,
+        primaryLight: d.primaryLight,
+        primaryDark: d.primaryDark,
         bgType: d.bgType,
         bgColor: d.bgColor,
         bgImage: d.bgImage,
+        headerBgType: d.headerBgType,
+        headerBgColor: d.headerBgColor,
+        footerBgType: d.footerBgType,
+        footerBgColor: d.footerBgColor,
+        inputBgType: d.inputBgType,
+        inputBgColor: d.inputBgColor,
         inputPlaceholder: d.inputPlaceholder,
         font: d.font,
       })
@@ -376,6 +384,9 @@ export default function LauncherSettingsPage() {
   const isChatBgColor = chatroom.bgType === 'color'
   const isChatBgImage = chatroom.bgType === 'image'
   const chatBgImageExists = hasImage(chatroom.bgImage)
+  const isHeaderBgColor = chatroom.headerBgType === 'color'
+  const isFooterBgColor = chatroom.footerBgType === 'color'
+  const isInputBgColor = chatroom.inputBgType === 'color'
 
   const TABS = [
     { key: 'launcher', label: '플로팅 런처 버튼 설정', icon: 'bubble' },
@@ -802,6 +813,14 @@ export default function LauncherSettingsPage() {
                       시스템 테마에 자동으로 맞춰지며, 색상 설정은 숨겨지고 테마를 따릅니다.
                     </span>
                   </div>
+                  <div className="launcher-set__group">
+                    <Field label="프라이머리 색 (라이트)">
+                      <ColorField value={chatroom.primaryLight} onChange={(c) => setChatroom({ primaryLight: c })} />
+                    </Field>
+                    <Field label="프라이머리 색 (다크)">
+                      <ColorField value={chatroom.primaryDark} onChange={(c) => setChatroom({ primaryDark: c })} />
+                    </Field>
+                  </div>
                 </Section>
 
                 {/* 2. 챗봇 프로필 */}
@@ -917,6 +936,9 @@ export default function LauncherSettingsPage() {
 
                 {/* 3. 챗봇 응답 말풍선 */}
                 <Section icon="message" title="챗봇 응답 말풍선" headNote={themed ? THEME_NOTE : undefined}>
+                  <Field label="둥글기">
+                    <NumberField value={response.bubbleRadius} onChange={(v) => setResponse({ bubbleRadius: v })} min={0} max={999} />
+                  </Field>
                   {!themed && (
                     <>
                       <Field label="배경색">
@@ -1069,24 +1091,81 @@ export default function LauncherSettingsPage() {
                   )}
                 </Section>
 
-                {/* 10. 입력창 / 폰트 — 테마 영향 없음 */}
-                <Section icon="pencil" title="입력창 · 폰트">
-                  <Field label="메시지 입력 안내 문구">
-                    <Textfield
-                      placeholder="메시지를 입력해 주세요"
-                      value={chatroom.inputPlaceholder}
-                      onChange={(e) => setChatroom({ inputPlaceholder: e.target.value })}
-                      aria-label="메시지 입력 안내 문구"
-                    />
-                  </Field>
+                {/* 9-1. 헤더 — 테마 사용 시 숨김. 현재 배경 유형은 색상만 지원(사진 비활성) */}
+                <Section icon="desktop" title="헤더" headNote={themed ? THEME_NOTE : undefined}>
+                  {!themed && (
+                    <div className="launcher-set__group">
+                      <Field label="배경 유형">
+                        <div className="launcher-set__radios">
+                          <Radio checked={isHeaderBgColor} label="색상" onChange={() => setChatroom({ headerBgType: 'color' })} />
+                          <Radio checked={false} label="사진" disabled />
+                        </div>
+                      </Field>
 
-                  <Field label="폰트">
-                    <div className="launcher-set__sizes">
-                      <button type="button" className="launcher-set__size-opt is-active" aria-pressed="true" disabled>
-                        Pretendard
-                      </button>
+                      <Field label="배경색">
+                        <ColorField
+                          value={chatroom.headerBgColor}
+                          onChange={(c) => setChatroom({ headerBgColor: c })}
+                          disabled={!isHeaderBgColor}
+                        />
+                      </Field>
                     </div>
-                  </Field>
+                  )}
+                </Section>
+
+                {/* 10. 푸터 — 배경(테마 사용 시 숨김) + 안내 문구(테마 무관, 항상 노출) */}
+                <Section icon="keyboard" title="푸터" headNote={themed ? THEME_NOTE : undefined}>
+                  <div className="launcher-set__group">
+                    {!themed && (
+                      <>
+                        <Field label="푸터 배경 유형">
+                          <div className="launcher-set__radios">
+                            <Radio checked={isFooterBgColor} label="색상" onChange={() => setChatroom({ footerBgType: 'color' })} />
+                            <Radio checked={false} label="사진" disabled />
+                          </div>
+                        </Field>
+                        <Field label="푸터 배경색">
+                          <ColorField
+                            value={chatroom.footerBgColor}
+                            onChange={(c) => setChatroom({ footerBgColor: c })}
+                            disabled={!isFooterBgColor}
+                          />
+                        </Field>
+
+                        <Field label="메시지 입력창 배경 유형">
+                          <div className="launcher-set__radios">
+                            <Radio checked={isInputBgColor} label="색상" onChange={() => setChatroom({ inputBgType: 'color' })} />
+                            <Radio checked={false} label="사진" disabled />
+                          </div>
+                        </Field>
+                        <Field label="메시지 입력창 배경색">
+                          <ColorField
+                            value={chatroom.inputBgColor}
+                            onChange={(c) => setChatroom({ inputBgColor: c })}
+                            disabled={!isInputBgColor}
+                          />
+                        </Field>
+                      </>
+                    )}
+
+                    <Field label="메시지 입력 안내 문구">
+                      <Textfield
+                        placeholder="메시지를 입력해 주세요"
+                        value={chatroom.inputPlaceholder}
+                        onChange={(e) => setChatroom({ inputPlaceholder: e.target.value })}
+                        aria-label="메시지 입력 안내 문구"
+                      />
+                    </Field>
+                  </div>
+                </Section>
+
+                {/* 11. 폰트 — 테마 영향 없음 (맨 아래) */}
+                <Section icon="textFormat" title="폰트">
+                  <div className="launcher-set__sizes">
+                    <button type="button" className="launcher-set__size-opt is-active" aria-pressed="true" disabled>
+                      Pretendard
+                    </button>
+                  </div>
                 </Section>
               </section>
             </div>

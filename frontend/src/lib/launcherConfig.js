@@ -43,9 +43,17 @@ export function defaultChatroomConfig() {
     profileIconBgColor: '#EAF1FF', // 기본 아이콘 배경색
     profileImage: '',           // { name, url } | '' — profileType==='image' 일 때 사용
     themeSupport: true,         // 다크/라이트 모드 사용 — true 면 테마 배경 따름, 고정 배경 비활성
+    primaryLight: '#0066FF',    // 대화방 프라이머리(라이트) — 콘솔 미적용, 대화방/미리보기에만 토큰 오버라이드
+    primaryDark: '#3385ff',     // 대화방 프라이머리(다크)
     bgType: 'color',            // 'color' | 'image' — 대화방 배경 (themeSupport=false 일 때 적용)
     bgColor: '#F5F6F8',         // 대화방 배경색 (bgType==='color' 일 때)
     bgImage: '',                // { name, url } | ''
+    headerBgType: 'color',      // 'color' | 'image' — 헤더 배경 (현재 색상만 지원, 사진 비활성)
+    headerBgColor: '#FFFFFF',   // 헤더 배경색 (themeSupport=false 일 때 적용)
+    footerBgType: 'color',      // 'color' | 'image' — 푸터(입력 영역) 배경 (현재 색상만 지원, 사진 비활성)
+    footerBgColor: '#FFFFFF',   // 푸터 배경색 (themeSupport=false 일 때 적용)
+    inputBgType: 'color',       // 'color' | 'image' — 메시지 입력창(둥근 박스) 배경 (현재 색상만 지원, 사진 비활성)
+    inputBgColor: '#F7F7F8',    // 메시지 입력창 배경색 (themeSupport=false 일 때 적용)
     inputPlaceholder: '메시지를 입력해 주세요',
     font: 'pretendard',         // 현재 1종(고정)
   }
@@ -83,7 +91,8 @@ export function defaultResponseConfig() {
     quickTextColor: '#858688',
     quickColor: '#FFFFFF',
     quickBorderColor: '#E8E9EA',
-    // 말풍선 — bg-normal / line-solid-normal
+    // 말풍선 — bg-normal / line-solid-normal, 둥글기 spacing-12(12px)
+    bubbleRadius: 12,
     bubbleBgColor: '#FFFFFF',
     bubbleBorderColor: '#E1E2E4',
   }

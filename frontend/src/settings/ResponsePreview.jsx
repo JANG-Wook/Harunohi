@@ -58,9 +58,9 @@ export default function ResponsePreview({ config }) {
   return (
     <div className="rsp">
       {/* 디바이스 프레임 — 대화방 미리보기와 동일(상태바 + 헤더 + 비활성 입력창) */}
-      <div className="rsp__device">
+      <div className="rsp__device" style={{ '--cr-primary-light': c.primaryLight, '--cr-primary-dark': c.primaryDark }}>
         <ChatStatusBar />
-        <ChatHeader title={<ChatPreviewTitle chatroom={c} />} resetDisabled closeDisabled />
+        <ChatHeader title={<ChatPreviewTitle chatroom={c} />} resetDisabled closeDisabled bgColor={themed ? undefined : c.headerBgColor} />
         <div className="rsp__host chat-room-scroll" style={hostStyle}>
           <div className="rsp__msg">
           {/* 아바타 + 봇 라벨 — 챗봇 프로필 설정 반영(둘 다 꺼지면 행 숨김) */}
@@ -72,7 +72,7 @@ export default function ResponsePreview({ config }) {
           )}
 
           {/* 말풍선 */}
-          <div className="rsp__bubble" style={{ background: bubbleBg, borderColor: bubbleBorder }}>
+          <div className="rsp__bubble" style={{ background: bubbleBg, borderColor: bubbleBorder, borderRadius: r.bubbleRadius }}>
             <div className="rsp__textarea">
               <div className="rsp__texts">
                 <p className="rsp__title" style={{ fontSize: r.titleSize, color: titleColor }}>{PH.title}</p>
@@ -132,7 +132,13 @@ export default function ResponsePreview({ config }) {
           </div>
         </div>
         {/* 입력창 — 미리보기라 비활성 */}
-        <ChatInput disabled value="" placeholder={c.inputPlaceholder || '메시지를 입력해 주세요'} />
+        <ChatInput
+          disabled
+          value=""
+          placeholder={c.inputPlaceholder || '메시지를 입력해 주세요'}
+          footerBgColor={themed ? undefined : c.footerBgColor}
+          inputBgColor={themed ? undefined : c.inputBgColor}
+        />
       </div>
     </div>
   )

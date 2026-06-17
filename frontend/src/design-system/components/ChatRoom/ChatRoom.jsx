@@ -87,14 +87,15 @@ export function ChatStatusBar() {
   )
 }
 
-export function ChatHeader({ title, onReset, onClose, resetDisabled = false, closeDisabled = false }) {
+export function ChatHeader({ title, onReset, onClose, resetDisabled = false, closeDisabled = false, bgColor }) {
   return (
     <div style={{
       display:        'flex',
       alignItems:     'center',
       justifyContent: 'space-between',
-      padding:        'var(--spacing-8) var(--spacing-12)',
+      padding:        'var(--spacing-4) var(--spacing-12) var(--spacing-8)',
       flexShrink:     0,
+      ...(bgColor ? { backgroundColor: bgColor } : null),
     }}>
       <IconButtonNormal
         aria-label="대화 초기화"
@@ -846,10 +847,14 @@ const INPUT_CONTAINER_STYLE = {
   flexShrink:      0,
 }
 
-export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = true, disabled = false }) {
+export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expandable = true, disabled = false, footerBgColor, inputBgColor }) {
   const textareaRef = useRef(null)
   const [focused, setFocused] = useState(false)
   const expanded = !disabled && expandable && focused
+
+  // 푸터(컨테이너) / 메시지 입력창(둥근 박스) 배경 — 지정 시 토큰 기본값 대신 적용
+  const containerStyle = footerBgColor ? { ...INPUT_CONTAINER_STYLE, backgroundColor: footerBgColor } : INPUT_CONTAINER_STYLE
+  const inputSurfaceBg = inputBgColor || 'var(--color-bg-normal-alternative)'
 
   const handlePillClick = () => {
     setFocused(true)
@@ -862,12 +867,12 @@ export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expand
   // 비활성 — 미리보기 등에서 입력 바를 보여주되 상호작용 차단(흐리게)
   if (disabled) {
     return (
-      <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center', opacity: 0.5, pointerEvents: 'none' }}>
+      <div style={{ ...containerStyle, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center', opacity: 0.5, pointerEvents: 'none' }}>
         <ActionButton iconName="plus" ariaLabel="추가" iconColor="var(--color-bg-normal)" />
         <div style={{
           flex:            1,
           height:          '36px',
-          backgroundColor: 'var(--color-bg-normal-alternative)',
+          backgroundColor: inputSurfaceBg,
           borderRadius:    '20px',
           display:         'flex',
           alignItems:      'center',
@@ -891,7 +896,7 @@ export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expand
 
   if (expanded) {
     return (
-      <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
+      <div style={{ ...containerStyle, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
         <textarea
           ref={textareaRef}
           autoFocus
@@ -936,7 +941,7 @@ export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expand
   }
 
   return (
-    <div style={{ ...INPUT_CONTAINER_STYLE, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center' }}>
+    <div style={{ ...containerStyle, display: 'flex', gap: 'var(--spacing-12)', alignItems: 'center' }}>
       <ActionButton onClick={onPlus} iconName="plus" ariaLabel="추가" iconColor="var(--color-bg-normal)" />
       {expandable ? (
         <div
@@ -953,7 +958,7 @@ export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expand
           style={{
             flex:            1,
             height:          '36px',
-            backgroundColor: 'var(--color-bg-normal-alternative)',
+            backgroundColor: inputSurfaceBg,
             borderRadius:    '20px',
             display:         'flex',
             alignItems:      'center',
@@ -990,7 +995,7 @@ export function ChatInput({ value, onChange, placeholder, onPlus, onSend, expand
           style={{
             flex:            1,
             height:          '36px',
-            backgroundColor: 'var(--color-bg-normal-alternative)',
+            backgroundColor: inputSurfaceBg,
             borderRadius:    '20px',
             border:          'none',
             outline:         'none',
@@ -1102,6 +1107,11 @@ export default function ChatRoom({
   pinUserToTop = true,
   // 메시지 입력창 확장 — true 면 클릭 시 textarea 로 확장, false 면 확장 없이 한 줄 입력
   inputExpandable = true,
+  // 헤더 배경색 — 지정 시 헤더 영역 배경에 적용(미지정이면 테마 기본 배경 따름)
+  headerBgColor,
+  // 푸터(입력 영역) / 메시지 입력창 배경색 — 지정 시 적용(미지정이면 테마 기본 배경 따름)
+  footerBgColor,
+  inputBgColor,
   children,
 }) {
   const [inputValue, setInputValue] = useState(initialValue)
@@ -1123,6 +1133,9 @@ export default function ChatRoom({
   const spacerRef = useRef(null)
   const pendingScrollRef = useRef(false)
 
+  // 핀 고정 시 헤더와 최신 사용자 메시지 사이 여백(px) — --spacing-8 과 동일
+  const PIN_TOP_GAP = 8
+
   // 최신 유저 메시지가 상단으로 스크롤 가능하도록 최소 스페이서 높이 계산
   useLayoutEffect(() => {
     if (!scrollContainerRef.current || !spacerRef.current) return
@@ -1138,7 +1151,7 @@ export default function ChatRoom({
     const msgTop = latestUserMsgRef.current.getBoundingClientRect().top
       - container.getBoundingClientRect().top
       + container.scrollTop
-    const needed = Math.max(0, msgTop + containerH - naturalH)
+    const needed = Math.max(0, msgTop + containerH - naturalH - PIN_TOP_GAP)
     spacerRef.current.style.height = needed + 'px'
   }, [messages, pinUserToTop])
 
@@ -1155,7 +1168,7 @@ export default function ChatRoom({
     // 사용자가 무엇을 선택/입력했는지가 화면 상단에 보이도록 함. 사용자 메시지가 없으면 스킵.
     const target = latestUserMsgRef.current
     if (!target) return
-    const delta = target.getBoundingClientRect().top - container.getBoundingClientRect().top
+    const delta = target.getBoundingClientRect().top - container.getBoundingClientRect().top - PIN_TOP_GAP
     container.scrollTop += delta
   }, [messages.length])
 
@@ -1184,7 +1197,7 @@ export default function ChatRoom({
       backgroundColor: 'var(--color-bg-normal)',
     }}>
       <ChatStatusBar />
-      <ChatHeader title={title} onReset={handleReset} onClose={onClose} resetDisabled={resetDisabled} closeDisabled={closeDisabled} />
+      <ChatHeader title={title} onReset={handleReset} onClose={onClose} resetDisabled={resetDisabled} closeDisabled={closeDisabled} bgColor={headerBgColor} />
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         {topBanner && (
           <div style={{ position: 'absolute', top: 'var(--spacing-12)', left: 0, right: 0, zIndex: 1 }}>
@@ -1203,7 +1216,7 @@ export default function ChatRoom({
             flexDirection:  'column',
             alignItems:     'center',
             gap:            'var(--spacing-20)',
-            padding:        'var(--spacing-12) var(--spacing-20) var(--spacing-20)',
+            padding:        'var(--spacing-16) var(--spacing-20) var(--spacing-20)',
           }}>
             {(() => {
               const lastUserIdx = messages.reduce((acc, m, i) => m.type === 'user' ? i : acc, -1)
@@ -1282,6 +1295,8 @@ export default function ChatRoom({
         onPlus={onPlus}
         onSend={handleSend}
         expandable={inputExpandable}
+        footerBgColor={footerBgColor}
+        inputBgColor={inputBgColor}
       />
     </div>
   )

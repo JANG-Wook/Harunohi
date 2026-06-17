@@ -84,6 +84,8 @@ export default function ChatroomPreview({ config }) {
   } else {
     hostStyle = { '--crp-bg': c.bgColor, '--crp-bg-image': 'none' }
   }
+  // 대화방 프라이머리 오버라이드 — 콘솔 미적용, 이 컨테이너 하위로만 상속(라이트/다크는 CSS [data-theme] 가 선택)
+  const hostStyleFinal = { ...(hostStyle || {}), '--cr-primary-light': c.primaryLight, '--cr-primary-dark': c.primaryDark }
 
   // 라이브 미리보기 대화 — 웰컴메시지 1개로 시작. 사용자가 무엇을 입력하든 같은 웰컴 응답을 echo.
   // 봇 이름/아바타(설정값)가 바뀌면 시드를 다시 만들어 대화 초기화.
@@ -93,6 +95,12 @@ export default function ChatroomPreview({ config }) {
     seqRef.current = 0
     setConvo([buildWelcomeMessage('w0', msgBotName, avatarSrc, showAvatar)])
   }, [msgBotName, avatarSrc, showAvatar])
+
+  // 새로고침 — 대화를 웰컴 메시지 1개 상태로 초기화.
+  const handleReset = () => {
+    seqRef.current = 0
+    setConvo([buildWelcomeMessage('w0', msgBotName, avatarSrc, showAvatar)])
+  }
 
   // 발화 전송 — 사용자 메시지 + 동일 웰컴 응답을 이어 붙인다.
   const handleSend = (text) => {
@@ -106,15 +114,18 @@ export default function ChatroomPreview({ config }) {
 
   return (
     <div className="crp">
-      <div className="crp__host" style={hostStyle}>
+      <div className="crp__host" style={hostStyleFinal}>
         <ChatRoom
           title={<ChatPreviewTitle chatroom={c} />}
           placeholder={c.inputPlaceholder || '메시지를 입력해 주세요'}
           initialMessages={convo}
           onSend={handleSend}
+          onReset={handleReset}
+          headerBgColor={c.themeSupport ? undefined : c.headerBgColor}
+          footerBgColor={c.themeSupport ? undefined : c.footerBgColor}
+          inputBgColor={c.themeSupport ? undefined : c.inputBgColor}
           pinUserToTop={c.pinUserToTop}
           inputExpandable={c.inputExpandable}
-          resetDisabled
           closeDisabled
         />
       </div>

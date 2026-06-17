@@ -18,6 +18,12 @@
   overflow: hidden;
   border: 1px solid var(--color-line-solid-normal);
   box-shadow: 0 12px 40px -8px rgba(23, 23, 23, 0.24);
+  /* 대화방 프라이머리 오버라이드(콘솔 미적용) — 라이트 기본, 다크는 아래 [data-theme] 규칙 */
+  --color-primary-normal: var(--cr-primary-light, var(--color-primary-normal));
+}
+
+[data-theme="dark"] .crp__host {
+  --color-primary-normal: var(--cr-primary-dark, var(--color-primary-normal));
 }
 
 /* 헤더 제목 + 연결 상태 점 */

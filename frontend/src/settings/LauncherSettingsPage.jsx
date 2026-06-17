@@ -31,8 +31,8 @@ import {
   defaultLauncherConfig,
   defaultResponseConfig,
   deleteLauncherVersion,
+  editLauncherVersion,
   loadLauncher,
-  renameLauncherVersion,
   saveLauncherVersion,
 } from '../lib/launcherConfig.js'
 import { isLowContrast } from '../lib/contrast.js'
@@ -298,9 +298,9 @@ export default function LauncherSettingsPage() {
     else applyVersion(versionId)
   }
 
-  /* 버전 관리 — 이름 변경 / 삭제. 삭제로 현재 버전이 바뀌면 에디터도 동기화 */
-  const handleVersionRename = (versionId, versionName) => {
-    const next = renameLauncherVersion({ id: launcherId, versionId, name: versionName, nowIso: new Date().toISOString() })
+  /* 버전 관리 — 정보 수정(이름+설명) / 삭제. 삭제로 현재 버전이 바뀌면 에디터도 동기화 */
+  const handleVersionEdit = (versionId, { name: versionName, description }) => {
+    const next = editLauncherVersion({ id: launcherId, versionId, name: versionName, description, nowIso: new Date().toISOString() })
     if (next) setEntry(next)
   }
   const handleVersionDelete = (versionId) => {
@@ -435,8 +435,14 @@ export default function LauncherSettingsPage() {
           )}
         </div>
 
-        {/* 중앙 — 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
+        {/* 중앙 — 다크모드 + 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
         <div className="dze__topbar-center">
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
           <div className="dze__version-select">
             <MenuSelect
               value={currentVersionId}
@@ -455,16 +461,10 @@ export default function LauncherSettingsPage() {
           />
         </div>
 
-        {/* 우측 — 다크모드(하루노히 테마) + 기본값으로 + 저장 */}
+        {/* 우측 — 기본값으로 + 저장 */}
         <div className="dze__topbar-right">
-          <IconButtonOutlined
-            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
-            size="small"
-            onClick={toggleTheme}
-            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          />
           <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
-          <Button variant="solid" color="primary" size="small" label="저장" onClick={handleSave} />
+          <Button variant="solid" color="primary" size="small" label="저장" disabled={!isDirty} onClick={handleSave} />
         </div>
       </header>
 
@@ -1136,7 +1136,7 @@ export default function LauncherSettingsPage() {
         versions={entry?.versions ?? []}
         currentVersionId={currentVersionId}
         deployedVersionId={entry?.deployedVersionId}
-        onRename={handleVersionRename}
+        onEdit={handleVersionEdit}
         onDelete={handleVersionDelete}
         onClose={() => setVersionManagerOpen(false)}
       />

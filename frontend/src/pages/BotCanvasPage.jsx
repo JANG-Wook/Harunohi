@@ -21,7 +21,7 @@ import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
 import StepNode, { StepNodeProvider } from '../canvas/nodes/StepNode.jsx'
 import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
-import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, makeDefaultScenarioWithWelcome } from '../lib/stepTypes.js'
+import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, isStepComplete, makeDefaultScenarioWithWelcome } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
 import './BotCanvasPage.css'
 
@@ -559,6 +559,12 @@ function CanvasInner() {
   )
   const isDirty = currentSnapshot !== savedSnapshot
 
+  /* 미완성 단계 — 활성 토글에 값이 빈 응답이 하나라도 있으면 true(모든 시나리오 기준). 저장 차단용 */
+  const hasIncompleteStep = useMemo(
+    () => scenarios.some((sc) => (sc.responses ?? []).some((r) => !isStepComplete(r))),
+    [scenarios],
+  )
+
   const stateRef = useRef({
     scenarios,
     currentScenarioId,
@@ -666,13 +672,15 @@ function CanvasInner() {
     [setNodes],
   )
 
-  /* 버전 이름 변경 — 봇 내 유일해야 함 */
-  const handleRenameVersion = useCallback(
-    (versionId, name) => {
+  /* 버전 정보(이름+설명) 수정 — 이름은 봇 내 유일해야 함 */
+  const handleEditVersion = useCallback(
+    (versionId, { name, description }) => {
       const trimmed = (name || '').trim()
       const { versions: vs, currentVersionId: cur, deployedVersionId: dep, botStatus: bs } = stateRef.current
       if (!trimmed || vs.some((v) => v.name === trimmed && v.id !== versionId)) return false
-      const next = vs.map((v) => (v.id === versionId ? { ...v, name: trimmed } : v))
+      const next = vs.map((v) =>
+        v.id === versionId ? { ...v, name: trimmed, description: (description ?? '').trim() } : v,
+      )
       try {
         writeToStorage(botId, next, cur, bs, dep)
         setVersions(next)
@@ -712,6 +720,10 @@ function CanvasInner() {
   }, [isDirty, layoutCtx])
 
   useEffect(() => {
+    layoutCtx?.setIncomplete?.(hasIncompleteStep)
+  }, [hasIncompleteStep, layoutCtx])
+
+  useEffect(() => {
     layoutCtx?.registerSaver?.(handleSave)
     return () => layoutCtx?.registerSaver?.(null)
   }, [handleSave, layoutCtx])
@@ -727,9 +739,9 @@ function CanvasInner() {
   }, [handlePublish, layoutCtx])
 
   useEffect(() => {
-    layoutCtx?.registerVersionActions?.({ rename: handleRenameVersion, delete: handleDeleteVersion })
+    layoutCtx?.registerVersionActions?.({ edit: handleEditVersion, delete: handleDeleteVersion })
     return () => layoutCtx?.registerVersionActions?.(null)
-  }, [handleRenameVersion, handleDeleteVersion, layoutCtx])
+  }, [handleEditVersion, handleDeleteVersion, layoutCtx])
 
   useEffect(() => {
     layoutCtx?.registerSimulatorPayload?.(getSimulatorPayload)

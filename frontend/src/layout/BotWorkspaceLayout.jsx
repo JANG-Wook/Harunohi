@@ -37,6 +37,7 @@ export default function BotWorkspaceLayout() {
 
   /* 자식(BotCanvasPage)이 보고하는 dirty 상태 + 등록하는 save/load/publish 함수 */
   const [isDirty, setDirty] = useState(false)
+  const [incomplete, setIncomplete] = useState(false)
   const [botStatus, setBotStatus] = useState('draft')
   const saverRef = useRef(null)
   const versionLoaderRef = useRef(null)
@@ -207,6 +208,7 @@ export default function BotWorkspaceLayout() {
   const outletCtx = useMemo(
     () => ({
       setDirty,
+      setIncomplete,
       registerSaver,
       registerVersionLoader,
       setVersionInfo,
@@ -269,8 +271,14 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 중앙 — 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
+        {/* 중앙 — 다크모드 + 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
         <div className="bot-workspace__center">
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
           {versionInfo.versions.length > 0 && (
             <>
               <div className="bot-workspace__version-select">
@@ -293,14 +301,14 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 우측 — 다크모드 + 시뮬레이터 + 저장 */}
+        {/* 우측 — (미완성 안내) + 시뮬레이터 + 저장 */}
         <div className="bot-workspace__actions">
-          <IconButtonOutlined
-            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
-            size="small"
-            onClick={toggleTheme}
-            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          />
+          {incomplete && (
+            <span className="bot-workspace__save-hint">
+              <Icon name="triangleExclamationFill" size={16} color="var(--color-accent-fg-red)" />
+              비어 있는 항목이 있어 저장할 수 없어요
+            </span>
+          )}
           <Button
             variant="outlined"
             color="assistive"
@@ -313,6 +321,7 @@ export default function BotWorkspaceLayout() {
             color="primary"
             size="small"
             label="저장"
+            disabled={!isDirty || incomplete}
             onClick={handleSave}
           />
         </div>
@@ -354,7 +363,7 @@ export default function BotWorkspaceLayout() {
         versions={versionInfo.versions}
         currentVersionId={versionInfo.currentVersionId}
         deployedVersionId={versionInfo.deployedVersionId}
-        onRename={(versionId, name) => versionActionsRef.current?.rename?.(versionId, name)}
+        onEdit={(versionId, meta) => versionActionsRef.current?.edit?.(versionId, meta)}
         onDelete={(versionId) => versionActionsRef.current?.delete?.(versionId)}
         onClose={() => setVersionManagerOpen(false)}
       />

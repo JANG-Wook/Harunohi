@@ -78,9 +78,9 @@ export default function Select({
     position:        'relative',
     display:         'flex',
     alignItems:      'center',
-    gap:             'var(--spacing-12)',
-    padding:         isSmall ? 'var(--spacing-7) var(--spacing-12)' : 'var(--spacing-12)',
-    borderRadius:    isSmall ? 'var(--spacing-10)' : 'var(--spacing-12)',
+    gap:             isSmall ? 'var(--spacing-4)' : 'var(--spacing-12)',
+    padding:         isSmall ? 'var(--spacing-4) var(--spacing-12)' : 'var(--spacing-12)',
+    borderRadius:    'var(--spacing-12)',
     border:          'none',
     outline:         isFocused ? `2px solid ${focusBorderColor}` : 'none',
     outlineOffset:   isFocused ? '-1px' : '0',
@@ -125,10 +125,10 @@ export default function Select({
 
   const textStyle = {
     flex:          '1 0 0',
-    fontSize:      isSmall ? 'var(--font-size-label-1)' : 'var(--font-size-body-1)',
-    fontWeight:    'var(--font-weight-regular)',
-    lineHeight:    isSmall ? 'var(--line-height-label-1-normal)' : 'var(--line-height-body-1-normal)',
-    letterSpacing: isSmall ? 'var(--letter-spacing-label-1)' : 'var(--letter-spacing-body-1)',
+    fontSize:      isSmall ? 'var(--font-size-caption-1)' : 'var(--font-size-body-1)',
+    fontWeight:    isSmall ? 'var(--font-weight-medium)' : 'var(--font-weight-regular)',
+    lineHeight:    isSmall ? 'var(--line-height-caption-1)' : 'var(--line-height-body-1-normal)',
+    letterSpacing: isSmall ? 'var(--letter-spacing-caption-1)' : 'var(--letter-spacing-body-1)',
     color:         disabled
       ? (hasValue ? 'var(--color-label-alternative)' : 'var(--color-label-disable)')
       : (hasValue ? 'var(--color-label-normal)'      : 'var(--color-label-assistive)'),

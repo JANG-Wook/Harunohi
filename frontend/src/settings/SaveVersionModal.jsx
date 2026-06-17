@@ -10,18 +10,28 @@ import Typography from '../design-system/components/Typography/Typography.jsx'
 import { isVersionNameTaken } from '../lib/launcherConfig.js'
 import './SaveVersionModal.css'
 
-export default function SaveVersionModal({ open, versions = [], onSubmit, onClose }) {
+export default function SaveVersionModal({
+  open,
+  versions = [],
+  mode = 'create', // 'create'(새 버전) | 'edit'(버전 정보 수정)
+  initialName = '',
+  initialDescription = '',
+  excludeId = null, // 수정 시 자기 자신은 중복 검사에서 제외
+  onSubmit,
+  onClose,
+}) {
+  const isEdit = mode === 'edit'
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const dialogRef = useRef(null)
 
-  // 열릴 때마다 초기화 — 기본 버전명은 "버전 N+1" 제안
+  // 열릴 때마다 초기화 — 생성: "버전 N+1" 제안, 수정: 기존 값 prefill
   useEffect(() => {
     if (!open) return
-    setName(`버전 ${versions.length + 1}`)
-    setDescription('')
+    setName(isEdit ? initialName : `버전 ${versions.length + 1}`)
+    setDescription(isEdit ? initialDescription : '')
     dialogRef.current?.focus()
-  }, [open, versions.length])
+  }, [open, isEdit, initialName, initialDescription, versions.length])
 
   // Esc 닫기 + 배경 스크롤 잠금
   useEffect(() => {
@@ -40,7 +50,7 @@ export default function SaveVersionModal({ open, versions = [], onSubmit, onClos
   if (!open) return null
 
   const trimmed = name.trim()
-  const duplicate = isVersionNameTaken(versions, trimmed)
+  const duplicate = isVersionNameTaken(versions, trimmed, excludeId)
   const error = duplicate ? '이미 사용 중인 버전명이에요.' : ''
   const canSave = !!trimmed && !duplicate
 
@@ -59,7 +69,7 @@ export default function SaveVersionModal({ open, versions = [], onSubmit, onClos
       <div className="svm__modal" role="dialog" aria-modal="true" aria-labelledby="svm-title" ref={dialogRef} tabIndex={-1}>
         <header className="svm__head">
           <Typography variant="headline-1" weight="semibold" as="span" id="svm-title">
-            새 버전 저장
+            {isEdit ? '버전 정보 수정' : '새 버전 저장'}
           </Typography>
           <IconButtonNormal icon={<Icon name="close" size={18} />} size="small" onClick={onClose} aria-label="닫기" />
         </header>
@@ -89,7 +99,7 @@ export default function SaveVersionModal({ open, versions = [], onSubmit, onClos
 
         <footer className="svm__foot">
           <Button variant="outlined" color="assistive" size="medium" label="취소" onClick={onClose} />
-          <Button variant="solid" color="primary" size="medium" label="저장" disabled={!canSave} onClick={submit} />
+          <Button variant="solid" color="primary" size="medium" label={isEdit ? '수정' : '저장'} disabled={!canSave} onClick={submit} />
         </footer>
       </div>
     </div>

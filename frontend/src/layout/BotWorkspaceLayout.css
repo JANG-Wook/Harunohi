@@ -111,9 +111,23 @@
 }
 
 .bot-workspace__body {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+/* 미완성 저장 차단 안내 — 상단바 저장 버튼 왼쪽 텍스트(강조 레드 + 아이콘) */
+.bot-workspace__save-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-right: var(--spacing-4);
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  letter-spacing: var(--letter-spacing-label-2);
+  color: var(--color-accent-fg-red);
+  white-space: nowrap;
 }
 
 /* 저장되지 않은 변경 사항 표시 점 */

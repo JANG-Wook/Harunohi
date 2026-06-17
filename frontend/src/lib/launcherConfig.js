@@ -283,14 +283,16 @@ export function saveLauncherVersion({ id, name, versionName, description, config
   return withCurrentConfig(next)
 }
 
-/** 버전 이름 변경 — 디자인 내 유일해야 함(빈값·중복이면 무시) */
-export function renameLauncherVersion({ id, versionId, name, nowIso }) {
+/** 버전 정보(이름+설명) 수정 — 이름은 디자인 내 유일해야 함(빈값·중복이면 무시) */
+export function editLauncherVersion({ id, versionId, name, description, nowIso }) {
   if (typeof window === 'undefined') return null
   const entry = loadLauncher(id)
   if (!entry) return null
   const trimmed = (name || '').trim()
   if (!trimmed || isVersionNameTaken(entry.versions, trimmed, versionId)) return null
-  const versions = entry.versions.map((v) => (v.id === versionId ? { ...v, name: trimmed } : v))
+  const versions = entry.versions.map((v) =>
+    v.id === versionId ? { ...v, name: trimmed, description: (description ?? '').trim() } : v,
+  )
   const next = {
     id,
     name: entry.name,

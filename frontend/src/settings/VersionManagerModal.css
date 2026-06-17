@@ -123,26 +123,6 @@
   z-index: 1100;
 }
 
-/* 인라인 이름 편집 — 입력 + 저장/취소 */
-.vmm__edit {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-8);
-  width: 100%;
-}
-
-.vmm__edit > :first-child {
-  flex: 1;
-  min-width: 0;
-}
-
-.vmm__edit-actions {
-  display: flex;
-  gap: var(--spacing-4);
-  flex-shrink: 0;
-  padding-top: var(--spacing-2);
-}
-
 .vmm__foot {
   display: flex;
   justify-content: flex-end;

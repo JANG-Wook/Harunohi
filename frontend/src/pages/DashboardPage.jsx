@@ -312,26 +312,26 @@ export default function DashboardPage() {
                 >
                   {statusLabel}
                 </span>
-                <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
+                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
                   응답 {bot.responseCount}개
                 </Typography>
               </div>
               {/* 최신 버전 / 배포 버전 */}
               <div className="dashboard__card-versions">
-                <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
-                  최신 버전 {bot.latestVersionName ?? '—'}
+                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                  최신 버전 / <span style={{ color: 'var(--color-label-normal)' }}>{bot.latestVersionName ?? '—'}</span>
                 </Typography>
-                <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
-                  배포 버전 {bot.deployedVersionName ?? '미배포'}
+                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                  배포 버전 / <span style={{ color: 'var(--color-label-normal)' }}>{bot.deployedVersionName ?? '미배포'}</span>
                 </Typography>
               </div>
               {/* 최초 생성일 / 마지막 수정일 — versions[] 의 savedAt 기준 */}
               <div className="dashboard__card-dates">
-                <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
-                  최초 생성일 {formatDate(bot.createdAt)}
+                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                  최초 생성일 / <span style={{ color: 'var(--color-label-neutral)' }}>{formatDate(bot.createdAt)}</span>
                 </Typography>
-                <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
-                  마지막 수정일 {formatDate(bot.updatedAt)}
+                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                  마지막 수정일 / <span style={{ color: 'var(--color-label-neutral)' }}>{formatDate(bot.updatedAt)}</span>
                 </Typography>
               </div>
               {/* 호버 시 우측 상단 액션 버튼들 — DS 에 24px 타이트 아이콘 버튼이 없어 토큰으로 직접 구현 */}

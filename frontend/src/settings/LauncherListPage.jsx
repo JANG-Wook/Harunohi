@@ -177,19 +177,19 @@ export default function LauncherListPage() {
               {entry.name}
             </Typography>
             <div className="lc__card-versions">
-              <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
-                최신 버전 {latestVersion(entry)?.name ?? '—'}
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                최신 버전 / <span style={{ color: 'var(--color-label-normal)' }}>{latestVersion(entry)?.name ?? '—'}</span>
               </Typography>
-              <Typography variant="caption-1" color="var(--color-label-neutral)" as="span">
-                배포 버전 {deployedVersion(entry)?.name ?? '미배포'}
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                배포 버전 / <span style={{ color: 'var(--color-label-normal)' }}>{deployedVersion(entry)?.name ?? '미배포'}</span>
               </Typography>
             </div>
             <div className="lc__card-dates">
-              <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
-                최초 생성일 {formatDate(entry.createdAt)}
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                최초 생성일 / <span style={{ color: 'var(--color-label-neutral)' }}>{formatDate(entry.createdAt)}</span>
               </Typography>
-              <Typography variant="caption-1" color="var(--color-label-assistive)" as="span">
-                마지막 수정일 {formatDate(entry.updatedAt)}
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                마지막 수정일 / <span style={{ color: 'var(--color-label-neutral)' }}>{formatDate(entry.updatedAt)}</span>
               </Typography>
             </div>
             <div className="lc__card-actions">

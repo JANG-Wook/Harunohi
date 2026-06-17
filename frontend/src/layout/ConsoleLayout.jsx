@@ -6,7 +6,6 @@ import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useTheme } from '../lib/useTheme.js'
-import ForsythiaLogo from './ForsythiaLogo.jsx'
 import './ConsoleLayout.css'
 
 // children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
@@ -53,10 +52,11 @@ export default function ConsoleLayout() {
     <div className="console-layout">
       <header className="console-header">
         <div className="console-header__brand">
-          <ForsythiaLogo size={28} />
-          <Typography variant="headline-2" weight="bold" color="var(--color-label-neutral)" as="span">
-            Harunohi
-          </Typography>
+          <img
+            className="console-header__logo"
+            src={isDark ? '/Infobank_Logo_Color_RGB_White.png' : '/Infobank_Logo_Color_RGB_Black.png'}
+            alt="Infobank"
+          />
         </div>
         <div className="console-header__actions">
           <IconButtonOutlined

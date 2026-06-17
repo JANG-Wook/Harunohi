@@ -24,6 +24,13 @@
   gap: var(--spacing-1);
 }
 
+/* 인포뱅크 로고 이미지 — 헤더 높이에 맞춘 고정 높이, 비율 유지 */
+.console-header__logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
 .console-header__actions {
   display: flex;
   align-items: center;

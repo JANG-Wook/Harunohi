@@ -446,14 +446,8 @@ export default function LauncherSettingsPage() {
           )}
         </div>
 
-        {/* 중앙 — 다크모드 + 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
+        {/* 중앙 — 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
         <div className="dze__topbar-center">
-          <IconButtonOutlined
-            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
-            size="small"
-            onClick={toggleTheme}
-            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          />
           <div className="dze__version-select">
             <MenuSelect
               value={currentVersionId}
@@ -472,8 +466,14 @@ export default function LauncherSettingsPage() {
           />
         </div>
 
-        {/* 우측 — 기본값으로 + 저장 */}
+        {/* 우측 — 다크모드 + 기본값으로 + 저장 */}
         <div className="dze__topbar-right">
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
           <Button variant="outlined" color="assistive" size="small" label="기본값으로" onClick={handleReset} />
           <Button variant="solid" color="primary" size="small" label="저장" disabled={!isDirty} onClick={handleSave} />
         </div>

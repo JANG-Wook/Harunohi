@@ -102,6 +102,12 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
 
   const memoryRows = useMemo(() => buildMemoryRows(session), [session])
 
+  /* 이벤트 로그 — api-call(원문)은 우측 실제 로그 패널 전용이라 여기선 제외(기존 요약 유지) */
+  const eventLog = useMemo(
+    () => session.history.filter((e) => e.kind !== 'api-call'),
+    [session.history],
+  )
+
   /* 이벤트 로그 — 기본 접힘, 새 이벤트 추가 시 자동 스크롤 (펼침 상태일 때만) */
   const [logOpen, setLogOpen] = useState(true)
   const logScrollRef = useRef(null)
@@ -231,16 +237,16 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
               이벤트 로그
             </Typography>
           </div>
-          <span className="sim-side__head-count">{session.history.length}</span>
+          <span className="sim-side__head-count">{eventLog.length}</span>
         </button>
         {logOpen && (
           <div className="sim-side__log sidebar-scroll" ref={logScrollRef}>
-            {session.history.length === 0 ? (
+            {eventLog.length === 0 ? (
               <Typography variant="caption-1" color="var(--color-label-assistive)" as="div">
                 아직 이벤트가 없어요.
               </Typography>
             ) : (
-              session.history.map((event, idx) => {
+              eventLog.map((event, idx) => {
                 const desc = describeEvent(event)
                 return (
                   <div key={idx} className="sim-side__log-row">

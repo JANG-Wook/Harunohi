@@ -331,6 +331,17 @@ export async function advanceApiIfNeeded(session, callApi) {
   const nextMemory = { ...session.memory }
   const updatedKeys = []
   const systemEvents = []
+  // 실제 로그용 — 요청/응답 원문을 api-call 이벤트로 보존(이벤트 로그엔 아래 system 요약만 노출)
+  systemEvents.push(ev({
+    kind: 'api-call',
+    apiName: apiEntry.name,
+    request: result.requestPreview ?? null,
+    httpStatus: result.status,
+    ok: result.ok,
+    error: result.error ?? null,
+    responseBody: result.body ?? null,
+    calledAt: result.calledAt ?? null,
+  }))
   if (result.ok && result.body && typeof result.body === 'object') {
     for (const v of session.variables ?? []) {
       const isFromThisApi =

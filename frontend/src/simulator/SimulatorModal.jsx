@@ -24,6 +24,7 @@ import { runSsoFlow } from '../lib/ssoFlow.js'
 import { useFocusTrap } from '../lib/useFocusTrap.js'
 import SimulatorChat from './SimulatorChat.jsx'
 import SimulatorSidePanel from './SimulatorSidePanel.jsx'
+import SimulatorLogPanel from './SimulatorLogPanel.jsx'
 import './SimulatorModal.css'
 
 export default function SimulatorModal({
@@ -166,6 +167,7 @@ export default function SimulatorModal({
             launcherUi={launcherUi}
           />
           <SimulatorSidePanel session={session} onClearMemory={handleClearMemory} />
+          <SimulatorLogPanel session={session} />
         </div>
       </div>
     </div>

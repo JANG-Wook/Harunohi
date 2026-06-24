@@ -50,11 +50,19 @@ export default function SimulatorChat({
   onSubmitForm,
   onSendUtterance,
   botName = '챗봇',
+  launcherUi = null,
 }) {
-  const messages = useMemo(
-    () => buildChatRoomMessages(session, variables, botName),
-    [session, variables, botName],
-  )
+  // 런처 적용 시 — 봇 라벨/아바타를 런처 챗봇 프로필로 교체
+  const effectiveBotName = launcherUi ? launcherUi.botName : botName
+  const messages = useMemo(() => {
+    const built = buildChatRoomMessages(session, variables, effectiveBotName)
+    if (!launcherUi) return built
+    return built.map((m) =>
+      m.type === 'bot'
+        ? { ...m, avatarSrc: launcherUi.avatarSrc, showAvatar: launcherUi.showAvatar }
+        : m,
+    )
+  }, [session, variables, effectiveBotName, launcherUi])
 
   /** ChatRoom 의 onMessageAction → 활성 응답의 (label, link) 를 추출해 runtime clickButton 호출 */
   const handleAction = (messageId, action) => {
@@ -106,13 +114,29 @@ export default function SimulatorChat({
     onClickButton(interpolatedLabel, interpolatedLink)
   }
 
+  const title = launcherUi
+    ? (launcherUi.chatroom.roomTitleOn ? launcherUi.chatroom.roomTitle : '')
+    : '대화방 이름'
+  const rootStyle = launcherUi
+    ? {
+        '--cr-primary-light': launcherUi.primaryLight,
+        '--cr-primary-dark': launcherUi.primaryDark,
+        ...(launcherUi.bgColor ? { '--cr-bg': launcherUi.bgColor } : {}),
+        ...(launcherUi.bgImage ? { '--cr-bg-image': `url(${launcherUi.bgImage})` } : {}),
+      }
+    : undefined
+
   return (
-    <div className="sim-chat">
+    <div className="sim-chat" style={rootStyle}>
       <ChatRoom
-        title="대화방 이름"
+        title={title}
         initialMessages={messages}
         onMessageAction={handleAction}
         onSend={(text) => onSendUtterance?.(text)}
+        headerBgColor={launcherUi?.headerBgColor}
+        footerBgColor={launcherUi?.footerBgColor}
+        inputBgColor={launcherUi?.inputBgColor}
+        bubbleStyle={launcherUi?.bubbleStyle}
         resetDisabled
         closeDisabled
       />

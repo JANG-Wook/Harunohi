@@ -9,6 +9,20 @@
     var(--shadow-normal-large, 0 16px 24px -6px rgba(23, 23, 23, 0.08), 0 6px 10px -4px rgba(23, 23, 23, 0.08));
   background: var(--color-bg-normal);
   flex-shrink: 0;
+  /* 적용 런처 프라이머리 오버라이드(콘솔 미적용) — 라이트 기본, 다크는 아래 [data-theme] */
+  --color-primary-normal: var(--cr-primary-light, var(--color-primary-normal));
+}
+
+[data-theme="dark"] .chat-msg-preview {
+  --color-primary-normal: var(--cr-primary-dark, var(--color-primary-normal));
+}
+
+/* 적용 런처 대화방 배경 — 미적용/테마추종이면 투명(ChatRoom 기본 배경 노출) */
+.chat-msg-preview .chat-room-scroll {
+  background-color: var(--cr-bg, transparent);
+  background-image: var(--cr-bg-image, none);
+  background-size: cover;
+  background-position: center;
 }
 
 /* compact 모드 — ChatRoom 의 chrome(상태바·헤더·입력창) 숨김 */

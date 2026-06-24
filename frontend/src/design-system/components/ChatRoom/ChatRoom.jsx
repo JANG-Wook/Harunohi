@@ -120,10 +120,17 @@ export function ChatHeader({ title, onReset, onClose, resetDisabled = false, clo
   )
 }
 
-function BotTextArea({ title, body, accordionText = '추가 안내 내용입니다. 더 자세한 정보를 확인하세요.', titleOn = true, bodyOn = true, accordionOn = true }) {
+function BotTextArea({ title, body, accordionText = '추가 안내 내용입니다. 더 자세한 정보를 확인하세요.', titleOn = true, bodyOn = true, accordionOn = true, bubbleStyle }) {
   const [expanded, setExpanded] = useState(false)
   const showTitle = titleOn && title
   const showBody  = bodyOn && body
+  // 런처 응답 스타일 적용 — 미지정이면 기존 토큰 유지
+  const titleSize = bubbleStyle?.titleSize ?? 'var(--font-size-body-2)'
+  const titleColor = bubbleStyle?.titleColor ?? 'var(--color-label-neutral)'
+  const bodySize = bubbleStyle?.bodySize ?? 'var(--font-size-body-2)'
+  const bodyColor = bubbleStyle?.bodyColor ?? 'var(--color-label-neutral)'
+  const accSize = bubbleStyle?.accordionSize ?? 'var(--font-size-body-2)'
+  const accColor = bubbleStyle?.accordionColor ?? 'var(--color-label-neutral)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-16)', width: '100%' }}>
@@ -131,10 +138,10 @@ function BotTextArea({ title, body, accordionText = '추가 안내 내용입니�
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)', width: '100%', padding: '0 var(--spacing-4)', boxSizing: 'border-box' }}>
           {showTitle && (
             <p style={{
-              fontSize:      'var(--font-size-body-2)',
+              fontSize:      titleSize,
               lineHeight:    'var(--line-height-body-2-normal)',
               fontWeight:    'var(--font-weight-bold)',
-              color:         'var(--color-label-neutral)',
+              color:         titleColor,
               letterSpacing: 'var(--letter-spacing-heading-1)',
               wordBreak:     'break-word',
               whiteSpace:    'pre-wrap',
@@ -143,10 +150,10 @@ function BotTextArea({ title, body, accordionText = '추가 안내 내용입니�
           )}
           {showBody && (
             <p style={{
-              fontSize:      'var(--font-size-body-2)',
+              fontSize:      bodySize,
               lineHeight:    'var(--line-height-body-2-normal)',
               fontWeight:    'var(--font-weight-regular)',
-              color:         'var(--color-label-neutral)',
+              color:         bodyColor,
               letterSpacing: 'var(--letter-spacing-heading-1)',
               wordBreak:     'break-word',
               whiteSpace:    'pre-wrap',
@@ -157,10 +164,10 @@ function BotTextArea({ title, body, accordionText = '추가 안내 내용입니�
       )}
       {accordionOn && expanded && (
         <p style={{
-          fontSize:      'var(--font-size-body-2)',
+          fontSize:      accSize,
           lineHeight:    'var(--line-height-body-2-normal)',
           fontWeight:    'var(--font-weight-regular)',
-          color:         'var(--color-label-neutral)',
+          color:         accColor,
           letterSpacing: 'var(--letter-spacing-heading-1)',
           wordBreak:     'break-word',
           whiteSpace:    'pre-wrap',
@@ -186,7 +193,35 @@ function BotTextArea({ title, body, accordionText = '추가 안내 내용입니�
   )
 }
 
-function FullWidthButton({ variant, label, onClick, disabled }) {
+function FullWidthButton({ variant, label, onClick, disabled, bubbleStyle }) {
+  // 런처 응답 스타일 적용 시 — DS Button 은 색 prop 이 없어 커스텀 버튼으로 렌더(ResponsePreview 와 동일 스펙)
+  if (bubbleStyle) {
+    const isMain = variant === 'solid'
+    return (
+      <div style={{ display: 'flex', width: '100%' }}>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          style={{
+            width:        '100%',
+            padding:      'var(--spacing-12) var(--spacing-24)',
+            borderRadius: bubbleStyle.buttonRadius,
+            fontSize:     bubbleStyle.buttonTextSize,
+            fontWeight:   'var(--font-weight-semibold)',
+            lineHeight:   1.2,
+            cursor:       disabled ? 'not-allowed' : 'pointer',
+            boxSizing:    'border-box',
+            background:   isMain ? bubbleStyle.mainBg : bubbleStyle.subBg,
+            border:       `1px solid ${isMain ? bubbleStyle.mainBorder : bubbleStyle.subBorder}`,
+            color:        isMain ? bubbleStyle.mainText : bubbleStyle.subText,
+          }}
+        >
+          {label}
+        </button>
+      </div>
+    )
+  }
   return (
     <div style={{ display: 'flex', width: '100%' }}>
       <Button
@@ -204,15 +239,15 @@ function FullWidthButton({ variant, label, onClick, disabled }) {
 
 function BotButtonArea({
   mainButton, subButton, mainOn = true, subOn = true,
-  onMainClick, onSubClick, disabled = false,
+  onMainClick, onSubClick, disabled = false, bubbleStyle,
 }) {
   const showMain = mainOn && mainButton
   const showSub  = subOn && subButton
   if (!showMain && !showSub) return null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)', width: '100%' }}>
-      {showMain && <FullWidthButton variant="solid" label={mainButton} onClick={onMainClick} disabled={disabled} />}
-      {showSub  && <FullWidthButton variant="outlined" label={subButton} onClick={onSubClick} disabled={disabled} />}
+      {showMain && <FullWidthButton variant="solid" label={mainButton} onClick={onMainClick} disabled={disabled} bubbleStyle={bubbleStyle} />}
+      {showSub  && <FullWidthButton variant="outlined" label={subButton} onClick={onSubClick} disabled={disabled} bubbleStyle={bubbleStyle} />}
     </div>
   )
 }
@@ -473,6 +508,7 @@ function BotMessage({
   formDescription, formPlaceholder, formTimePlaceholder, formType, formOptions,
   // 시뮬레이터/외부 통합용 — 버튼 클릭 콜백 + 비활성화 (이전 봇 메시지 등)
   onMainClick, onSubClick, onFormSubmit, disabled = false,
+  bubbleStyle,
 }) {
   const isInputForm = messageMode === 'inputForm'
   /* 폼 입력값을 메시지 단위로 보관 — disabled(이전 메시지) 면 의미 없음.
@@ -484,14 +520,14 @@ function BotMessage({
   if (!showImage && !hasText && !hasButton && !isInputForm) return null
   return (
     <div style={{
-      border:          '1px solid var(--color-line-solid-normal)',
-      borderRadius:    'var(--spacing-12)',
+      border:          `1px solid ${bubbleStyle?.bubbleBorder ?? 'var(--color-line-solid-normal)'}`,
+      borderRadius:    bubbleStyle?.bubbleRadius ?? 'var(--spacing-12)',
       padding:         'var(--spacing-20)',
       display:         'flex',
       flexDirection:   'column',
       gap:             'var(--spacing-16)',
       width:           '100%',
-      backgroundColor: 'var(--color-bg-normal)',
+      backgroundColor: bubbleStyle?.bubbleBg ?? 'var(--color-bg-normal)',
       boxSizing:       'border-box',
     }}>
       {showImage && <BotMessageImage src={imageSrc} />}
@@ -503,6 +539,7 @@ function BotMessage({
           titleOn={titleOn}
           bodyOn={bodyOn}
           accordionOn={accordionOn && !isInputForm}
+          bubbleStyle={bubbleStyle}
         />
       )}
       {isInputForm && (
@@ -533,6 +570,7 @@ function BotMessage({
           onMainClick={onMainClick}
           onSubClick={onSubClick}
           disabled={disabled}
+          bubbleStyle={bubbleStyle}
         />
       )}
     </div>
@@ -545,21 +583,21 @@ function CarouselCard({
   imageOn = false, textOn = true, buttonOn = true,
   titleOn = true, bodyOn = true,
   mainOn = true, subOn = true,
-  onMainClick, onSubClick, disabled = false,
+  onMainClick, onSubClick, disabled = false, bubbleStyle,
 }) {
   const hasText   = textOn && (titleOn || bodyOn)
   const hasButton = buttonOn && ((mainOn && mainButton) || (subOn && subButton))
   if (!imageOn && !hasText && !hasButton) return null
   return (
     <div style={{
-      border:          '1px solid var(--color-line-solid-normal)',
-      borderRadius:    'var(--spacing-12)',
+      border:          `1px solid ${bubbleStyle?.bubbleBorder ?? 'var(--color-line-solid-normal)'}`,
+      borderRadius:    bubbleStyle?.bubbleRadius ?? 'var(--spacing-12)',
       padding:         'var(--spacing-20)',
       display:         'flex',
       flexDirection:   'column',
       gap:             'var(--spacing-16)',
       width:           '280px',
-      backgroundColor: 'var(--color-bg-normal)',
+      backgroundColor: bubbleStyle?.bubbleBg ?? 'var(--color-bg-normal)',
       boxSizing:       'border-box',
       flexShrink:      0,
     }}>
@@ -571,6 +609,7 @@ function CarouselCard({
           titleOn={titleOn}
           bodyOn={bodyOn}
           accordionOn={false}
+          bubbleStyle={bubbleStyle}
         />
       )}
       {hasButton && (
@@ -582,6 +621,7 @@ function CarouselCard({
           onMainClick={onMainClick}
           onSubClick={onSubClick}
           disabled={disabled}
+          bubbleStyle={bubbleStyle}
         />
       )}
     </div>
@@ -589,7 +629,7 @@ function CarouselCard({
 }
 
 // 캐로셀 컨테이너 — 가로 스크롤 + 호버 시 좌우 화살표 fade-in
-function CarouselArea({ cards, onCardMainClick, onCardSubClick, disabled = false }) {
+function CarouselArea({ cards, onCardMainClick, onCardSubClick, disabled = false, bubbleStyle }) {
   const scrollRef = useRef(null)
   const [hover, setHover] = useState(false)
 
@@ -647,6 +687,7 @@ function CarouselArea({ cards, onCardMainClick, onCardSubClick, disabled = false
             onMainClick={onCardMainClick ? () => onCardMainClick(idx) : undefined}
             onSubClick={onCardSubClick ? () => onCardSubClick(idx) : undefined}
             disabled={disabled}
+            bubbleStyle={bubbleStyle}
           />
         ))}
       </div>
@@ -692,7 +733,7 @@ function MessageBanner({ src }) {
   )
 }
 
-function QuickButtonGroup({ items = ['퀵 버튼', '퀵 버튼', '퀵 버튼', '퀵 버튼'], onItemClick, disabled = false }) {
+function QuickButtonGroup({ items = ['퀵 버튼', '퀵 버튼', '퀵 버튼', '퀵 버튼'], onItemClick, disabled = false, bubbleStyle }) {
   return (
     <div style={{
       display:    'flex',
@@ -701,14 +742,37 @@ function QuickButtonGroup({ items = ['퀵 버튼', '퀵 버튼', '퀵 버튼', '
       width:      '100%',
     }}>
       {items.map((label, i) => (
-        <Chip
-          key={i}
-          variant="outlined"
-          size="small"
-          label={label}
-          disabled={disabled}
-          onClick={onItemClick ? () => onItemClick(i) : undefined}
-        />
+        bubbleStyle ? (
+          // 런처 응답 스타일 적용 — DS Chip 은 색 prop 이 없어 커스텀 칩으로 렌더
+          <button
+            key={i}
+            type="button"
+            disabled={disabled}
+            onClick={onItemClick ? () => onItemClick(i) : undefined}
+            style={{
+              padding:      'var(--spacing-6) var(--spacing-10)',
+              borderRadius: bubbleStyle.quickRadius,
+              fontSize:     bubbleStyle.quickTextSize,
+              fontWeight:   'var(--font-weight-medium)',
+              lineHeight:   1.2,
+              cursor:       disabled ? 'not-allowed' : 'pointer',
+              background:   bubbleStyle.quickBg,
+              border:       `1px solid ${bubbleStyle.quickBorder}`,
+              color:        bubbleStyle.quickText,
+            }}
+          >
+            {label}
+          </button>
+        ) : (
+          <Chip
+            key={i}
+            variant="outlined"
+            size="small"
+            label={label}
+            disabled={disabled}
+            onClick={onItemClick ? () => onItemClick(i) : undefined}
+          />
+        )
       ))}
     </div>
   )
@@ -731,6 +795,8 @@ function BotMessageWrapper({
   disabled = false,
   // 프로필 사진(아바타) 표시 여부 — false 면 이름만 노출
   showAvatar = true,
+  // 런처 응답 스타일 — 미지정이면 기존 토큰
+  bubbleStyle,
 }) {
   const avatar = avatarSrc ?? companyAvatar
   return (
@@ -759,6 +825,7 @@ function BotMessageWrapper({
           onCardMainClick={onCardMainClick}
           onCardSubClick={onCardSubClick}
           disabled={disabled}
+          bubbleStyle={bubbleStyle}
         />
       ) : (
         <BotMessage
@@ -786,6 +853,7 @@ function BotMessageWrapper({
           onSubClick={onSubClick}
           onFormSubmit={onFormSubmit}
           disabled={disabled}
+          bubbleStyle={bubbleStyle}
         />
       )}
 
@@ -795,6 +863,7 @@ function BotMessageWrapper({
           items={quickItems}
           onItemClick={onQuickClick}
           disabled={disabled}
+          bubbleStyle={bubbleStyle}
         />
       )}
 
@@ -1112,6 +1181,8 @@ export default function ChatRoom({
   // 푸터(입력 영역) / 메시지 입력창 배경색 — 지정 시 적용(미지정이면 테마 기본 배경 따름)
   footerBgColor,
   inputBgColor,
+  // 봇 메시지(말풍선/텍스트/버튼/퀵) 스타일 — 지정 시 적용(미지정이면 기존 토큰)
+  bubbleStyle,
   children,
 }) {
   const [inputValue, setInputValue] = useState(initialValue)
@@ -1275,6 +1346,7 @@ export default function ChatRoom({
                         onCardSubClick={fire ? (i) => fire({ kind: 'card-sub', index: i }) : undefined}
                         onQuickClick={fire ? (i) => fire({ kind: 'quick', index: i }) : undefined}
                         onFormSubmit={fire ? (value) => fire({ kind: 'form-submit', value }) : undefined}
+                        bubbleStyle={bubbleStyle}
                       />
                     </div>
                   )

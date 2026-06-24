@@ -39,6 +39,9 @@ export default function ScenarioPanel({
   // 트리거 — 현재 시나리오의 트리거 선택
   triggerSelected,
   onSelectTrigger,
+  // UI 적용 — 적용된 런처(챗봇 설정) 이름 + 모달 열기
+  appliedLauncherName,
+  onApplyUI,
 }) {
   /* 변수 모달 — null = 닫힘, { isNew, variable } = 열림 */
   const [variableModal, setVariableModal] = useState(null)
@@ -433,6 +436,17 @@ export default function ScenarioPanel({
             )
           })}
         </ul>
+      </div>
+
+      {/* UI 적용 — 맨 아래 고정. 적용된 챗봇 설정(런처) 이름 표시 */}
+      <div className="scenario-panel__footer">
+        <button type="button" className="scenario-panel__apply" onClick={onApplyUI}>
+          <span className="scenario-panel__apply-label">UI 적용</span>
+          {appliedLauncherName && (
+            <span className="scenario-panel__apply-current">{appliedLauncherName}</span>
+          )}
+          <Icon name="chevronRightSmall" size={16} />
+        </button>
       </div>
 
       {/* 변수 등록/편집 모달 — 신규: onAddVariable, 편집: onUpdateVariable + 모달 내 삭제 */}

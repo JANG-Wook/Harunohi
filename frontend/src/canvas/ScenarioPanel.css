@@ -374,3 +374,49 @@
   padding: var(--spacing-20);
   z-index: 1000;
 }
+
+/* UI 적용 — 좌측 패널 맨 아래 고정 푸터. 한 줄(라벨 · 적용 런처명 · chevron) */
+.scenario-panel__footer {
+  flex-shrink: 0;
+  padding: var(--spacing-8) var(--spacing-8) var(--spacing-16);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}
+
+.scenario-panel__apply {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--spacing-8);
+  border: none;
+  background: transparent;
+  color: var(--color-label-normal);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.scenario-panel__apply:hover {
+  background: var(--color-fill-alternative);
+}
+
+.scenario-panel__apply-label {
+  flex-shrink: 0;
+  font-size: var(--font-size-label-2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-label-2);
+  color: var(--color-label-normal);
+}
+
+/* 적용 런처명 — 라벨 옆, 남은 폭 차지해 chevron 을 우측 끝으로 밀어냄 */
+.scenario-panel__apply-current {
+  flex: 1 0 0;
+  min-width: 0;
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  color: var(--color-label-assistive);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

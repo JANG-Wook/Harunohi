@@ -33,6 +33,7 @@ export default function SimulatorModal({
   variables = [],
   apis = [],
   botName,
+  launcherUi = null,
 }) {
   /* 시뮬레이터 세션 — 모달 열릴 때 scenarios/variables/apis 로 초기화 */
   const [session, setSession] = useState(() =>
@@ -162,6 +163,7 @@ export default function SimulatorModal({
             onSubmitForm={handleSubmitForm}
             onSendUtterance={handleSendUtterance}
             botName={headerName}
+            launcherUi={launcherUi}
           />
           <SimulatorSidePanel session={session} onClearMemory={handleClearMemory} />
         </div>

@@ -1,0 +1,146 @@
+/* UI 적용 모달 — SaveVersionModal 과 동일 톤(토큰 기반) */
+
+.lpm__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-material-dimmer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 2000;
+}
+
+.lpm__modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: 80vh;
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: var(--shadow-normal-large);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lpm__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.lpm__desc {
+  margin: 0;
+  padding: var(--spacing-16) var(--spacing-20) 0;
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  letter-spacing: var(--letter-spacing-label-2);
+  color: var(--color-label-alternative);
+}
+
+.lpm__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+  margin: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.lpm__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12);
+  border-radius: var(--spacing-12);
+  border: 1px solid var(--color-line-solid-normal);
+  background: var(--color-bg-normal);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.lpm__item:hover {
+  background: var(--color-fill-alternative);
+}
+
+.lpm__item.is-selected {
+  border-color: var(--color-primary-normal);
+  background: color-mix(in srgb, var(--color-primary-normal) 6%, transparent);
+}
+
+.lpm__radio {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-line-neutral);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lpm__item.is-selected .lpm__radio {
+  border-color: var(--color-primary-normal);
+}
+
+.lpm__radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-normal);
+}
+
+.lpm__item-main {
+  flex: 1 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.lpm__item-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  font-size: var(--font-size-label-1);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-label-1-normal);
+  color: var(--color-label-normal);
+}
+
+.lpm__badge {
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--spacing-4);
+  background: var(--color-fill-alternative);
+  color: var(--color-label-alternative);
+}
+
+.lpm__item-sub {
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  letter-spacing: var(--letter-spacing-caption-1);
+  color: var(--color-label-assistive);
+}
+
+.lpm__applied {
+  flex-shrink: 0;
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-normal);
+}
+
+.lpm__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+  border-top: 1px solid var(--color-line-solid-alternative);
+}

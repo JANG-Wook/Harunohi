@@ -16,13 +16,17 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import ApiEditModal from '../canvas/ApiEditModal.jsx'
+import LauncherPickerModal from '../canvas/LauncherPickerModal.jsx'
 import ScenarioPanel from '../canvas/ScenarioPanel.jsx'
 import StepInspector from '../canvas/StepInspector.jsx'
 import TriggerInspector from '../canvas/TriggerInspector.jsx'
 import StepNode, { StepNodeProvider } from '../canvas/nodes/StepNode.jsx'
 import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
+import { LauncherUiContext } from '../canvas/launcherUiContext.js'
 import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, isStepComplete, makeDefaultScenarioWithWelcome } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
+import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
+import { resolveChatUi } from '../lib/chatUiStyle.js'
 import './BotCanvasPage.css'
 
 const STORAGE_PREFIX = 'harunohi.bot.'
@@ -358,8 +362,10 @@ function withVersionMeta(v, index) {
 function loadFromStorage(botId) {
   try {
     const raw = window.localStorage.getItem(storageKey(botId))
-    if (!raw) return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft' }
+    if (!raw) return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft', appliedLauncherId: DEFAULT_LAUNCHER_ID }
     const parsed = JSON.parse(raw)
+    // 적용된 챗봇 설정(런처) — 봇 단위 메타. 없으면 기본값 런처
+    const appliedLauncherId = parsed.appliedLauncherId ?? DEFAULT_LAUNCHER_ID
     if (parsed && Array.isArray(parsed.versions)) {
       // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API + 버전 메타
       const versions = parsed.versions.map((v, i) =>
@@ -378,7 +384,7 @@ function loadFromStorage(botId) {
         : status === 'active' && ids.includes(currentVersionId)
           ? currentVersionId
           : null
-      return { versions, currentVersionId, deployedVersionId, status }
+      return { versions, currentVersionId, deployedVersionId, status, appliedLauncherId }
     }
     // 더 오래된 포맷 — versions 자체가 없고 steps 만 있음
     if (parsed && Array.isArray(parsed.steps)) {
@@ -400,18 +406,18 @@ function loadFromStorage(botId) {
         ),
         0,
       )
-      return { versions: [legacy], currentVersionId: legacy.id, deployedVersionId: null, status: 'draft' }
+      return { versions: [legacy], currentVersionId: legacy.id, deployedVersionId: null, status: 'draft', appliedLauncherId }
     }
   } catch {
     // ignore
   }
-  return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft' }
+  return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft', appliedLauncherId: DEFAULT_LAUNCHER_ID }
 }
 
-function writeToStorage(botId, versions, currentVersionId, status, deployedVersionId = null) {
+function writeToStorage(botId, versions, currentVersionId, status, deployedVersionId = null, appliedLauncherId = DEFAULT_LAUNCHER_ID) {
   window.localStorage.setItem(
     storageKey(botId),
-    JSON.stringify({ versions, currentVersionId, status, deployedVersionId }),
+    JSON.stringify({ versions, currentVersionId, status, deployedVersionId, appliedLauncherId }),
   )
 }
 
@@ -451,6 +457,21 @@ function CanvasInner() {
   const [currentVersionId, setCurrentVersionId] = useState(initial.currentVersionId)
   const [deployedVersionId, setDeployedVersionId] = useState(initial.deployedVersionId)
   const [botStatus, setBotStatus] = useState(initial.status)
+
+  /* 적용된 챗봇 설정(런처) — 봇 단위 메타. 미리보기/시뮬레이터가 이 런처의 대화방 UI 로 표시됨 */
+  const [appliedLauncherId, setAppliedLauncherId] = useState(initial.appliedLauncherId ?? DEFAULT_LAUNCHER_ID)
+  const appliedLauncherIdRef = useRef(appliedLauncherId)
+  useEffect(() => { appliedLauncherIdRef.current = appliedLauncherId }, [appliedLauncherId])
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  // 적용 런처 엔트리(없으면 기본값으로 폴백) → 이름 + 해석된 대화방 UI 스타일
+  const appliedLauncher = useMemo(() => {
+    return loadLauncher(appliedLauncherId) ?? loadLauncher(DEFAULT_LAUNCHER_ID)
+  }, [appliedLauncherId])
+  const launcherUi = useMemo(
+    () => (appliedLauncher?.config ? resolveChatUi(appliedLauncher.config) : null),
+    [appliedLauncher],
+  )
 
   const [scenarios, setScenarios] = useState(initialScenarios)
   const [currentScenarioId, setCurrentScenarioId] = useState(
@@ -610,7 +631,7 @@ function CanvasInner() {
     }
     const nextVersions = [...vs, newVersion]
     try {
-      writeToStorage(botId, nextVersions, newVersion.id, bs, dep)
+      writeToStorage(botId, nextVersions, newVersion.id, bs, dep, appliedLauncherIdRef.current)
       setVersions(nextVersions)
       setCurrentVersionId(newVersion.id)
       setSavedSnapshot(JSON.stringify(payload))
@@ -625,7 +646,7 @@ function CanvasInner() {
   const handlePublish = useCallback(() => {
     const { versions: vs, currentVersionId: cur } = stateRef.current
     try {
-      writeToStorage(botId, vs, cur, 'active', cur)
+      writeToStorage(botId, vs, cur, 'active', cur, appliedLauncherIdRef.current)
       setBotStatus('active')
       setDeployedVersionId(cur)
       return true
@@ -641,8 +662,18 @@ function CanvasInner() {
       scenarios: stateRef.current.scenarios,
       variables: stateRef.current.variables,
       apis: stateRef.current.apis,
+      appliedLauncherId: appliedLauncherIdRef.current,
     }
   }, [])
+
+  /* UI 적용 — 선택한 런처를 봇에 영속(버전과 무관한 봇 메타) + 모달 닫기 */
+  const handleApplyUI = useCallback((launcherId) => {
+    setAppliedLauncherId(launcherId)
+    appliedLauncherIdRef.current = launcherId
+    const { versions: vs, currentVersionId: cur, botStatus: bs, deployedVersionId: dep } = stateRef.current
+    writeToStorage(botId, vs, cur, bs, dep, launcherId)
+    setPickerOpen(false)
+  }, [botId])
 
   const handleLoadVersion = useCallback(
     (versionId) => {
@@ -682,7 +713,7 @@ function CanvasInner() {
         v.id === versionId ? { ...v, name: trimmed, description: (description ?? '').trim() } : v,
       )
       try {
-        writeToStorage(botId, next, cur, bs, dep)
+        writeToStorage(botId, next, cur, bs, dep, appliedLauncherIdRef.current)
         setVersions(next)
         return true
       } catch {
@@ -702,7 +733,7 @@ function CanvasInner() {
       const nextCur = cur === versionId ? next[next.length - 1].id : cur
       const nextDep = dep === versionId ? null : dep
       try {
-        writeToStorage(botId, next, nextCur, bs, nextDep)
+        writeToStorage(botId, next, nextCur, bs, nextDep, appliedLauncherIdRef.current)
         setVersions(next)
         setDeployedVersionId(nextDep)
         // 현재 보던 버전을 지웠으면 최신 버전 내용으로 에디터 교체
@@ -1093,6 +1124,7 @@ function CanvasInner() {
   }, [setNodes, panToNode])
 
   return (
+    <LauncherUiContext.Provider value={launcherUi}>
     <div className="bot-canvas">
       <ScenarioPanel
         variables={variables}
@@ -1117,6 +1149,8 @@ function CanvasInner() {
         onRenameResponse={handleRenameResponse}
         triggerSelected={selectedId === TRIGGER_NODE_ID}
         onSelectTrigger={handleSelectTrigger}
+        appliedLauncherName={appliedLauncher?.name}
+        onApplyUI={() => setPickerOpen(true)}
       />
 
       <div className="bot-canvas__flow">
@@ -1182,7 +1216,16 @@ function CanvasInner() {
           onClose={() => setEditingApi(null)}
         />
       )}
+
+      {/* UI 적용 — 챗봇 설정(런처) 선택 모달 */}
+      <LauncherPickerModal
+        open={pickerOpen}
+        currentLauncherId={appliedLauncherId}
+        onApply={handleApplyUI}
+        onClose={() => setPickerOpen(false)}
+      />
     </div>
+    </LauncherUiContext.Provider>
   )
 }
 

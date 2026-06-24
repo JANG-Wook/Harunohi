@@ -14,6 +14,8 @@ import SaveVersionModal from '../settings/SaveVersionModal.jsx'
 import VersionManagerModal from '../settings/VersionManagerModal.jsx'
 import MenuSelect from '../canvas/MenuSelect.jsx'
 import { useTheme } from '../lib/useTheme.js'
+import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
+import { resolveChatUi } from '../lib/chatUiStyle.js'
 import './BotWorkspaceLayout.css'
 
 const TOAST_DURATION = 2400
@@ -65,6 +67,8 @@ export default function BotWorkspaceLayout() {
   const [simulatorScenarios, setSimulatorScenarios] = useState([])
   const [simulatorVariables, setSimulatorVariables] = useState([])
   const [simulatorApis, setSimulatorApis] = useState([])
+  /* 적용된 챗봇 설정(런처)의 대화방 UI — 시뮬레이터 ChatRoom 에 동일 스킨 적용 */
+  const [simulatorLauncherUi, setSimulatorLauncherUi] = useState(null)
   const handleOpenSimulator = useCallback(() => {
     const payload = simulatorPayloadRef.current?.()
     // 구포맷(scenarios 만 반환) 호환을 위해 형태 분기
@@ -72,10 +76,13 @@ export default function BotWorkspaceLayout() {
       setSimulatorScenarios(payload)
       setSimulatorVariables([])
       setSimulatorApis([])
+      setSimulatorLauncherUi(null)
     } else {
       setSimulatorScenarios(payload?.scenarios ?? [])
       setSimulatorVariables(payload?.variables ?? [])
       setSimulatorApis(payload?.apis ?? [])
+      const launcher = loadLauncher(payload?.appliedLauncherId ?? DEFAULT_LAUNCHER_ID) ?? loadLauncher(DEFAULT_LAUNCHER_ID)
+      setSimulatorLauncherUi(launcher?.config ? resolveChatUi(launcher.config) : null)
     }
     setSimulatorOpen(true)
   }, [])
@@ -271,14 +278,8 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 중앙 — 다크모드 + 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
+        {/* 중앙 — 버전 드롭다운(최신이 위) + 버전 관리 버튼 */}
         <div className="bot-workspace__center">
-          <IconButtonOutlined
-            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
-            size="small"
-            onClick={toggleTheme}
-            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          />
           {versionInfo.versions.length > 0 && (
             <>
               <div className="bot-workspace__version-select">
@@ -301,7 +302,7 @@ export default function BotWorkspaceLayout() {
           )}
         </div>
 
-        {/* 우측 — (미완성 안내) + 시뮬레이터 + 저장 */}
+        {/* 우측 — (미완성 안내) + 다크모드 + 시뮬레이터 + 저장 */}
         <div className="bot-workspace__actions">
           {incomplete && (
             <span className="bot-workspace__save-hint">
@@ -309,6 +310,12 @@ export default function BotWorkspaceLayout() {
               비어 있는 항목이 있어 저장할 수 없어요
             </span>
           )}
+          <IconButtonOutlined
+            icon={<Icon name={isDark ? 'sun' : 'moon'} size={18} />}
+            size="small"
+            onClick={toggleTheme}
+            aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          />
           <Button
             variant="outlined"
             color="assistive"
@@ -412,6 +419,7 @@ export default function BotWorkspaceLayout() {
         variables={simulatorVariables}
         apis={simulatorApis}
         botName={decodeURIComponent(botId ?? '')}
+        launcherUi={simulatorLauncherUi}
       />
     </div>
   )

@@ -14,6 +14,7 @@ import {
   sampleTimePlaceholderFor,
 } from '../lib/chatMessageDefaults.js'
 import { isRunsEmpty, toRuns } from '../lib/richText.js'
+import { useLauncherUi } from './launcherUiContext.js'
 import './ChatMessagePreview.css'
 
 // SVG 는 public 폴더에서 URL 문자열로 직접 참조 (svgr 변환 우회)
@@ -26,6 +27,8 @@ const DEFAULT_HEIGHT = '780px'
 
 export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, compact = false }) {
   const { cfg, mode, texts, imageFile, carouselCards, form } = config
+  // 적용된 런처(챗봇 설정)의 대화방 UI — 없으면 기본 챗룸
+  const launcherUi = useLauncherUi()
 
   /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) */
   const modeExtras = config.perMode?.[mode] ?? defaultPerModeExtras()
@@ -111,14 +114,47 @@ export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, co
     ],
   )
 
+  // 런처 적용 시 — 봇 메시지의 프로필(이름/아바타)을 런처 챗봇 프로필로 교체
+  const messages = useMemo(() => {
+    if (!launcherUi) return initialMessages
+    return initialMessages.map((m) =>
+      m.type === 'bot'
+        ? { ...m, botName: launcherUi.botName, avatarSrc: launcherUi.avatarSrc, showAvatar: launcherUi.showAvatar }
+        : m,
+    )
+  }, [initialMessages, launcherUi])
+
+  // 헤더 제목 — 런처 대화방 이름(켜짐+값 있을 때), 미적용이면 기본
+  const title = launcherUi
+    ? (launcherUi.chatroom.roomTitleOn ? launcherUi.chatroom.roomTitle : '')
+    : '챗봇 이름'
+
+  // 프라이머리(라이트/다크 스코프) + 대화방 배경을 루트에 주입 — 콘솔 미적용
+  const rootStyle = {
+    ...(compact ? {} : { height }),
+    ...(launcherUi
+      ? {
+          '--cr-primary-light': launcherUi.primaryLight,
+          '--cr-primary-dark': launcherUi.primaryDark,
+          ...(launcherUi.bgColor ? { '--cr-bg': launcherUi.bgColor } : {}),
+          ...(launcherUi.bgImage ? { '--cr-bg-image': `url(${launcherUi.bgImage})` } : {}),
+        }
+      : {}),
+  }
+
   return (
     <div
       className={['chat-msg-preview', compact && 'chat-msg-preview--compact'].filter(Boolean).join(' ')}
-      style={compact ? undefined : { height }}
+      style={rootStyle}
     >
       <ChatRoom
-        title="챗봇 이름"
-        initialMessages={cfg.messageOn ? initialMessages : []}
+        title={title}
+        placeholder={launcherUi?.inputPlaceholder || undefined}
+        initialMessages={cfg.messageOn ? messages : []}
+        headerBgColor={launcherUi?.headerBgColor}
+        footerBgColor={launcherUi?.footerBgColor}
+        inputBgColor={launcherUi?.inputBgColor}
+        bubbleStyle={launcherUi?.bubbleStyle}
         resetDisabled
       />
     </div>

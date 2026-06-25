@@ -39,8 +39,12 @@ function buildChatRoomMessages(session, variables, botName) {
       return { id: `utt-${idx}`, type: 'user', text: ev.text }
     }
     // system → user 타입의 가벼운 시스템 메시지로 표현 (ChatRoom 의 type 제한 회피)
-    return { id: `sys-${idx}`, type: 'user', text: `· ${ev.text} ·` }
-  })
+    if (ev.kind === 'system') {
+      return { id: `sys-${idx}`, type: 'user', text: `· ${ev.text} ·` }
+    }
+    // api-call / memory-update 등 디버그 이벤트는 챗에 표시하지 않음(로그·메모리 패널 전용)
+    return null
+  }).filter(Boolean)
 }
 
 export default function SimulatorChat({

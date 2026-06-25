@@ -1,6 +1,7 @@
 // 시뮬레이터 우측 사이드 — 현재 위치 + 메모리 (출처 칩, 하이라이트, 비우기) + 이벤트 로그.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import ContentBadge from '../design-system/components/ContentBadge/ContentBadge.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { getActiveResponse } from '../lib/simulatorRuntime.js'
@@ -123,25 +124,29 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
       <div className="sim-side__section">
         <div className="sim-side__head">
           <Icon name="location" size={14} color="var(--color-label-assistive)" />
-          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-assistive)" as="span">
+          <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
             현재 위치
           </Typography>
         </div>
         {active ? (
           <div className="sim-side__crumb">
-            <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
-              시나리오
-            </Typography>
-            <Typography variant="label-1-normal" weight="medium" color="var(--color-label-normal)" as="div">
-              {sc?.name ?? '(이름 없음)'}
-            </Typography>
-            <div className="sim-side__sep" />
-            <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
-              응답
-            </Typography>
-            <Typography variant="label-1-normal" weight="medium" color="var(--color-label-normal)" as="div">
-              {active.response?.name ?? '(이름 없음)'}
-            </Typography>
+            <div className="sim-side__crumb-row">
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span" className="sim-side__crumb-label">
+                시나리오
+              </Typography>
+              <Typography variant="label-1-normal" weight="medium" color="var(--color-label-normal)" as="span" className="sim-side__crumb-value">
+                {sc?.name ?? '(이름 없음)'}
+              </Typography>
+            </div>
+            <div className="sim-side__crumb-divider" aria-hidden="true" />
+            <div className="sim-side__crumb-row">
+              <Typography variant="caption-1" color="var(--color-label-alternative)" as="span" className="sim-side__crumb-label">
+                응답
+              </Typography>
+              <Typography variant="label-1-normal" weight="medium" color="var(--color-label-normal)" as="span" className="sim-side__crumb-value">
+                {active.response?.name ?? '(이름 없음)'}
+              </Typography>
+            </div>
           </div>
         ) : (
           <Typography variant="body-2-normal" color="var(--color-label-assistive)" as="div">
@@ -169,7 +174,7 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
         <div className="sim-side__head sim-side__head--actionable">
           <div className="sim-side__head-left">
             <Icon name="documentText" size={14} color="var(--color-label-assistive)" />
-            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-assistive)" as="span">
+            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
               메모리
             </Typography>
           </div>
@@ -233,11 +238,11 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
               size={12}
               color="var(--color-label-assistive)"
             />
-            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-assistive)" as="span">
+            <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">
               이벤트 로그
             </Typography>
           </div>
-          <span className="sim-side__head-count">{eventLog.length}</span>
+          <ContentBadge size="xsmall">{String(eventLog.length)}</ContentBadge>
         </button>
         {logOpen && (
           <div className="sim-side__log sidebar-scroll" ref={logScrollRef}>

@@ -6,20 +6,28 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16);
-  /* 상단 패딩 0 — 첫 카드(현재 위치)를 챗 미리보기 카드 상단과 정렬 */
+  /* 섹션 사이는 구분선으로 분리(gap 0) */
+  gap: 0;
+  /* 상단 패딩 0 — 첫 섹션(현재 위치)을 챗 미리보기/실제 로그 상단과 정렬 */
   padding: 0 var(--spacing-16) var(--spacing-16);
   overflow-y: auto;
 }
 
+/* 평면 섹션 + 섹션 사이 구분선(마지막 제외) */
 .sim-side__section {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
-  padding: var(--spacing-12) var(--spacing-14);
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-line-solid-alternative);
-  border-radius: var(--spacing-10);
+  padding: var(--spacing-14) 0;
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+}
+
+.sim-side__section:first-child {
+  padding-top: 0;
+}
+
+.sim-side__section:last-child {
+  border-bottom: none;
 }
 
 .sim-side__head {
@@ -70,23 +78,42 @@
   text-align: left;
 }
 
-.sim-side__head-count {
-  font-size: var(--font-size-caption-1);
-  line-height: var(--line-height-caption-1);
-  color: var(--color-label-assistive);
-  font-variant-numeric: tabular-nums;
-}
 
+/* 시나리오·응답 두 쌍을 한 줄에 나란히 (좁으면 줄바꿈) */
 .sim-side__crumb {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-6) var(--spacing-16);
 }
 
-.sim-side__sep {
-  height: 1px;
-  background: var(--color-line-solid-alternative);
-  margin: var(--spacing-6) 0;
+/* 시나리오 / 응답 쌍 사이 수직 구분선 */
+.sim-side__crumb-divider {
+  align-self: center;
+  width: 1px;
+  height: 12px;
+  background: var(--color-line-solid-normal);
+  flex-shrink: 0;
+}
+
+/* 각 쌍 — 라벨 + 값 인라인 */
+.sim-side__crumb-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-6);
+  min-width: 0;
+}
+
+.sim-side__crumb-label {
+  flex-shrink: 0;
+}
+
+.sim-side__crumb-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sim-side__section--end {

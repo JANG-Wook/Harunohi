@@ -2,6 +2,7 @@
 // 이벤트 로그(요약)와 별개. history 의 kind:'api-call' 이벤트만 모아 펼침 카드로 렌더.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import ContentBadge from '../design-system/components/ContentBadge/ContentBadge.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import './SimulatorLogPanel.css'
@@ -76,9 +77,9 @@ export default function SimulatorLogPanel({ session }) {
   return (
     <aside className="sim-log">
       <div className="sim-log__head">
-        <Icon name="code" size={16} color="var(--color-label-alternative)" />
-        <Typography variant="label-1-normal" weight="semibold" as="span">실제 로그</Typography>
-        <span className="sim-log__count">{logs.length}</span>
+        <Icon name="code" size={14} color="var(--color-label-assistive)" />
+        <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">실제 로그</Typography>
+        <span className="sim-log__count"><ContentBadge size="xsmall">{String(logs.length)}</ContentBadge></span>
       </div>
 
       <div className="sim-log__body sidebar-scroll" ref={scrollRef}>

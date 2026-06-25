@@ -495,8 +495,6 @@ export default function ChatMessageConfig({
 
   return (
     <div className="cmc">
-      <h3 className="cmc__title">액션</h3>
-
       <div className="cmc__sections">
         {/* 1. 액션 유형 */}
         <NumberedSection icon="sparkle">

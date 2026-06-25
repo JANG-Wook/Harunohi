@@ -6,17 +6,6 @@
   padding: var(--spacing-24);
 }
 
-.cmc__title {
-  font-size: var(--font-size-headline-2);
-  line-height: var(--line-height-headline-2);
-  letter-spacing: var(--letter-spacing-headline-2);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-label-normal);
-  margin: 0 0 var(--spacing-32);
-  padding-bottom: var(--spacing-12);
-  border-bottom: 1px solid var(--color-line-solid-normal);
-}
-
 .cmc__sections {
   display: flex;
   flex-direction: column;

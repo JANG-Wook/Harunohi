@@ -178,7 +178,7 @@ export default function ContentBadge({
           <Icon name={leadingIcon} size={iconSize} color={iconColor} />
         )}
 
-        {children && (
+        {(children || children === 0) && (
           <span style={textStyle}>{children}</span>
         )}
 

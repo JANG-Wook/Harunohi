@@ -242,7 +242,7 @@ export default function SimulatorSidePanel({ session, onClearMemory }) {
               이벤트 로그
             </Typography>
           </div>
-          <ContentBadge size="xsmall">{String(eventLog.length)}</ContentBadge>
+          <ContentBadge size="xsmall">{eventLog.length}</ContentBadge>
         </button>
         {logOpen && (
           <div className="sim-side__log sidebar-scroll" ref={logScrollRef}>

@@ -79,7 +79,7 @@ export default function SimulatorLogPanel({ session }) {
       <div className="sim-log__head">
         <Icon name="code" size={14} color="var(--color-label-assistive)" />
         <Typography variant="label-1-normal" weight="semibold" color="var(--color-label-neutral)" as="span">실제 로그</Typography>
-        <span className="sim-log__count"><ContentBadge size="xsmall">{String(logs.length)}</ContentBadge></span>
+        <span className="sim-log__count"><ContentBadge size="xsmall">{logs.length}</ContentBadge></span>
       </div>
 
       <div className="sim-log__body sidebar-scroll" ref={scrollRef}>

@@ -24,6 +24,7 @@ import {
   IMAGE_MAX_SIZE,
 } from '../lib/chatMessageDefaults.js'
 import {
+  DEFAULT_LAUNCHER_ID,
   GREETING_WEIGHTS,
   LAUNCHER_ICONS,
   LAUNCHER_SHAPES,
@@ -404,7 +405,12 @@ export default function LauncherSettingsPage() {
             onClick={handleBack}
             aria-label="목록으로"
           />
-          {editingName ? (
+          {launcherId === DEFAULT_LAUNCHER_ID ? (
+            // 기본값 런처는 이름 변경 불가 — 텍스트만 노출(편집 진입점 없음)
+            <span className="dze__name">
+              <span className="dze__name-text">{name || '챗봇 디자인 이름'}</span>
+            </span>
+          ) : editingName ? (
             <input
               type="text"
               className="dze__name-input"

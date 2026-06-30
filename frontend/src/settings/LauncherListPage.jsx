@@ -193,25 +193,28 @@ export default function LauncherListPage() {
               </Typography>
             </div>
             <div className="lc__card-actions">
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="이름 변경"
-                className="lc__card-action lc__card-action--edit"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openRename(entry)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
+              {/* 기본값 런처는 이름 변경·삭제 불가 — 호버 액션 자체를 숨김 */}
+              {entry.id !== DEFAULT_LAUNCHER_ID && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label="이름 변경"
+                  className="lc__card-action lc__card-action--edit"
+                  onClick={(e) => {
                     e.stopPropagation()
                     openRename(entry)
-                  }
-                }}
-              >
-                <Icon name="pencil" size={14} />
-              </span>
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      openRename(entry)
+                    }
+                  }}
+                >
+                  <Icon name="pencil" size={14} />
+                </span>
+              )}
               {entry.id !== DEFAULT_LAUNCHER_ID && (
                 <span
                   role="button"

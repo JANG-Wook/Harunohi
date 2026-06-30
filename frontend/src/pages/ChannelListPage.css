@@ -1,0 +1,265 @@
+/* 챗봇 채널 목록 — 챗봇 설정 목록과 동일한 카드 그리드 + 만들기/상세 모달 */
+
+.cc {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cc__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-32);
+}
+
+.cc__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-20);
+}
+
+.cc__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-20);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-line-solid-normal);
+  border-radius: var(--spacing-12);
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-family: inherit;
+  color: var(--color-label-alternative);
+}
+
+.cc__card:hover {
+  border-color: var(--color-primary-normal);
+  color: var(--color-label-normal);
+  box-shadow: 0px 4px 6px -1px rgba(23, 23, 23, 0.06), 0px 2px 4px -2px rgba(23, 23, 23, 0.06);
+}
+
+/* 카드 상단 — 채널 유형 칩 + 상담 여부 */
+.cc__card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
+}
+
+.cc__card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+/* 호버 삭제 액션 */
+.cc__card-actions {
+  position: absolute;
+  top: var(--spacing-10);
+  right: var(--spacing-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.cc__card:hover .cc__card-actions {
+  opacity: 1;
+}
+
+.cc__card-action {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--spacing-6);
+  color: var(--color-label-alternative);
+  background: transparent;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.cc__card-action--delete:hover {
+  background: color-mix(in srgb, var(--color-status-negative) 12%, transparent);
+  color: var(--color-status-negative);
+}
+
+/* 빈 목록 안내 */
+.cc__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-56) var(--spacing-20);
+  border: 1px dashed var(--color-line-normal);
+  border-radius: var(--spacing-12);
+  text-align: center;
+}
+
+/* Alert(삭제 확인) 래퍼 */
+.cc__alert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+/* 모달 공통 */
+.cc__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  z-index: 1000;
+}
+
+.cc__modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - var(--spacing-40));
+  background: var(--color-bg-elevated);
+  border-radius: var(--spacing-16);
+  box-shadow: 0px 16px 24px -6px rgba(23, 23, 23, 0.08), 0px 6px 10px -4px rgba(23, 23, 23, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cc__modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--color-line-solid-alternative);
+  flex-shrink: 0;
+}
+
+.cc__modal-body {
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  overflow-y: auto;
+}
+
+.cc__modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--spacing-20);
+  flex-shrink: 0;
+}
+
+/* 만들기 폼 — 라벨 + 컨트롤 */
+.cc__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.cc__field-label {
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-label-neutral);
+  letter-spacing: var(--letter-spacing-body-2);
+}
+
+/* 스위치 행 — 라벨 + 토글 */
+.cc__switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+}
+
+/* 상세 모달 — 정보 행(라벨/값) */
+.cc__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.cc__detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.cc__detail-label {
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-alternative);
+  letter-spacing: var(--letter-spacing-caption-1);
+}
+
+.cc__detail-value {
+  font-size: var(--font-size-body-2);
+  line-height: var(--line-height-body-2-normal);
+  color: var(--color-label-normal);
+  letter-spacing: var(--letter-spacing-body-2);
+}
+
+/* 복사 박스 — 코드 텍스트 + 복사 버튼 */
+.cc__copy {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-8);
+}
+
+.cc__copy-text {
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-10) var(--spacing-12);
+  background: var(--color-fill-alternative);
+  border: 1px solid var(--color-line-alternative);
+  border-radius: var(--spacing-8);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
+  color: var(--color-label-neutral);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cc__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  flex-shrink: 0;
+  padding: 0 var(--spacing-12);
+  background: var(--color-fill-normal);
+  border: 1px solid var(--color-line-neutral);
+  border-radius: var(--spacing-8);
+  color: var(--color-label-neutral);
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.cc__copy-btn:hover {
+  background: var(--color-fill-strong);
+}
+
+.cc__copy-btn.is-copied {
+  color: var(--color-status-positive);
+  border-color: color-mix(in srgb, var(--color-status-positive) 43%, transparent);
+}
+
+/* 토스트 */
+.cc__toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--spacing-32);
+  transform: translateX(-50%);
+  z-index: 1100;
+}

@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage.jsx'
 import BotCanvasPage from './pages/BotCanvasPage.jsx'
 import LauncherListPage from './settings/LauncherListPage.jsx'
 import LauncherSettingsPage from './settings/LauncherSettingsPage.jsx'
+import ChannelListPage from './pages/ChannelListPage.jsx'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route element={<ConsoleLayout />}>
         <Route path="/app/bots" element={<DashboardPage />} />
         <Route path="/app/chatbot-ui/launcher" element={<LauncherListPage />} />
+        <Route path="/app/chatbot-channels" element={<ChannelListPage />} />
       </Route>
 
       <Route element={<BotWorkspaceLayout />}>

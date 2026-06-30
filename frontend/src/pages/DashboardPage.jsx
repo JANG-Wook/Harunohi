@@ -280,6 +280,13 @@ export default function DashboardPage() {
         />
       </div>
 
+      {bots.length === 0 ? (
+        <div className="dashboard__empty">
+          <Typography variant="body-1-normal" color="var(--color-label-alternative)" as="div">
+            아직 만든 챗봇이 없어요. 챗봇을 만들어 대화 흐름을 설계해 보세요.
+          </Typography>
+        </div>
+      ) : (
       <div className="dashboard__grid">
         {bots.map((bot) => {
           const isActive = bot.status === 'active'
@@ -378,20 +385,8 @@ export default function DashboardPage() {
             </button>
           )
         })}
-
-        {/* 봇이 하나도 없을 때만 만들기 ghost 카드 노출 (있으면 상단 버튼으로 생성) */}
-        {bots.length === 0 && (
-          <button
-            type="button"
-            className="dashboard__card dashboard__card--ghost"
-            onClick={openModal}
-          >
-            <Typography variant="headline-2" weight="semibold" as="span">
-              챗봇 만들기
-            </Typography>
-          </button>
-        )}
       </div>
+      )}
 
       {modalOpen && (
         <div

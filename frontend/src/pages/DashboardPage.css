@@ -41,13 +41,16 @@
     0px 2px 4px -2px rgba(23, 23, 23, 0.06);
 }
 
-.dashboard__card--ghost {
-  flex-direction: row;
+/* 빈 목록 안내 — 점선 박스 + 중앙 아이콘·문구 (챗봇 채널 목록과 동일 패턴) */
+.dashboard__empty {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--spacing-8);
-  /* 봇 카드(아이콘+이름+상태+날짜)와 비슷한 높이로 맞춤 — 빈 상태에서 단독 노출돼도 어색하지 않게 */
-  min-height: 172px;
+  padding: var(--spacing-56) var(--spacing-20);
+  border: 1px dashed var(--color-line-normal);
+  border-radius: var(--spacing-12);
+  text-align: center;
 }
 
 /* 저장된 봇 카드 — 아이콘 + 이름 + 단계 수 + 호버 시 삭제 버튼 */

@@ -24,6 +24,18 @@
   overflow: hidden;
 }
 
+/* 배경판 중앙 안내 문구 — 클릭 통과(pointer-events:none), 도크(버튼)와 겹치지 않게 중앙 배치 */
+.launcher-preview__note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-40);
+  text-align: center;
+  pointer-events: none;
+}
+
 /* 우측 하단 도크 — 런처 버튼 미리보기를 우측 하단에 고정 배치 */
 .launcher-preview__dock {
   position: absolute;

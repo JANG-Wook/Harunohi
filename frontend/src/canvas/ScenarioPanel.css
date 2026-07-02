@@ -364,14 +364,10 @@
 }
 
 /* 삭제 가드 모달 backdrop — DS 에 modal-wrapper 가 없어 토큰으로 직접 구현 */
+/* 삭제 확인 Alert 래퍼 — Alert 가 자체 dimmer+카드를 그리므로 위치/z-index 만(투명) */
 .scenario-panel__modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.48);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-20);
   z-index: 1000;
 }
 

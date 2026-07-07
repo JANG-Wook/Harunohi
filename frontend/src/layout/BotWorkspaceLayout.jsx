@@ -16,6 +16,7 @@ import MenuSelect from '../canvas/MenuSelect.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
 import { resolveChatUi } from '../lib/chatUiStyle.js'
+import { readRaw, writeRaw, remove } from '../lib/storage.js'
 import './BotWorkspaceLayout.css'
 
 const TOAST_DURATION = 2400
@@ -177,18 +178,18 @@ export default function BotWorkspaceLayout() {
       setNameDraft(current)
       return
     }
-    if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
+    if (readRaw(STORAGE_PREFIX + trimmed)) {
       showToast('이미 사용 중인 챗봇 이름입니다')
       setNameDraft(current)
       return
     }
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + current)
+    const raw = readRaw(STORAGE_PREFIX + current)
     if (raw == null) {
       setNameDraft(current)
       return
     }
-    window.localStorage.setItem(STORAGE_PREFIX + trimmed, raw)
-    window.localStorage.removeItem(STORAGE_PREFIX + current)
+    writeRaw(STORAGE_PREFIX + trimmed, raw)
+    remove(STORAGE_PREFIX + current)
     navigate(`/app/bots/${encodeURIComponent(trimmed)}/canvas`, { replace: true })
     showToast(`'${trimmed}' 로 이름을 변경했어요`)
   }, [nameDraft, botId, navigate, showToast])

@@ -9,7 +9,7 @@
 - [ ] 백엔드 리드 서브에이전트 스폰 방식 확정
 
 ## P1. 백엔드 기반 + 프론트 영속화
-- [~] 프론트 데이터 접근 추상화 계층 — `lib/storage.js` 어댑터 도입, launcherConfig·channelConfig 전환 완료(동작 불변, 검증 OK). 남은 소비처: BotCanvasPage·DashboardPage·BotWorkspaceLayout(다음 청크)
+- [x] 프론트 데이터 접근 추상화 계층 — `lib/storage.js` 어댑터 도입. launcherConfig·channelConfig + 소비처 3곳(BotCanvasPage·DashboardPage·BotWorkspaceLayout) 전환 완료. 동작 불변, 미리보기 검증 OK(런처/채널/봇목록/캔버스). 남은 `window.localStorage` 는 `useTheme.js`(UI 전용)뿐
 - [ ] 백엔드: Spring Boot 프로젝트 골격 + MySQL 연결 + schema.sql 적용
 - [ ] 백엔드: 인증(JWT) + workspace 테넌트 격리
 - [ ] 백엔드: 봇/시나리오/설정(런처)/채널/버전 CRUD REST API

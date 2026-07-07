@@ -12,6 +12,7 @@ import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useFocusTrap } from '../lib/useFocusTrap.js'
 import { createInitialBotData } from '../lib/stepTypes.js'
+import { readRaw, writeRaw, remove, keys } from '../lib/storage.js'
 import './DashboardPage.css'
 
 const STORAGE_PREFIX = 'harunohi.bot.'
@@ -30,12 +31,10 @@ function formatDate(iso) {
 function loadBotList() {
   if (typeof window === 'undefined') return []
   const list = []
-  for (let i = 0; i < window.localStorage.length; i++) {
-    const key = window.localStorage.key(i)
-    if (!key?.startsWith(STORAGE_PREFIX)) continue
+  for (const key of keys(STORAGE_PREFIX)) {
     const botId = key.slice(STORAGE_PREFIX.length)
     try {
-      const raw = window.localStorage.getItem(key)
+      const raw = readRaw(key)
       const parsed = JSON.parse(raw)
       // 신규 포맷(versions[].scenarios[].responses[]) + 중간 포맷(versions[].steps[]) + 레거시(steps[]) 모두 지원
       const activeVersion = Array.isArray(parsed?.versions)
@@ -146,12 +145,12 @@ export default function DashboardPage() {
     const trimmed = botName.trim()
     if (!trimmed) return
     // 이름 중복 체크 — 저장 키가 디코딩된 봇 이름(useParams 디코딩 결과)이라 trimmed 그대로 검사
-    if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
+    if (readRaw(STORAGE_PREFIX + trimmed)) {
       setNameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
     // 생성 즉시 기본 데이터로 저장 — 캔버스에서 따로 저장 안 해도 목록에 남음 (런처와 동일)
-    window.localStorage.setItem(
+    writeRaw(
       STORAGE_PREFIX + trimmed,
       JSON.stringify(createInitialBotData(new Date().toISOString())),
     )
@@ -167,8 +166,7 @@ export default function DashboardPage() {
   }
 
   const handleDelete = (botId) => {
-    if (typeof window === 'undefined') return
-    window.localStorage.removeItem(STORAGE_PREFIX + botId)
+    remove(STORAGE_PREFIX + botId)
     setBots(loadBotList())
   }
 
@@ -190,19 +188,19 @@ export default function DashboardPage() {
       return
     }
     // 저장 키가 디코딩된 이름이라 trimmed 그대로 검사
-    if (window.localStorage.getItem(STORAGE_PREFIX + trimmed)) {
+    if (readRaw(STORAGE_PREFIX + trimmed)) {
       setRenameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
     const oldKey = STORAGE_PREFIX + renameTarget.id
-    const raw = window.localStorage.getItem(oldKey)
+    const raw = readRaw(oldKey)
     if (raw == null) {
       // 데이터가 사라진 경우 — 안전하게 모달만 닫기
       closeRename()
       return
     }
-    window.localStorage.setItem(STORAGE_PREFIX + trimmed, raw)
-    window.localStorage.removeItem(oldKey)
+    writeRaw(STORAGE_PREFIX + trimmed, raw)
+    remove(oldKey)
     closeRename()
     setBots(loadBotList())
     showToast(`'${trimmed}' 봇으로 이름이 변경되었습니다`)

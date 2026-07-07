@@ -23,7 +23,7 @@
 ## 2026-07-07 — 청크: storage 어댑터
 - `lib/storage.js` 신설 — localStorage 접근 단일화(readRaw/writeRaw/remove/keys, SSR 안전).
 - `launcherConfig.js`·`channelConfig.js` 를 어댑터 경유로 전환. **동작·키 규약 불변**, 미리보기 회귀 검증 완료(런처 목록·채널 빈상태 정상, 콘솔 에러 0).
-- 남은 직접 접근: `pages/BotCanvasPage.jsx`(봇 저장/로드), `pages/DashboardPage.jsx`(loadBotList), `layout/BotWorkspaceLayout.jsx`. → 다음 청크에서 어댑터로 통일.
+- **소비처 3곳 통일 완료(청크 2/2)**: `DashboardPage`(loadBotList/생성/삭제/이름변경), `BotCanvasPage`(loadFromStorage/writeToStorage), `BotWorkspaceLayout`(이름변경) 전부 어댑터 경유. 검증: 봇 목록·캔버스 로드 정상, 에러 0. 남은 `window.localStorage` 는 `lib/useTheme.js`(UI 전용, 전환 대상 아님)뿐.
 - 향후 API 전환: 지금은 동기. API는 비동기라 소비처 함수 시그니처가 async 로 바뀌는 별도 큰 청크가 뒤따름.
 
 ## 다음 청크 후보

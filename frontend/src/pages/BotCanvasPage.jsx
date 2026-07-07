@@ -27,6 +27,7 @@ import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, isStep
 import { migrateVersionLinks } from '../lib/linkMigration.js'
 import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
 import { resolveChatUi } from '../lib/chatUiStyle.js'
+import { readRaw, writeRaw } from '../lib/storage.js'
 import './BotCanvasPage.css'
 
 const STORAGE_PREFIX = 'harunohi.bot.'
@@ -361,7 +362,7 @@ function withVersionMeta(v, index) {
 
 function loadFromStorage(botId) {
   try {
-    const raw = window.localStorage.getItem(storageKey(botId))
+    const raw = readRaw(storageKey(botId))
     if (!raw) return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft', appliedLauncherId: DEFAULT_LAUNCHER_ID }
     const parsed = JSON.parse(raw)
     // 적용된 챗봇 설정(런처) — 봇 단위 메타. 없으면 기본값 런처
@@ -415,7 +416,7 @@ function loadFromStorage(botId) {
 }
 
 function writeToStorage(botId, versions, currentVersionId, status, deployedVersionId = null, appliedLauncherId = DEFAULT_LAUNCHER_ID) {
-  window.localStorage.setItem(
+  writeRaw(
     storageKey(botId),
     JSON.stringify({ versions, currentVersionId, status, deployedVersionId, appliedLauncherId }),
   )

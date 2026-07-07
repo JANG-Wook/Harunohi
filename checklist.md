@@ -12,7 +12,7 @@
 - [x] 프론트 데이터 접근 추상화 계층 — `lib/storage.js` 어댑터 도입. launcherConfig·channelConfig + 소비처 3곳(BotCanvasPage·DashboardPage·BotWorkspaceLayout) 전환 완료. 동작 불변, 미리보기 검증 OK(런처/채널/봇목록/캔버스). 남은 `window.localStorage` 는 `useTheme.js`(UI 전용)뿐
 - [x] 백엔드: Spring Boot 프로젝트 골격 + MySQL 연결 + schema.sql 적용 — `backend/` (Gradle+Java21+SB3.5.3), env 기반 datasource(비번 커밋X), Flyway V1=schema.sql, JPA validate, `/actuator/health`+`/api/ping`. `./gradlew compileJava` 통과(exit 0). bootRun 은 MySQL 필요(미실행)
 - [ ] 백엔드: 인증(JWT) + workspace 테넌트 격리
-- [ ] 백엔드: 봇/시나리오/설정(런처)/채널/버전 CRUD REST API
+- [~] 백엔드: CRUD REST — Workspace/Bot **식별·메타** CRUD 완료(엔티티·리포·서비스·DTO·전역예외, ULID public_id, compileJava 통과). 남음: 봇 정의(그래프) 영속화·발행, 설정(런처)/채널(스키마 미존재 → 추가 필요), status/intent_mode enum 검증
 - [ ] 프론트: repository 계층을 API 클라이언트로 교체 + 로그인 화면
 - [ ] 검증: 두 브라우저에서 동일 계정 봇 공유 확인
 

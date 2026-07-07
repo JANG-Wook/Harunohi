@@ -34,7 +34,14 @@
 - Gradle wrapper 커밋(8.14). 검증: `./gradlew compileJava` 통과(exit 0, 독립 재확인). bootRun 은 MySQL 필요라 미실행.
 - **미결(후속 청크)**: 인증(JWT+security), 도메인/엔티티/리포지토리/CRUD 컨트롤러, 대화 런타임·위젯 API. domain/repository/service/config 는 package-info 플레이스홀더만.
 
+## 2026-07-07 — 청크: Workspace/Bot 식별·메타 CRUD (서브에이전트)
+- 엔티티 Workspace/Bot(@Table 매핑, id IDENTITY, DATETIME(6)→Instant), 리포/서비스/DTO(엔티티 비노출)/`@RestControllerAdvice`(404/400).
+- public_id = ULID(26자). 의존성 `com.github.f4b6a3:ulid-creator:5.2.3` 추가. placeholder package-info 4개 제거.
+- 엔드포인트: `POST/GET /api/workspaces`, `GET /api/workspaces/{ws}`, `POST/GET /api/workspaces/{ws}/bots`, `GET/PATCH/DELETE .../bots/{bot}`. 봇은 workspace 스코프(교차 조회 시 404).
+- 검증: `./gradlew compileJava` 통과(독립 재실행 exit 0). 실DB 기동은 MySQL 필요라 미실행.
+- **미결/주의**: 봇 정의(그래프) 영속화·발행(`bot_deployment_versions.snapshot_json`)·인증 미착수. `published_version_id`·`widget_settings_json` 미매핑(null). `status`/`intent_mode` 는 자유문자열(enum 검증 없음) — 필요시 후속. **런처/채널은 schema.sql 에 테이블 없음** → 백엔드 영속화하려면 스키마 추가 필요(프론트는 현재 localStorage).
+
 ## 다음 청크 후보
-1. 백엔드 도메인/엔티티 + 기본 CRUD(workspace/bot/scenario/설정/채널) REST — schema.sql 기준 매핑.
+1. 백엔드 도메인/엔티티 + 기본 CRUD(scenario/설정/채널) REST — schema.sql 기준 매핑.
 2. 인증(JWT) + workspace 테넌트 격리.
 3. 프론트: `storage.js` 뒤에 API 클라이언트 구현 추가 + 동기→비동기 소비처 전환(큰 청크).

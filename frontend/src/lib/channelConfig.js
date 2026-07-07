@@ -6,6 +6,8 @@
 //   localStorage 키: `harunohi.channel.<id>`
 //   값: { id, name, type, botId, launcherId, consultingEnabled, createdAt, updatedAt }
 
+import { readRaw, writeRaw, remove, keys } from './storage.js'
+
 const STORAGE_PREFIX = 'harunohi.channel.'
 const BOT_PREFIX = 'harunohi.bot.'
 
@@ -57,13 +59,10 @@ function normalize(parsed) {
 
 /** 저장된 채널 전체 목록 — 최근 수정순. 손상 항목은 무시 */
 export function loadChannelList() {
-  if (typeof window === 'undefined') return []
   const list = []
-  for (let i = 0; i < window.localStorage.length; i++) {
-    const key = window.localStorage.key(i)
-    if (!key?.startsWith(STORAGE_PREFIX)) continue
+  for (const key of keys(STORAGE_PREFIX)) {
     try {
-      const entry = normalize(JSON.parse(window.localStorage.getItem(key)))
+      const entry = normalize(JSON.parse(readRaw(key)))
       if (entry) list.push(entry)
     } catch {
       // 손상 항목 무시
@@ -80,9 +79,9 @@ export function loadChannelList() {
 
 /** id 로 단일 채널 로드 — 없으면 null */
 export function loadChannel(id) {
-  if (typeof window === 'undefined' || !id) return null
+  if (!id) return null
   try {
-    return normalize(JSON.parse(window.localStorage.getItem(keyFor(id))))
+    return normalize(JSON.parse(readRaw(keyFor(id))))
   } catch {
     return null
   }
@@ -90,7 +89,6 @@ export function loadChannel(id) {
 
 /** 채널 신규 생성 — 생성된 채널(런타임 형태) 반환 */
 export function createChannel({ name, type = 'web', botId, launcherId, consultingEnabled, nowIso }) {
-  if (typeof window === 'undefined') return null
   const entry = {
     id: newId(),
     name: (name ?? '').trim(),
@@ -101,13 +99,13 @@ export function createChannel({ name, type = 'web', botId, launcherId, consultin
     createdAt: nowIso,
     updatedAt: nowIso,
   }
-  window.localStorage.setItem(keyFor(entry.id), JSON.stringify(entry))
+  writeRaw(keyFor(entry.id), JSON.stringify(entry))
   return entry
 }
 
 export function deleteChannel(id) {
-  if (typeof window === 'undefined' || !id) return
-  window.localStorage.removeItem(keyFor(id))
+  if (!id) return
+  remove(keyFor(id))
 }
 
 /** 이름 중복 검사 — 같은 이름의 다른 채널이 있으면 true */
@@ -119,11 +117,8 @@ export function isChannelNameTaken(name, excludeId = null) {
 
 /** 저장된 봇 목록을 셀렉트 옵션으로 — { value:id, label:이름 } (DashboardPage 키 규약과 동일) */
 export function loadBotOptions() {
-  if (typeof window === 'undefined') return []
   const opts = []
-  for (let i = 0; i < window.localStorage.length; i++) {
-    const key = window.localStorage.key(i)
-    if (!key?.startsWith(BOT_PREFIX)) continue
+  for (const key of keys(BOT_PREFIX)) {
     const botId = key.slice(BOT_PREFIX.length)
     opts.push({ value: botId, label: decodeURIComponent(botId) })
   }

@@ -7,6 +7,8 @@
 //   localStorage 키: `harunohi.launcher.<id>`
 //   값: { id, name, config, createdAt, updatedAt }
 
+import { readRaw, writeRaw, remove, keys } from './storage.js'
+
 const STORAGE_PREFIX = 'harunohi.launcher.'
 
 /** 항상 존재하는 기본 런처 버튼 id — 삭제 불가 */
@@ -209,13 +211,10 @@ function migrateEntry(parsed) {
 
 /** 저장된 디자인 전체 목록 — 최근 수정순. 손상 항목은 무시 */
 export function loadLauncherList() {
-  if (typeof window === 'undefined') return []
   const list = []
-  for (let i = 0; i < window.localStorage.length; i++) {
-    const key = window.localStorage.key(i)
-    if (!key?.startsWith(STORAGE_PREFIX)) continue
+  for (const key of keys(STORAGE_PREFIX)) {
     try {
-      const entry = migrateEntry(JSON.parse(window.localStorage.getItem(key)))
+      const entry = migrateEntry(JSON.parse(readRaw(key)))
       if (entry) list.push(entry)
     } catch {
       // 손상 항목 무시
@@ -233,9 +232,9 @@ export function loadLauncherList() {
 
 /** id 로 단일 디자인 엔트리 로드 — 없으면 null */
 export function loadLauncher(id) {
-  if (typeof window === 'undefined' || !id) return null
+  if (!id) return null
   try {
-    return migrateEntry(JSON.parse(window.localStorage.getItem(keyFor(id))))
+    return migrateEntry(JSON.parse(readRaw(keyFor(id))))
   } catch {
     return null
   }
@@ -244,7 +243,7 @@ export function loadLauncher(id) {
 /** 저장은 stored 형태로 — 런타임 파생 필드(config)는 저장하지 않는다 */
 function writeEntry(entry) {
   const { config, ...stored } = entry
-  window.localStorage.setItem(keyFor(entry.id), JSON.stringify(stored))
+  writeRaw(keyFor(entry.id), JSON.stringify(stored))
 }
 
 /** 디자인 신규 생성 — config 를 버전 1개("버전 1")로 시작 */
@@ -367,8 +366,8 @@ export function isVersionNameTaken(versions, versionName, excludeId = null) {
 }
 
 export function deleteLauncher(id) {
-  if (typeof window === 'undefined' || id === DEFAULT_LAUNCHER_ID) return
-  window.localStorage.removeItem(keyFor(id))
+  if (id === DEFAULT_LAUNCHER_ID) return
+  remove(keyFor(id))
 }
 
 /** 기본 디자인이 없으면 생성 — 목록에 항상 하나는 존재하도록 보장 */

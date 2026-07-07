@@ -26,6 +26,15 @@
 - **소비처 3곳 통일 완료(청크 2/2)**: `DashboardPage`(loadBotList/생성/삭제/이름변경), `BotCanvasPage`(loadFromStorage/writeToStorage), `BotWorkspaceLayout`(이름변경) 전부 어댑터 경유. 검증: 봇 목록·캔버스 로드 정상, 에러 0. 남은 `window.localStorage` 는 `lib/useTheme.js`(UI 전용, 전환 대상 아님)뿐.
 - 향후 API 전환: 지금은 동기. API는 비동기라 소비처 함수 시그니처가 async 로 바뀌는 별도 큰 청크가 뒤따름.
 
+## 2026-07-07 — 청크: 백엔드 골격 (서브에이전트)
+- `backend/` 신설(Gradle Groovy + Java 21 + Spring Boot 3.5.3). 패키지 base `net.infobank.harunohi`.
+- deps: web, data-jpa, actuator, validation, flyway-core, flyway-mysql, mysql-connector-j. (security/auth 스타터 아직 없음)
+- `application.yml`: datasource env 기반, **비밀번호 기본값 없음(env 전용, 커밋 금지)**, URL/username 만 로컬 기본값. JPA `ddl-auto=validate`(Flyway 소유). actuator `health` 만 노출, show-details=never.
+- Flyway `V1__init.sql` = `db/schema.sql` **verbatim 복사**(이후 단일 소스). 헬스: `/actuator/health` + 커스텀 `GET /api/ping`.
+- Gradle wrapper 커밋(8.14). 검증: `./gradlew compileJava` 통과(exit 0, 독립 재확인). bootRun 은 MySQL 필요라 미실행.
+- **미결(후속 청크)**: 인증(JWT+security), 도메인/엔티티/리포지토리/CRUD 컨트롤러, 대화 런타임·위젯 API. domain/repository/service/config 는 package-info 플레이스홀더만.
+
 ## 다음 청크 후보
-1. (프론트, 백엔드 무관) 데이터 접근 추상화 계층(repository) 도입 — 지금은 localStorage 래핑, 이후 API 스왑. 안전·독립·토큰 적음 → **우선 착수 추천**.
-2. 백엔드 리드 서브에이전트 스폰 → `backend/` Spring Boot 골격.
+1. 백엔드 도메인/엔티티 + 기본 CRUD(workspace/bot/scenario/설정/채널) REST — schema.sql 기준 매핑.
+2. 인증(JWT) + workspace 테넌트 격리.
+3. 프론트: `storage.js` 뒤에 API 클라이언트 구현 추가 + 동기→비동기 소비처 전환(큰 청크).

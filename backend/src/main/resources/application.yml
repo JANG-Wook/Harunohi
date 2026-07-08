@@ -21,6 +21,13 @@ spring:
     baseline-on-migrate: false
     locations: classpath:db/migration
 
+security:
+  jwt:
+    # HS256 서명 비밀은 환경변수 전용이며 기본값이 없다. 미설정 시 앱이 기동되지 않는다 (fail fast).
+    secret: ${JWT_SECRET}
+    # 액세스 토큰 만료(분). 파일럿은 access token 만 사용한다 (refresh 없음).
+    access-exp-min: ${JWT_ACCESS_EXP_MIN:120}
+
 management:
   endpoints:
     web:

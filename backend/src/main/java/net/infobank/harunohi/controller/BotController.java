@@ -1,4 +1,4 @@
-// 봇 식별/메타 CRUD REST 엔드포인트 (워크스페이스 스코프, 정의 그래프/발행/인증은 후속 청크).
+// 봇 식별/메타 CRUD REST 엔드포인트 (인증 필요, 워크스페이스 멤버십 기준 스코프).
 package net.infobank.harunohi.controller;
 
 import java.util.List;
@@ -18,6 +18,8 @@ import jakarta.validation.Valid;
 
 import net.infobank.harunohi.controller.dto.BotDtos;
 import net.infobank.harunohi.domain.Bot;
+import net.infobank.harunohi.domain.User;
+import net.infobank.harunohi.security.CurrentUserProvider;
 import net.infobank.harunohi.service.BotService;
 
 @RestController
@@ -25,35 +27,41 @@ import net.infobank.harunohi.service.BotService;
 public class BotController {
 
     private final BotService botService;
+    private final CurrentUserProvider currentUserProvider;
 
-    public BotController(BotService botService) {
+    public BotController(BotService botService, CurrentUserProvider currentUserProvider) {
         this.botService = botService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BotDtos.Response create(@PathVariable String wsPublicId,
             @Valid @RequestBody BotDtos.CreateRequest request) {
-        Bot bot = botService.create(wsPublicId, request.name(), request.description());
+        User user = currentUserProvider.requireCurrentUser();
+        Bot bot = botService.create(wsPublicId, user, request.name(), request.description());
         return BotDtos.Response.from(bot, wsPublicId);
     }
 
     @GetMapping
     public List<BotDtos.Response> list(@PathVariable String wsPublicId) {
-        return botService.list(wsPublicId).stream()
+        User user = currentUserProvider.requireCurrentUser();
+        return botService.list(wsPublicId, user).stream()
                 .map(bot -> BotDtos.Response.from(bot, wsPublicId))
                 .toList();
     }
 
     @GetMapping("/{botPublicId}")
     public BotDtos.Response get(@PathVariable String wsPublicId, @PathVariable String botPublicId) {
-        return BotDtos.Response.from(botService.get(wsPublicId, botPublicId), wsPublicId);
+        User user = currentUserProvider.requireCurrentUser();
+        return BotDtos.Response.from(botService.get(wsPublicId, user, botPublicId), wsPublicId);
     }
 
     @PatchMapping("/{botPublicId}")
     public BotDtos.Response update(@PathVariable String wsPublicId, @PathVariable String botPublicId,
             @Valid @RequestBody BotDtos.UpdateRequest request) {
-        Bot bot = botService.update(wsPublicId, botPublicId,
+        User user = currentUserProvider.requireCurrentUser();
+        Bot bot = botService.update(wsPublicId, user, botPublicId,
                 request.name(), request.description(), request.status(), request.intentMode());
         return BotDtos.Response.from(bot, wsPublicId);
     }
@@ -61,6 +69,7 @@ public class BotController {
     @DeleteMapping("/{botPublicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String wsPublicId, @PathVariable String botPublicId) {
-        botService.delete(wsPublicId, botPublicId);
+        User user = currentUserProvider.requireCurrentUser();
+        botService.delete(wsPublicId, user, botPublicId);
     }
 }

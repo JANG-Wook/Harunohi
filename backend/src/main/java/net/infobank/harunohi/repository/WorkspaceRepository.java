@@ -1,6 +1,7 @@
 // Workspace 엔티티 영속화 및 조회를 담당하는 Spring Data JPA 리포지토리.
 package net.infobank.harunohi.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,5 +13,5 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
 
     Optional<Workspace> findByPublicId(String publicId);
 
-    List<Workspace> findAllByOrderByCreatedAtDesc();
+    List<Workspace> findByIdInOrderByCreatedAtDesc(Collection<Long> ids);
 }

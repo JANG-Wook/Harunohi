@@ -1,4 +1,4 @@
-// 봇 식별/메타 CRUD 비즈니스 로직 (워크스페이스 스코프, public_id/타임스탬프 관리, 404 처리).
+// 봇 식별/메타 CRUD 비즈니스 로직 (워크스페이스 멤버십 검증 후 스코프, public_id/타임스탬프 관리).
 package net.infobank.harunohi.service;
 
 import java.time.Instant;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.infobank.harunohi.domain.Bot;
+import net.infobank.harunohi.domain.User;
 import net.infobank.harunohi.domain.Workspace;
 import net.infobank.harunohi.repository.BotRepository;
 
@@ -29,8 +30,8 @@ public class BotService {
         this.publicIdGenerator = publicIdGenerator;
     }
 
-    public Bot create(String wsPublicId, String name, String description) {
-        Workspace workspace = workspaceService.getByPublicId(wsPublicId);
+    public Bot create(String wsPublicId, User user, String name, String description) {
+        Workspace workspace = workspaceService.getMemberWorkspace(wsPublicId, user);
         Instant now = Instant.now();
         Bot bot = new Bot();
         bot.setPublicId(publicIdGenerator.generate());
@@ -45,20 +46,20 @@ public class BotService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bot> list(String wsPublicId) {
-        Workspace workspace = workspaceService.getByPublicId(wsPublicId);
+    public List<Bot> list(String wsPublicId, User user) {
+        Workspace workspace = workspaceService.getMemberWorkspace(wsPublicId, user);
         return botRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspace.getId());
     }
 
     @Transactional(readOnly = true)
-    public Bot get(String wsPublicId, String botPublicId) {
-        Workspace workspace = workspaceService.getByPublicId(wsPublicId);
+    public Bot get(String wsPublicId, User user, String botPublicId) {
+        Workspace workspace = workspaceService.getMemberWorkspace(wsPublicId, user);
         return findScoped(workspace, botPublicId);
     }
 
-    public Bot update(String wsPublicId, String botPublicId, String name, String description,
+    public Bot update(String wsPublicId, User user, String botPublicId, String name, String description,
             String status, String intentMode) {
-        Workspace workspace = workspaceService.getByPublicId(wsPublicId);
+        Workspace workspace = workspaceService.getMemberWorkspace(wsPublicId, user);
         Bot bot = findScoped(workspace, botPublicId);
         if (name != null) {
             bot.setName(name);
@@ -76,8 +77,8 @@ public class BotService {
         return botRepository.save(bot);
     }
 
-    public void delete(String wsPublicId, String botPublicId) {
-        Workspace workspace = workspaceService.getByPublicId(wsPublicId);
+    public void delete(String wsPublicId, User user, String botPublicId) {
+        Workspace workspace = workspaceService.getMemberWorkspace(wsPublicId, user);
         Bot bot = findScoped(workspace, botPublicId);
         botRepository.delete(bot);
     }

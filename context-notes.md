@@ -41,7 +41,17 @@
 - 검증: `./gradlew compileJava` 통과(독립 재실행 exit 0). 실DB 기동은 MySQL 필요라 미실행.
 - **미결/주의**: 봇 정의(그래프) 영속화·발행(`bot_deployment_versions.snapshot_json`)·인증 미착수. `published_version_id`·`widget_settings_json` 미매핑(null). `status`/`intent_mode` 는 자유문자열(enum 검증 없음) — 필요시 후속. **런처/채널은 schema.sql 에 테이블 없음** → 백엔드 영속화하려면 스키마 추가 필요(프론트는 현재 localStorage).
 
+## 2026-07-08 — 청크: 인증(JWT) + 테넌트 격리 (서브에이전트)
+- Spring Security(stateless, csrf off) + JWT(HS256, jjwt 0.12.6). `JWT_SECRET` env 전용·기본값 없음, 32바이트 미만이면 startup 예외(fail-fast). access-exp-min 기본 120.
+- 엔티티 User/WorkspaceMember + 리포. AuthService(BCrypt). CurrentUserProvider(SecurityContext→User).
+- 엔드포인트: `POST /api/auth/register`(중복 409, 워크스페이스 생성 안 함), `POST /api/auth/login`(실패 401 일반 메시지=이메일 존재여부 비노출, OWASP), `GET /api/me`. permitAll: auth/**·ping·actuator/health, 그 외 authenticated.
+- 테넌트 격리: `POST /api/workspaces`=생성+owner 멤버십(트랜잭션), `GET /api/workspaces`=내 멤버십만, `/api/workspaces/{ws}/**`=멤버십 검증(없음 404 / 멤버아님 403). BotService/Controller·WorkspaceService 수정됨.
+- password_hash 는 DTO 비노출, 평문 로깅 없음. 검증: compileJava 통과(exit 0 재확인). 실DB 미기동.
+- **미결**: refresh 토큰(access-only), role별 권한 세분화(멤버십 유무만 확인, role='owner' 저장하나 액션별 강제 안 함), 봇 정의 영속화/발행, 대화 런타임/위젯.
+
 ## 다음 청크 후보
-1. 백엔드 도메인/엔티티 + 기본 CRUD(scenario/설정/채널) REST — schema.sql 기준 매핑.
+1. 봇 정의(그래프) 영속화 + 발행 플로우 (`bot_deployment_versions.snapshot_json`).
+2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).
+3. 프론트: storage.js 뒤 API 클라이언트 + 로그인 화면 + 동기→비동기 전환(큰 청크).
 2. 인증(JWT) + workspace 테넌트 격리.
 3. 프론트: `storage.js` 뒤에 API 클라이언트 구현 추가 + 동기→비동기 소비처 전환(큰 청크).

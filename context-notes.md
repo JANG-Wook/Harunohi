@@ -49,6 +49,13 @@
 - password_hash 는 DTO 비노출, 평문 로깅 없음. 검증: compileJava 통과(exit 0 재확인). 실DB 미기동.
 - **미결**: refresh 토큰(access-only), role별 권한 세분화(멤버십 유무만 확인, role='owner' 저장하나 액션별 강제 안 함), 봇 정의 영속화/발행, 대화 런타임/위젯.
 
+## 2026-07-09 — 청크: 실 MySQL 기동 검증 + 스모크 테스트 (서브에이전트)
+- 로컬 MySQL 9.6(Homebrew) 사용. DB `harunohi`, 계정 harunohi/harunohi_dev_pw(로컬 전용). Flyway V1 정상 적용(스키마 문제 없음).
+- JPA validate 불일치 수정(스키마 불변, 엔티티 정렬): public_id 3곳 `columnDefinition="char(26)"`, Bot.description `TEXT`. 그 외 일치.
+- **완전 기동 성공**(Started, 2.7s) + 스모크 10단계 전부 통과: ping/health 200, register 201, login 200(JWT), me 200, 워크스페이스 생성/목록 201/200, 봇 생성/목록 201/200, 무인증 401(테넌트 가드).
+- **주의**: jjwt 가 키 길이(52바이트)로 **HS384 자동 선택**(HS256 아님) — 유효하지만 HS256 고정 원하면 JwtService 에서 알고리즘 명시 필요(소규모 후속).
+- 서버는 검증 후 정상 종료(8080 free). MySQL 9.6 은 Flyway 공식 지원 범위 밖(경고만, 동작 OK) — 운영은 MySQL 8.x 권장(tech-stack 문서와 일치).
+
 ## 다음 청크 후보
 1. 봇 정의(그래프) 영속화 + 발행 플로우 (`bot_deployment_versions.snapshot_json`).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).

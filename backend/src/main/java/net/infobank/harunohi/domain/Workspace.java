@@ -18,7 +18,7 @@ public class Workspace {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, length = 26, updatable = false)
+    @Column(name = "public_id", nullable = false, columnDefinition = "char(26)", updatable = false)
     private String publicId;
 
     @Column(name = "name", nullable = false, length = 100)

@@ -18,7 +18,7 @@ public class Bot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, length = 26, updatable = false)
+    @Column(name = "public_id", nullable = false, columnDefinition = "char(26)", updatable = false)
     private String publicId;
 
     @Column(name = "workspace_id", nullable = false, updatable = false)
@@ -27,7 +27,7 @@ public class Bot {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "status", nullable = false, length = 20)

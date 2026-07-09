@@ -56,8 +56,16 @@
 - **주의**: jjwt 가 키 길이(52바이트)로 **HS384 자동 선택**(HS256 아님) — 유효하지만 HS256 고정 원하면 JwtService 에서 알고리즘 명시 필요(소규모 후속).
 - 서버는 검증 후 정상 종료(8080 free). MySQL 9.6 은 Flyway 공식 지원 범위 밖(경고만, 동작 OK) — 운영은 MySQL 8.x 권장(tech-stack 문서와 일치).
 
+## 2026-07-09 — 청크: 봇 정의 영속화 + 발행/롤백 + 공개 배포 API (서브에이전트)
+- **설계 결정**: 작업 버전도 JSON 스냅샷(`bot_versions.definition_json LONGTEXT`). 정규화 scenarios/nodes/edges 는 파일럿 미사용(정식 오픈 때 재검토). 프론트 versions[] 모델과 1:1.
+- Flyway **V2**: bot_versions(UNIQUE(bot_id,name)) + bots.current_version_id(FK, SET NULL). `db/schema.sql` 은 V1 그대로(V2 는 backend 마이그레이션에만 존재 — 주의).
+- REST: versions CRUD(중복 409, 마지막 삭제 409, current 자동 이동), PUT current, POST publish(→bot_deployment_versions 복사, published_version_id, status=active), POST rollback, GET deployments(메타만).
+- **공개 무인증** `GET /api/public/bots/{botPublicId}/deployment` → snapshot+botName (위젯용). SecurityConfig `/api/public/**` permitAll.
+- definitionJson: Jackson 유효성만 검사 + 2MB 상한(400). 실DB 스모크 전 단계 통과(발행→공개조회→롤백→public 이 v1 snapshot 반환, 무인증 workspaces 401).
+- **미결**: 발행 UI(프론트), 위젯 런타임/대화 API, 세션 기록, 공개 스냅샷 내 시크릿 제거(서버 프록시 청크에서).
+
 ## 다음 청크 후보
-1. 봇 정의(그래프) 영속화 + 발행 플로우 (`bot_deployment_versions.snapshot_json`).
+1. 프론트 ↔ 백엔드 연결(API 클라이언트+로그인+동기→비동기) — 봇 저장 API 가 생겼으므로 착수 가능.
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).
 3. 프론트: storage.js 뒤 API 클라이언트 + 로그인 화면 + 동기→비동기 전환(큰 청크).
 2. 인증(JWT) + workspace 테넌트 격리.

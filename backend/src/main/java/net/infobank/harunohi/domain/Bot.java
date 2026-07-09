@@ -1,4 +1,4 @@
-// 봇 식별/메타 정보를 담는 JPA 엔티티 (bots 테이블 매핑, 정의 그래프/발행은 이번 범위 제외).
+// 봇 식별/메타 및 현재/발행 버전 참조를 담는 JPA 엔티티 (bots 테이블 매핑).
 package net.infobank.harunohi.domain;
 
 import java.time.Instant;
@@ -36,7 +36,13 @@ public class Bot {
     @Column(name = "intent_mode", nullable = false, length = 20)
     private String intentMode;
 
-    // published_version_id / widget_settings_json 은 이번 범위 밖. 널 유지 (매핑하지 않음).
+    @Column(name = "published_version_id")
+    private Long publishedVersionId;
+
+    @Column(name = "current_version_id")
+    private Long currentVersionId;
+
+    // widget_settings_json 은 이번 범위 밖. 널 유지 (매핑하지 않음).
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -97,6 +103,22 @@ public class Bot {
 
     public void setIntentMode(String intentMode) {
         this.intentMode = intentMode;
+    }
+
+    public Long getPublishedVersionId() {
+        return publishedVersionId;
+    }
+
+    public void setPublishedVersionId(Long publishedVersionId) {
+        this.publishedVersionId = publishedVersionId;
+    }
+
+    public Long getCurrentVersionId() {
+        return currentVersionId;
+    }
+
+    public void setCurrentVersionId(Long currentVersionId) {
+        this.currentVersionId = currentVersionId;
     }
 
     public Instant getCreatedAt() {

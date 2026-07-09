@@ -17,7 +17,7 @@
 - [ ] 검증: 두 브라우저에서 동일 계정 봇 공유 확인
 
 ## P2. 발행 + 런타임 + 위젯
-- [ ] 발행/롤백 플로우 (bot_deployment_versions + 발행 UI)
+- [~] 발행/롤백 플로우 — **백엔드 완료**(Flyway V2 bot_versions, 버전 CRUD·발행·롤백·배포이력, 공개 무인증 `GET /api/public/bots/{bot}/deployment`, 실DB 스모크 통과). 남음: 발행 UI(프론트)
 - [ ] 공개 챗룸 라우트 `/c/<channelId>` (배포 버전 로드 → ChatRoom + simulatorRuntime)
 - [ ] Vanilla JS iframe 위젯 스니펫 (채널 상세 URL/HTML 실동작)
 - [ ] API 호출 시크릿 서버 프록시

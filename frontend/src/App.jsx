@@ -8,6 +8,7 @@ import LauncherListPage from './settings/LauncherListPage.jsx'
 import LauncherSettingsPage from './settings/LauncherSettingsPage.jsx'
 import ChannelListPage from './pages/ChannelListPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import RequireAuth from './components/RequireAuth.jsx'
 
 export default function App() {
   return (
@@ -15,18 +16,21 @@ export default function App() {
       <Route path="/" element={<Navigate to="/app/bots" replace />} />
       <Route path="/login" element={<LoginPage />} />
 
-      <Route element={<ConsoleLayout />}>
-        <Route path="/app/bots" element={<DashboardPage />} />
-        <Route path="/app/chatbot-ui/launcher" element={<LauncherListPage />} />
-        <Route path="/app/chatbot-channels" element={<ChannelListPage />} />
-      </Route>
+      {/* 콘솔 전체는 로그인 필수 — 봇 데이터가 서버 저장으로 전환됨 */}
+      <Route element={<RequireAuth />}>
+        <Route element={<ConsoleLayout />}>
+          <Route path="/app/bots" element={<DashboardPage />} />
+          <Route path="/app/chatbot-ui/launcher" element={<LauncherListPage />} />
+          <Route path="/app/chatbot-channels" element={<ChannelListPage />} />
+        </Route>
 
-      <Route element={<BotWorkspaceLayout />}>
-        <Route path="/app/bots/:botId/canvas" element={<BotCanvasPage />} />
-      </Route>
+        <Route element={<BotWorkspaceLayout />}>
+          <Route path="/app/bots/:botId/canvas" element={<BotCanvasPage />} />
+        </Route>
 
-      {/* 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린 (LNB 이탈 방지) */}
-      <Route path="/app/chatbot-ui/launcher/:launcherId" element={<LauncherSettingsPage />} />
+        {/* 챗봇 디자인 에디터 — LNB 없는 독립 풀스크린 (LNB 이탈 방지) */}
+        <Route path="/app/chatbot-ui/launcher/:launcherId" element={<LauncherSettingsPage />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/app/bots" replace />} />
     </Routes>

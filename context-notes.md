@@ -71,8 +71,15 @@
 - 백엔드 CORS 추가: SecurityConfig `.cors()` + CorsConfigurationSource(`security.cors.allowed-origins`, env `CORS_ALLOWED_ORIGINS`, 기본 localhost:5173/5177/5178). ⚠️ application.yml 에 security: 키 중복 실수 있었음 — 병합으로 수정(중복 top-level 키 주의).
 - E2E 검증(실 백엔드+미리보기): 회원가입→자동 로그인→/app/bots(토큰 180자 저장), 헤더 이름 표시, 로그아웃→/login, 잘못된 비번→401 일반 메시지 노출, 재로그인 성공. CORS preflight 200. 콘솔 에러 0. 테스트 계정 pilot-tester@example.com(로컬 DB).
 
+## 2026-07-09 — 청크: ②-a botApi + 가드 + 대시보드 전환 (직접 구현)
+- `lib/botApi.js`: ensureWorkspace(내 워크스페이스 없으면 "기본 워크스페이스" 자동 생성, **in-flight 프로미스 공유로 StrictMode 이중 이펙트 중복 생성 방지** — 실제로 중복 2개 생겼던 버그 발견 후 수정, 로컬 DB 수동 정리), 봇 CRUD + 버전/발행/롤백/배포이력 매핑(definitionJson stringify 포함).
+- `components/RequireAuth.jsx` + App.jsx: 콘솔/봇작업/런처에디터 전체 로그인 가드. ConsoleLayout 로그아웃 시 resetWorkspaceCache.
+- DashboardPage: 서버 전환 — listBots→카드(버전명/응답수는 ②-b 후 보강, null 이면 숨김), createBot→**publicId 라우팅**(`/app/bots/<publicId>/canvas`), patchBot 이름변경(모달 버튼 라벨 '변경'), deleteBot, 로딩/에러 상태. 이름 중복은 서버 미강제 → 목록 기준 소프트 검사.
+- E2E(실 백엔드): 가드 리다이렉트 → 로그인 → 빈 목록 → 생성(서버 영속, ULID 라우트) → 카드 표시 → 이름변경 → 삭제 → 토스트. 콘솔 에러 0.
+- **과도기 주의**: 캔버스(BotCanvasPage)는 아직 localStorage 를 읽음 → API 로 만든 봇의 캔버스는 빈 초기 상태로 열림. ②-b 에서 해소.
+
 ## 다음 청크 후보
-1. 서브청크 ②: 봇 데이터를 API 로 전환(동기→비동기, 라우트 가드 포함) — 가장 큰 프론트 작업.
+1. 서브청크 ②-b: 캔버스/버전 전환(BotCanvasPage/BotWorkspaceLayout, definition_json 왕복) — 과도기 해소, 최우선.
 2. 서브청크 ③: 발행 UI(버전 발행/롤백 버튼 연동).
 3. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).

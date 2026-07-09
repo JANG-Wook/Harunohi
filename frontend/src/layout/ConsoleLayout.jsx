@@ -8,6 +8,7 @@ import IconButtonOutlined from '../design-system/components/IconButton/IconButto
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import { getCurrentUser, logout } from '../lib/auth.js'
+import { resetWorkspaceCache } from '../lib/botApi.js'
 import './ConsoleLayout.css'
 
 // children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
@@ -51,11 +52,12 @@ export default function ConsoleLayout() {
   const { theme, toggle } = useTheme()
   const isDark = theme === 'dark'
   const navigate = useNavigate()
-  // 로그인 상태 — 서버 연동 전이라 로그인 없이도 콘솔 사용 가능(가드는 데이터 전환 청크에서)
+  // 로그인 상태 — 콘솔 라우트는 RequireAuth 가드 하위라 항상 로그인 상태로 진입한다
   const [user, setUser] = useState(() => getCurrentUser())
 
   const handleLogout = () => {
     logout()
+    resetWorkspaceCache()
     setUser(null)
     navigate('/login')
   }

@@ -1,5 +1,5 @@
 // 대시보드 페이지 — 봇 목록 + 봇 생성 모달
-// localStorage 의 harunohi.bot.* 키들을 스캔해 저장된 봇을 카드로 노출.
+// 봇 메타는 서버(워크스페이스 스코프 REST)에서 로드한다. 카드 클릭 시 publicId 로 캔버스 진입.
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -11,11 +11,9 @@ import Snackbar from '../design-system/components/Snackbar/Snackbar.jsx'
 import Textfield from '../design-system/components/Textfield/Textfield.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useFocusTrap } from '../lib/useFocusTrap.js'
-import { createInitialBotData } from '../lib/stepTypes.js'
-import { readRaw, writeRaw, remove, keys } from '../lib/storage.js'
+import { listBots, createBot, deleteBot, patchBot } from '../lib/botApi.js'
 import './DashboardPage.css'
 
-const STORAGE_PREFIX = 'harunohi.bot.'
 const TOAST_DURATION = 2400
 
 /** ISO 문자열 → "2026.05.23 14:30" 형식 */
@@ -27,76 +25,18 @@ function formatDate(iso) {
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/** localStorage 에서 저장된 봇 목록을 읽어옴 */
-function loadBotList() {
-  if (typeof window === 'undefined') return []
-  const list = []
-  for (const key of keys(STORAGE_PREFIX)) {
-    const botId = key.slice(STORAGE_PREFIX.length)
-    try {
-      const raw = readRaw(key)
-      const parsed = JSON.parse(raw)
-      // 신규 포맷(versions[].scenarios[].responses[]) + 중간 포맷(versions[].steps[]) + 레거시(steps[]) 모두 지원
-      const activeVersion = Array.isArray(parsed?.versions)
-        ? parsed.versions.find((v) => v.id === parsed.currentVersionId) ?? parsed.versions[0]
-        : null
-      let responseCount = 0
-      if (Array.isArray(activeVersion?.scenarios)) {
-        // 시나리오별 응답 수 합산
-        for (const sc of activeVersion.scenarios) {
-          if (Array.isArray(sc?.responses)) responseCount += sc.responses.length
-        }
-      } else if (Array.isArray(activeVersion?.steps)) {
-        responseCount = activeVersion.steps.length
-      } else if (Array.isArray(parsed?.steps)) {
-        responseCount = parsed.steps.length
-      }
-      // 생성일/수정일 — versions[] 의 savedAt 최소·최대값. 레거시 포맷에는 정보가 없어 null.
-      let createdAt = null
-      let updatedAt = null
-      if (Array.isArray(parsed?.versions) && parsed.versions.length > 0) {
-        const times = parsed.versions
-          .map((v) => v?.savedAt)
-          .filter(Boolean)
-          .sort()
-        createdAt = times[0] ?? null
-        updatedAt = times[times.length - 1] ?? null
-      }
-      // 최신/배포 버전명 — 최신은 마지막 버전, 배포는 deployedVersionId(없으면 운영 중이면 현재 버전).
-      // 저장 전 옛 버전은 name 이 없을 수 있어 인덱스 기반("버전 N")으로 폴백.
-      let latestVersionName = null
-      let deployedVersionName = null
-      if (Array.isArray(parsed?.versions) && parsed.versions.length > 0) {
-        const vs = parsed.versions
-        const nameOf = (i) => vs[i]?.name ?? `버전 ${i + 1}`
-        latestVersionName = nameOf(vs.length - 1)
-        const depId =
-          parsed.deployedVersionId ?? (parsed.status === 'active' ? parsed.currentVersionId : null)
-        const depIdx = vs.findIndex((v) => v.id === depId)
-        deployedVersionName = depIdx >= 0 ? nameOf(depIdx) : null
-      }
-      list.push({
-        id: botId,
-        name: decodeURIComponent(botId),
-        responseCount,
-        status: parsed?.status === 'active' ? 'active' : 'draft',
-        createdAt,
-        updatedAt,
-        latestVersionName,
-        deployedVersionName,
-      })
-    } catch {
-      // 손상된 항목은 무시
-    }
+/** 서버 봇 메타 → 대시보드 카드 모델. 버전명/응답수는 버전 API 전환(②-b) 후 보강 예정 */
+function toCard(bot) {
+  return {
+    id: bot.publicId,
+    name: bot.name,
+    responseCount: null,
+    status: bot.status === 'active' ? 'active' : 'draft',
+    createdAt: bot.createdAt,
+    updatedAt: bot.updatedAt,
+    latestVersionName: null,
+    deployedVersionName: null,
   }
-  // 최근 저장(수정)순 — 최신이 좌측 상단. 시각 정보 없으면 뒤로, 동률이면 이름순
-  list.sort((a, b) => {
-    const ta = a.updatedAt || a.createdAt || ''
-    const tb = b.updatedAt || b.createdAt || ''
-    if (ta !== tb) return tb.localeCompare(ta) // 내림차순(최신 먼저)
-    return a.name.localeCompare(b.name, 'ko')
-  })
-  return list
 }
 
 export default function DashboardPage() {
@@ -105,11 +45,25 @@ export default function DashboardPage() {
   const [botName, setBotName] = useState('')
   const [nameError, setNameError] = useState('')
 
-  /* 대시보드 진입 시 봇 목록 로드. modalOpen 이 false 로 닫히면 재로드해서 갓 생성된 봇 반영 */
-  const [bots, setBots] = useState(() => loadBotList())
+  /* 대시보드 진입 시 서버에서 봇 목록 로드 */
+  const [bots, setBots] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const refreshBots = async () => {
+    try {
+      setLoadError('')
+      const list = await listBots()
+      setBots(list.map(toCard))
+    } catch (e) {
+      setLoadError(e?.message ?? '봇 목록을 불러오지 못했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
   useEffect(() => {
-    setBots(loadBotList())
-  }, [modalOpen])
+    refreshBots()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /* 삭제 확인 다이얼로그 — null 이면 닫힘, 객체면 그 봇을 삭제 후보로 표시 */
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -141,22 +95,21 @@ export default function DashboardPage() {
 
   const closeModal = () => setModalOpen(false)
 
-  const submitBot = () => {
+  const submitBot = async () => {
     const trimmed = botName.trim()
     if (!trimmed) return
-    // 이름 중복 체크 — 저장 키가 디코딩된 봇 이름(useParams 디코딩 결과)이라 trimmed 그대로 검사
-    if (readRaw(STORAGE_PREFIX + trimmed)) {
+    // 이름 중복 체크 — 서버는 이름 중복을 막지 않으므로 목록 기준으로 소프트 검사
+    if (bots.some((b) => b.name === trimmed)) {
       setNameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
-    // 생성 즉시 기본 데이터로 저장 — 캔버스에서 따로 저장 안 해도 목록에 남음 (런처와 동일)
-    writeRaw(
-      STORAGE_PREFIX + trimmed,
-      JSON.stringify(createInitialBotData(new Date().toISOString())),
-    )
-    setModalOpen(false)
-    // URL 은 인코딩해 안전하게 전달 (라우터가 디코딩해서 useParams 로 전달)
-    navigate(`/app/bots/${encodeURIComponent(trimmed)}/canvas`)
+    try {
+      const created = await createBot(trimmed)
+      setModalOpen(false)
+      navigate(`/app/bots/${created.publicId}/canvas`)
+    } catch (e) {
+      setNameError(e?.message ?? '봇 생성에 실패했습니다.')
+    }
   }
 
   /* 입력값이 바뀌면 이전 에러 클리어 */
@@ -165,9 +118,9 @@ export default function DashboardPage() {
     if (nameError) setNameError('')
   }
 
-  const handleDelete = (botId) => {
-    remove(STORAGE_PREFIX + botId)
-    setBots(loadBotList())
+  const handleDelete = async (botId) => {
+    await deleteBot(botId)
+    await refreshBots()
   }
 
   const openRename = (bot) => {
@@ -179,7 +132,7 @@ export default function DashboardPage() {
     setRenameTarget(null)
     setRenameError('')
   }
-  const submitRename = () => {
+  const submitRename = async () => {
     if (!renameTarget) return
     const trimmed = renameValue.trim()
     if (!trimmed) return
@@ -187,35 +140,34 @@ export default function DashboardPage() {
       closeRename()
       return
     }
-    // 저장 키가 디코딩된 이름이라 trimmed 그대로 검사
-    if (readRaw(STORAGE_PREFIX + trimmed)) {
+    if (bots.some((b) => b.name === trimmed && b.id !== renameTarget.id)) {
       setRenameError('이미 사용 중인 챗봇 이름입니다.')
       return
     }
-    const oldKey = STORAGE_PREFIX + renameTarget.id
-    const raw = readRaw(oldKey)
-    if (raw == null) {
-      // 데이터가 사라진 경우 — 안전하게 모달만 닫기
+    try {
+      await patchBot(renameTarget.id, { name: trimmed })
       closeRename()
-      return
+      await refreshBots()
+      showToast(`'${trimmed}' 봇으로 이름이 변경되었습니다`)
+    } catch (e) {
+      setRenameError(e?.message ?? '이름 변경에 실패했습니다.')
     }
-    writeRaw(STORAGE_PREFIX + trimmed, raw)
-    remove(oldKey)
-    closeRename()
-    setBots(loadBotList())
-    showToast(`'${trimmed}' 봇으로 이름이 변경되었습니다`)
   }
   const handleRenameChange = (e) => {
     setRenameValue(e.target.value)
     if (renameError) setRenameError('')
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return
     const name = deleteTarget.name
-    handleDelete(deleteTarget.id)
     setDeleteTarget(null)
-    showToast(`'${name}' 봇이 삭제되었습니다`)
+    try {
+      await handleDelete(deleteTarget.id)
+      showToast(`'${name}' 봇이 삭제되었습니다`)
+    } catch (e) {
+      showToast(e?.message ?? '삭제에 실패했습니다.')
+    }
   }
 
   // Esc 닫기 + 모달 열림 시 배경 스크롤 잠금
@@ -278,7 +230,13 @@ export default function DashboardPage() {
         />
       </div>
 
-      {bots.length === 0 ? (
+      {loading || loadError ? (
+        <div className="dashboard__empty">
+          <Typography variant="body-1-normal" color="var(--color-label-alternative)" as="div">
+            {loadError || '봇 목록을 불러오는 중입니다...'}
+          </Typography>
+        </div>
+      ) : bots.length === 0 ? (
         <div className="dashboard__empty">
           <Typography variant="body-1-normal" color="var(--color-label-alternative)" as="div">
             아직 만든 챗봇이 없어요. 챗봇을 만들어 대화 흐름을 설계해 보세요.
@@ -317,9 +275,11 @@ export default function DashboardPage() {
                 >
                   {statusLabel}
                 </span>
-                <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
-                  응답 {bot.responseCount}개
-                </Typography>
+                {bot.responseCount != null && (
+                  <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
+                    응답 {bot.responseCount}개
+                  </Typography>
+                )}
               </div>
               {/* 최신 버전 / 배포 버전 */}
               <div className="dashboard__card-versions">

@@ -64,8 +64,17 @@
 - definitionJson: Jackson 유효성만 검사 + 2MB 상한(400). 실DB 스모크 전 단계 통과(발행→공개조회→롤백→public 이 v1 snapshot 반환, 무인증 workspaces 401).
 - **미결**: 발행 UI(프론트), 위젯 런타임/대화 API, 세션 기록, 공개 스냅샷 내 시크릿 제거(서버 프록시 청크에서).
 
+## 2026-07-09 — 청크: 프론트 API 클라이언트 + 로그인 (서브청크 ①, 직접 구현)
+- `lib/api.js`: fetch 래퍼 — `VITE_API_BASE_URL`(기본 http://localhost:8080), Bearer 자동 첨부, ApiError(status/message), 401 시 보관 인증 자동 삭제, 네트워크 실패 status 0.
+- `lib/auth.js`: `harunohi.auth`(localStorage, storage.js 경유)에 {accessToken,user}. login/register/logout/getCurrentUser. api.js 와 순환 import 회피(동적 import).
+- `/login` 페이지(LoginPage): 로그인/회원가입 토글, DS Textfield/Button, 에러는 비밀번호 필드 description. ConsoleLayout 헤더: 로그인 시 이름+로그아웃, 미로그인 시 로그인 버튼. **라우트 강제 가드는 의도적으로 미적용**(데이터가 아직 localStorage 라 백엔드 없이도 사용 가능해야 함) → 서브청크 ②에서 가드.
+- 백엔드 CORS 추가: SecurityConfig `.cors()` + CorsConfigurationSource(`security.cors.allowed-origins`, env `CORS_ALLOWED_ORIGINS`, 기본 localhost:5173/5177/5178). ⚠️ application.yml 에 security: 키 중복 실수 있었음 — 병합으로 수정(중복 top-level 키 주의).
+- E2E 검증(실 백엔드+미리보기): 회원가입→자동 로그인→/app/bots(토큰 180자 저장), 헤더 이름 표시, 로그아웃→/login, 잘못된 비번→401 일반 메시지 노출, 재로그인 성공. CORS preflight 200. 콘솔 에러 0. 테스트 계정 pilot-tester@example.com(로컬 DB).
+
 ## 다음 청크 후보
-1. 프론트 ↔ 백엔드 연결(API 클라이언트+로그인+동기→비동기) — 봇 저장 API 가 생겼으므로 착수 가능.
+1. 서브청크 ②: 봇 데이터를 API 로 전환(동기→비동기, 라우트 가드 포함) — 가장 큰 프론트 작업.
+2. 서브청크 ③: 발행 UI(버전 발행/롤백 버튼 연동).
+3. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).
 3. 프론트: storage.js 뒤 API 클라이언트 + 로그인 화면 + 동기→비동기 전환(큰 청크).
 2. 인증(JWT) + workspace 테넌트 격리.

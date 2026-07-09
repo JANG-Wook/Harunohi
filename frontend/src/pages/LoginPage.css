@@ -1,0 +1,51 @@
+/* 로그인/회원가입 — 중앙 카드 레이아웃 */
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  background: var(--color-bg-normal-alternative);
+}
+
+.login__card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  padding: var(--spacing-40) var(--spacing-32);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-line-solid-alternative);
+  border-radius: var(--spacing-16);
+}
+
+.login__logo {
+  height: 24px;
+  width: auto;
+  align-self: flex-start;
+  object-fit: contain;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.login__switch {
+  align-self: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  color: var(--color-label-alternative);
+  padding: var(--spacing-4);
+}
+
+.login__switch:hover {
+  color: var(--color-primary-normal);
+  text-decoration: underline;
+}

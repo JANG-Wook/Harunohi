@@ -13,7 +13,7 @@
 - [x] 백엔드: Spring Boot 프로젝트 골격 + MySQL 연결 + schema.sql 적용 — `backend/` (Gradle+Java21+SB3.5.3), env 기반 datasource(비번 커밋X), Flyway V1=schema.sql, JPA validate, `/actuator/health`+`/api/ping`. `./gradlew compileJava` 통과(exit 0). bootRun 은 MySQL 필요(미실행)
 - [x] 백엔드: 인증(JWT) + workspace 테넌트 격리 — Spring Security+JWT(HS256, JWT_SECRET env 전용), BCrypt, User/WorkspaceMember, register/login/me, 워크스페이스 생성 시 owner 멤버십, /api/workspaces/** 멤버십 검증(403 vs 404), 로그인 실패 일반화(OWASP). compileJava 통과. 남음: refresh 토큰, role별 권한 세분화
 - [~] 백엔드: CRUD REST — Workspace/Bot **식별·메타** CRUD 완료(엔티티·리포·서비스·DTO·전역예외, ULID public_id, compileJava 통과). 남음: 봇 정의(그래프) 영속화·발행, 설정(런처)/채널(스키마 미존재 → 추가 필요), status/intent_mode enum 검증
-- [ ] 프론트: repository 계층을 API 클라이언트로 교체 + 로그인 화면
+- [~] 프론트: API 연동 — **①API 클라이언트(lib/api.js)+인증(lib/auth.js)+로그인 화면(/login)+헤더 계정 표시+백엔드 CORS 완료**(회원가입→자동로그인→콘솔, 로그아웃, 실패 401 메시지 E2E 검증). 남음: ②봇 데이터 API 전환+라우트 가드, ③발행 UI
 - [ ] 검증: 두 브라우저에서 동일 계정 봇 공유 확인
 
 ## P2. 발행 + 런타임 + 위젯

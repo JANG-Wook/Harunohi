@@ -7,11 +7,13 @@ import BotCanvasPage from './pages/BotCanvasPage.jsx'
 import LauncherListPage from './settings/LauncherListPage.jsx'
 import LauncherSettingsPage from './settings/LauncherSettingsPage.jsx'
 import ChannelListPage from './pages/ChannelListPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/app/bots" replace />} />
+      <Route path="/login" element={<LoginPage />} />
 
       <Route element={<ConsoleLayout />}>
         <Route path="/app/bots" element={<DashboardPage />} />

@@ -1,11 +1,13 @@
-// 콘솔 공통 레이아웃 — 상단 헤더(테마 토글 + 아바타) + 좌측 사이드바 + 본문.
+// 콘솔 공통 레이아웃 — 상단 헤더(테마 토글 + 계정) + 좌측 사이드바 + 본문.
 // 사이드바는 평면 + 부모/자식(접고 펼치기) 두 패턴을 동시에 지원.
-import { Outlet, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import Avatar from '../design-system/components/Avatar/Avatar.jsx'
 import Icon from '../design-system/components/Icon/Icon.jsx'
 import IconButtonOutlined from '../design-system/components/IconButton/IconButtonOutlined.jsx'
 import Typography from '../design-system/components/Typography/Typography.jsx'
 import { useTheme } from '../lib/useTheme.js'
+import { getCurrentUser, logout } from '../lib/auth.js'
 import './ConsoleLayout.css'
 
 // children 이 있는 항목은 클릭 시 펼침/접힘. 부모 자체는 라우트 이동을 하지 않는다.
@@ -48,6 +50,15 @@ function NavLeaf({ item, isChild = false }) {
 export default function ConsoleLayout() {
   const { theme, toggle } = useTheme()
   const isDark = theme === 'dark'
+  const navigate = useNavigate()
+  // 로그인 상태 — 서버 연동 전이라 로그인 없이도 콘솔 사용 가능(가드는 데이터 전환 청크에서)
+  const [user, setUser] = useState(() => getCurrentUser())
+
+  const handleLogout = () => {
+    logout()
+    setUser(null)
+    navigate('/login')
+  }
 
   return (
     <div className="console-layout">
@@ -66,6 +77,20 @@ export default function ConsoleLayout() {
             onClick={toggle}
             aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
           />
+          {user ? (
+            <div className="console-header__account">
+              <Typography variant="label-1-normal" weight="medium" as="span">
+                {user.name}
+              </Typography>
+              <button type="button" className="console-header__logout" onClick={handleLogout}>
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="console-header__login" onClick={() => navigate('/login')}>
+              로그인
+            </button>
+          )}
           <Avatar variant="person" size="small" interaction onClick={() => {}} />
         </div>
       </header>

@@ -13,7 +13,7 @@
 - [x] 백엔드: Spring Boot 프로젝트 골격 + MySQL 연결 + schema.sql 적용 — `backend/` (Gradle+Java21+SB3.5.3), env 기반 datasource(비번 커밋X), Flyway V1=schema.sql, JPA validate, `/actuator/health`+`/api/ping`. `./gradlew compileJava` 통과(exit 0). bootRun 은 MySQL 필요(미실행)
 - [x] 백엔드: 인증(JWT) + workspace 테넌트 격리 — Spring Security+JWT(HS256, JWT_SECRET env 전용), BCrypt, User/WorkspaceMember, register/login/me, 워크스페이스 생성 시 owner 멤버십, /api/workspaces/** 멤버십 검증(403 vs 404), 로그인 실패 일반화(OWASP). compileJava 통과. 남음: refresh 토큰, role별 권한 세분화
 - [~] 백엔드: CRUD REST — Workspace/Bot **식별·메타** CRUD 완료(엔티티·리포·서비스·DTO·전역예외, ULID public_id, compileJava 통과). 남음: 봇 정의(그래프) 영속화·발행, 설정(런처)/채널(스키마 미존재 → 추가 필요), status/intent_mode enum 검증
-- [~] 프론트: API 연동 — ① 로그인 완료. **②-a 완료**(대시보드 서버 전환). **②-b 완료**: 캔버스 서버 로드(async 게이트)+저장/발행/삭제/버전전환 API remap, 봇 이름 서버 로드/변경, appliedLauncherId 클라이언트 보관, 버전 edit 비활성. **읽기 경로 E2E 검증됨**(캔버스가 서버 버전 로드). ⚠️ **쓰기(저장/발행) UI E2E 미검증** — 앱의 기존 '미완성 스텝' 검증이 저장 버튼을 막아 완성 봇 필요. 백엔드 createVersion/publish 는 201 검증. → deferred.md. 남음: ③ 발행 UI
+- [~] 프론트: API 연동 — ① 로그인 완료. **②-a 완료**(대시보드 서버 전환). **②-b 완료**: 캔버스 서버 로드(async 게이트)+저장/발행/삭제/버전전환 API remap, 봇 이름 서버 로드/변경, appliedLauncherId 클라이언트 보관, 버전 edit 비활성. **읽기+쓰기(저장→재로드) 경로 E2E 검증됨** — 완성 봇으로 UI 저장 시 서버 버전 생성(토스트+DB 확인), 재로드 시 로드. 발행은 레이아웃에 버튼이 연결돼 있지 않아(코드는 준비) ③에서 UI 연결. 남음: ③ 발행 UI
 - [ ] 검증: 두 브라우저에서 동일 계정 봇 공유 확인
 
 ## P2. 발행 + 런타임 + 위젯

@@ -1,7 +1,8 @@
 // 봇 빌더 페이지 — 좌측 시나리오/응답 패널 · 중앙 캔버스 · 우측 응답 설정 (3 패널)
-// botId 별 localStorage 영속 + 버전 히스토리 + isDirty 추적.
-// 데이터 모델: 봇 → versions[] → scenarios[] → responses[]. 시나리오마다 트리거 1개.
+// botPublicId 로 서버(bot_versions.definition_json) 영속 + 버전 히스토리 + isDirty 추적.
+// 데이터 모델: 봇 → versions[](서버 버전) → scenarios[] → responses[]. 시나리오마다 트리거 1개.
 // 엣지는 각 응답 버튼 링크에서 자동 도출 (수동 연결 없음, 현재 시나리오 안에서만).
+// 적용 런처(appliedLauncherId)는 런처가 아직 클라이언트 전용이라 localStorage 에 보관.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext, useParams } from 'react-router-dom'
@@ -28,14 +29,27 @@ import { migrateVersionLinks } from '../lib/linkMigration.js'
 import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
 import { resolveChatUi } from '../lib/chatUiStyle.js'
 import { readRaw, writeRaw } from '../lib/storage.js'
+import {
+  getBot,
+  listVersions,
+  getVersion,
+  createVersion,
+  deleteVersion as apiDeleteVersion,
+  setCurrentVersion as apiSetCurrentVersion,
+  publishVersion,
+} from '../lib/botApi.js'
 import './BotCanvasPage.css'
 
-const STORAGE_PREFIX = 'harunohi.bot.'
 const TRIGGER_NODE_ID = 'trigger'
 const DEFAULT_TRIGGER_POSITION = { x: -380, y: 200 }
 
-function storageKey(botId) {
-  return `${STORAGE_PREFIX}${botId}`
+/** 적용 런처 id — 봇별 클라이언트 보관(런처가 아직 클라이언트 전용 데이터라 참조 id 도 여기에) */
+const BOTUI_PREFIX = 'harunohi.botui.'
+function loadBotUiPref(botPublicId) {
+  return readRaw(BOTUI_PREFIX + botPublicId) || DEFAULT_LAUNCHER_ID
+}
+function saveBotUiPref(botPublicId, launcherId) {
+  writeRaw(BOTUI_PREFIX + botPublicId, launcherId)
 }
 
 /** 응답 → React Flow 노드 (저장된 위치가 있으면 사용, 없으면 그리드 배치) */
@@ -360,71 +374,56 @@ function withVersionMeta(v, index) {
   return { ...v, name: v.name ?? `버전 ${index + 1}`, description: v.description ?? '' }
 }
 
-function loadFromStorage(botId) {
+/** 서버 버전(메타+definitionJson) → 에디터 버전 객체. id 는 서버 publicId. 각종 마이그레이션 적용 */
+function serverVersionToEditor(meta, definitionJson, index) {
+  let def = {}
   try {
-    const raw = readRaw(storageKey(botId))
-    if (!raw) return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft', appliedLauncherId: DEFAULT_LAUNCHER_ID }
-    const parsed = JSON.parse(raw)
-    // 적용된 챗봇 설정(런처) — 봇 단위 메타. 없으면 기본값 런처
-    const appliedLauncherId = parsed.appliedLauncherId ?? DEFAULT_LAUNCHER_ID
-    if (parsed && Array.isArray(parsed.versions)) {
-      // 시나리오 마이그레이션(steps→scenarios) + 링크 마이그레이션 + 인라인 API → 등록 API + 버전 메타
-      const versions = parsed.versions.map((v, i) =>
-        withVersionMeta(
-          migrateSsoField(migrateFormFields(migrateInlineApisToRegistry(migrateVersionLinks(migrateLegacyVersion(v))))),
-          i,
-        ),
-      )
-      const currentVersionId =
-        parsed.currentVersionId ?? parsed.versions[parsed.versions.length - 1]?.id ?? null
-      const status = parsed.status === 'active' ? 'active' : 'draft'
-      const ids = versions.map((v) => v.id)
-      // 배포 버전 — 명시값 우선, 없으면 운영 중(active) 봇은 현재 버전을 배포본으로 승계
-      const deployedVersionId = ids.includes(parsed.deployedVersionId)
-        ? parsed.deployedVersionId
-        : status === 'active' && ids.includes(currentVersionId)
-          ? currentVersionId
-          : null
-      return { versions, currentVersionId, deployedVersionId, status, appliedLauncherId }
-    }
-    // 더 오래된 포맷 — versions 자체가 없고 steps 만 있음
-    if (parsed && Array.isArray(parsed.steps)) {
-      const legacy = withVersionMeta(
-        migrateSsoField(
-          migrateFormFields(
-            migrateInlineApisToRegistry(
-              migrateVersionLinks(
-                migrateLegacyVersion({
-                  id: `v_${Date.now()}_legacy`,
-                  savedAt: new Date().toISOString(),
-                  steps: parsed.steps,
-                  positions: parsed.positions ?? {},
-                  triggerTargetStepId: parsed.triggerTargetStepId ?? null,
-                }),
-              ),
-            ),
+    def = definitionJson ? JSON.parse(definitionJson) : {}
+  } catch {
+    def = {}
+  }
+  return withVersionMeta(
+    migrateSsoField(
+      migrateFormFields(
+        migrateInlineApisToRegistry(
+          migrateVersionLinks(
+            migrateLegacyVersion({
+              id: meta.publicId,
+              savedAt: meta.createdAt,
+              name: meta.name,
+              description: meta.description,
+              scenarios: def.scenarios ?? [],
+              currentScenarioId: def.currentScenarioId ?? null,
+              variables: def.variables ?? [],
+              apis: def.apis ?? [],
+            }),
           ),
         ),
-        0,
-      )
-      return { versions: [legacy], currentVersionId: legacy.id, deployedVersionId: null, status: 'draft', appliedLauncherId }
-    }
-  } catch {
-    // ignore
-  }
-  return { versions: [], currentVersionId: null, deployedVersionId: null, status: 'draft', appliedLauncherId: DEFAULT_LAUNCHER_ID }
-}
-
-function writeToStorage(botId, versions, currentVersionId, status, deployedVersionId = null, appliedLauncherId = DEFAULT_LAUNCHER_ID) {
-  writeRaw(
-    storageKey(botId),
-    JSON.stringify({ versions, currentVersionId, status, deployedVersionId, appliedLauncherId }),
+      ),
+    ),
+    index,
   )
 }
 
-let versionSeq = 0
-function nextVersionId() {
-  return `v_${Date.now().toString(36)}_${versionSeq++}`
+/** 서버에서 봇 정의를 불러와 에디터 초기 상태로 조립. 버전별 definitionJson 을 eager 로드 */
+async function loadBotFromServer(botPublicId) {
+  const bot = await getBot(botPublicId)
+  const metas = (await listVersions(botPublicId)) ?? []
+  const details = await Promise.all(metas.map((m) => getVersion(botPublicId, m.publicId)))
+  const versions = metas.map((m, i) => serverVersionToEditor(m, details[i]?.definitionJson, i))
+  const currentMeta = metas.find((m) => m.current) ?? metas[metas.length - 1] ?? null
+  const currentVersionId = currentMeta?.publicId ?? null
+  const status = bot.status === 'active' ? 'active' : 'draft'
+  // 정밀한 배포 버전 추적은 발행 UI(③)에서. 지금은 운영 중이면 현재 버전을 배포본으로 간주
+  const deployedVersionId = status === 'active' ? currentVersionId : null
+  return {
+    botName: bot.name,
+    versions,
+    currentVersionId,
+    deployedVersionId,
+    status,
+    appliedLauncherId: loadBotUiPref(botPublicId),
+  }
 }
 
 /** 시나리오 이름 중복 회피 — 같은 이름이 있으면 ' 사본' 또는 숫자 suffix */
@@ -438,11 +437,8 @@ function uniqueScenarioName(scenarios, base) {
   return `${base} ${Date.now()}`
 }
 
-function CanvasInner() {
-  const { botId } = useParams()
+function CanvasInner({ botId, initial }) {
   const layoutCtx = useOutletContext()
-
-  const initial = useMemo(() => loadFromStorage(botId), [botId])
   const initialVersion =
     initial.versions.find((v) => v.id === initial.currentVersionId) ??
     initial.versions[initial.versions.length - 1] ??
@@ -610,33 +606,25 @@ function CanvasInner() {
     apis,
   }
 
-  /* 저장 — 버전명/설명을 받아 새 버전으로 기록. (BotWorkspaceLayout 모달에서 호출) */
-  const handleSave = useCallback((meta = {}) => {
+  /* 저장 — 버전명/설명을 받아 서버에 새 버전으로 기록. (BotWorkspaceLayout 모달에서 호출, async) */
+  const handleSave = useCallback(async (meta = {}) => {
     const {
       scenarios: scs,
       currentScenarioId: curScId,
       nodes: n,
       versions: vs,
-      botStatus: bs,
-      deployedVersionId: dep,
       variables: vars,
       apis: aps,
     } = stateRef.current
     const payload = versionPayload(scs, curScId, n, vars, aps)
-    const newVersion = {
-      id: nextVersionId(),
-      savedAt: new Date().toISOString(),
-      name: (meta.name || '').trim() || `버전 ${vs.length + 1}`,
-      description: (meta.description || '').trim(),
-      ...payload,
-    }
-    const nextVersions = [...vs, newVersion]
+    const name = (meta.name || '').trim() || `버전 ${vs.length + 1}`
+    const description = (meta.description || '').trim()
     try {
-      writeToStorage(botId, nextVersions, newVersion.id, bs, dep, appliedLauncherIdRef.current)
-      setVersions(nextVersions)
-      setCurrentVersionId(newVersion.id)
+      const created = await createVersion(botId, { name, description, definition: payload })
+      const newVersion = { id: created.publicId, savedAt: created.createdAt, name, description, ...payload }
+      setVersions([...vs, newVersion])
+      setCurrentVersionId(created.publicId)
       setSavedSnapshot(JSON.stringify(payload))
-      // 위치 반영을 다음 currentScenario 에도 영속 — scenarios state 도 갱신
       setScenarios(payload.scenarios)
       return true
     } catch {
@@ -644,10 +632,11 @@ function CanvasInner() {
     }
   }, [botId])
 
-  const handlePublish = useCallback(() => {
-    const { versions: vs, currentVersionId: cur } = stateRef.current
+  const handlePublish = useCallback(async () => {
+    const { currentVersionId: cur } = stateRef.current
+    if (!cur) return false
     try {
-      writeToStorage(botId, vs, cur, 'active', cur, appliedLauncherIdRef.current)
+      await publishVersion(botId, cur)
       setBotStatus('active')
       setDeployedVersionId(cur)
       return true
@@ -667,12 +656,11 @@ function CanvasInner() {
     }
   }, [])
 
-  /* UI 적용 — 선택한 런처를 봇에 영속(버전과 무관한 봇 메타) + 모달 닫기 */
+  /* UI 적용 — 선택한 런처를 봇에 영속(클라이언트 보관, 런처가 아직 클라이언트 전용) + 모달 닫기 */
   const handleApplyUI = useCallback((launcherId) => {
     setAppliedLauncherId(launcherId)
     appliedLauncherIdRef.current = launcherId
-    const { versions: vs, currentVersionId: cur, botStatus: bs, deployedVersionId: dep } = stateRef.current
-    writeToStorage(botId, vs, cur, bs, dep, launcherId)
+    saveBotUiPref(botId, launcherId)
     setPickerOpen(false)
   }, [botId])
 
@@ -700,44 +688,29 @@ function CanvasInner() {
           versionPayload(targetScs, targetCurId, [], target.variables ?? [], target.apis ?? []),
         ),
       )
+      // 서버의 현재 버전 포인터도 이동(실패해도 편집엔 지장 없음 — 다음 로드에서 정합)
+      apiSetCurrentVersion(botId, target.id).catch(() => {})
     },
-    [setNodes],
+    [botId, setNodes],
   )
 
-  /* 버전 정보(이름+설명) 수정 — 이름은 봇 내 유일해야 함 */
-  const handleEditVersion = useCallback(
-    (versionId, { name, description }) => {
-      const trimmed = (name || '').trim()
-      const { versions: vs, currentVersionId: cur, deployedVersionId: dep, botStatus: bs } = stateRef.current
-      if (!trimmed || vs.some((v) => v.name === trimmed && v.id !== versionId)) return false
-      const next = vs.map((v) =>
-        v.id === versionId ? { ...v, name: trimmed, description: (description ?? '').trim() } : v,
-      )
-      try {
-        writeToStorage(botId, next, cur, bs, dep, appliedLauncherIdRef.current)
-        setVersions(next)
-        return true
-      } catch {
-        return false
-      }
-    },
-    [botId],
-  )
+  /* 버전 정보(이름+설명) 수정 — 백엔드 엔드포인트 부재로 이번(②-b)엔 미지원(deferred.md 참조) */
+  const handleEditVersion = useCallback(() => false, [])
 
-  /* 버전 삭제 — 최소 1개 유지. 현재 버전 삭제 시 최신으로 전환, 배포 버전 삭제 시 배포 해제 */
+  /* 버전 삭제 — 최소 1개 유지. 현재 버전 삭제 시 최신으로 전환(서버 반영, async) */
   const handleDeleteVersion = useCallback(
-    (versionId) => {
-      const { versions: vs, currentVersionId: cur, deployedVersionId: dep, botStatus: bs } = stateRef.current
+    async (versionId) => {
+      const { versions: vs, currentVersionId: cur, deployedVersionId: dep } = stateRef.current
       if (vs.length <= 1) return false
       const next = vs.filter((v) => v.id !== versionId)
       if (next.length === vs.length) return false
       const nextCur = cur === versionId ? next[next.length - 1].id : cur
       const nextDep = dep === versionId ? null : dep
       try {
-        writeToStorage(botId, next, nextCur, bs, nextDep, appliedLauncherIdRef.current)
+        await apiDeleteVersion(botId, versionId)
         setVersions(next)
         setDeployedVersionId(nextDep)
-        // 현재 보던 버전을 지웠으면 최신 버전 내용으로 에디터 교체
+        // 현재 보던 버전을 지웠으면 최신 버전 내용으로 에디터 교체(서버 current 도 이동)
         if (cur === versionId) handleLoadVersion(nextCur)
         return true
       } catch {
@@ -1231,9 +1204,29 @@ function CanvasInner() {
 }
 
 export default function BotCanvasPage() {
+  const { botId } = useParams()
+  const [initial, setInitial] = useState(null)
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    let alive = true
+    setInitial(null)
+    setLoadError('')
+    loadBotFromServer(botId)
+      .then((data) => { if (alive) setInitial(data) })
+      .catch((e) => { if (alive) setLoadError(e?.message ?? '봇을 불러오지 못했습니다.') })
+    return () => { alive = false }
+  }, [botId])
+
+  if (loadError) {
+    return <div className="bot-canvas__load">{loadError}</div>
+  }
+  if (!initial) {
+    return <div className="bot-canvas__load">봇을 불러오는 중입니다...</div>
+  }
   return (
     <ReactFlowProvider>
-      <CanvasInner />
+      <CanvasInner botId={botId} initial={initial} />
     </ReactFlowProvider>
   )
 }

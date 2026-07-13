@@ -16,11 +16,10 @@ import MenuSelect from '../canvas/MenuSelect.jsx'
 import { useTheme } from '../lib/useTheme.js'
 import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
 import { resolveChatUi } from '../lib/chatUiStyle.js'
-import { readRaw, writeRaw, remove } from '../lib/storage.js'
+import { getBot, patchBot } from '../lib/botApi.js'
 import './BotWorkspaceLayout.css'
 
 const TOAST_DURATION = 2400
-const STORAGE_PREFIX = 'harunohi.bot.'
 
 /** 이름 입력 너비 추정 — 한글 등 전각 문자는 약 2배 폭. 시각 폭(ch) 기준 floor 16 */
 function nameInputCh(s) {
@@ -115,10 +114,10 @@ export default function BotWorkspaceLayout() {
   const handleSave = useCallback(() => setSaveModalOpen(true), [])
 
   const handleVersionSubmit = useCallback(
-    ({ name, description }) => {
-      const ok = saverRef.current?.({ name, description })
+    async ({ name, description }) => {
       setSaveModalOpen(false)
-      if (ok) showToast(`'${name}' 버전으로 저장되었습니다`)
+      const ok = await saverRef.current?.({ name, description })
+      showToast(ok ? `'${name}' 버전으로 저장되었습니다` : '저장에 실패했습니다')
     },
     [showToast],
   )
@@ -136,9 +135,9 @@ export default function BotWorkspaceLayout() {
     [versionInfo.currentVersionId, isDirty, applyVersion],
   )
 
-  const handlePublish = useCallback(() => {
-    const ok = publisherRef.current?.()
-    if (ok) showToast('배포되었습니다')
+  const handlePublish = useCallback(async () => {
+    const ok = await publisherRef.current?.()
+    showToast(ok ? '배포되었습니다' : '배포에 실패했습니다')
   }, [showToast])
 
   const handleBack = useCallback(() => {
@@ -146,53 +145,50 @@ export default function BotWorkspaceLayout() {
     else navigate('/app/bots')
   }, [isDirty, navigate])
 
-  /* 봇 이름 인라인 편집 — 저장 키가 곧 이름이라, 커밋 시 키를 이동하고 새 URL 로 replace.
-     (BotCanvasPage 는 botId 변경에도 리마운트되지 않아 편집 중 상태는 보존된다) */
-  const botName = decodeURIComponent(botId ?? '')
-  const [nameDraft, setNameDraft] = useState(botName)
+  /* 봇 이름 인라인 편집 — 이름은 서버에서 로드하고, 변경은 patchBot(라우트=publicId 는 불변) */
+  const [botName, setBotName] = useState('')
+  const [nameDraft, setNameDraft] = useState('')
   const [editingName, setEditingName] = useState(false)
   const skipCommitRef = useRef(false) // Esc 취소 시 blur 커밋 방지
   useEffect(() => {
-    setNameDraft(decodeURIComponent(botId ?? ''))
+    let alive = true
+    getBot(botId)
+      .then((bot) => { if (alive) { setBotName(bot.name); setNameDraft(bot.name) } })
+      .catch(() => {})
+    return () => { alive = false }
   }, [botId])
 
   const startRename = () => {
-    setNameDraft(decodeURIComponent(botId ?? ''))
+    setNameDraft(botName)
     setEditingName(true)
   }
   const cancelRename = () => {
     skipCommitRef.current = true
-    setNameDraft(decodeURIComponent(botId ?? ''))
+    setNameDraft(botName)
     setEditingName(false)
   }
 
-  const commitRename = useCallback(() => {
+  const commitRename = useCallback(async () => {
     setEditingName(false)
     if (skipCommitRef.current) {
       skipCommitRef.current = false
       return
     }
     const trimmed = nameDraft.trim()
-    const current = decodeURIComponent(botId ?? '')
-    if (!trimmed || trimmed === current) {
-      setNameDraft(current)
+    if (!trimmed || trimmed === botName) {
+      setNameDraft(botName)
       return
     }
-    if (readRaw(STORAGE_PREFIX + trimmed)) {
-      showToast('이미 사용 중인 챗봇 이름입니다')
-      setNameDraft(current)
-      return
+    try {
+      await patchBot(botId, { name: trimmed })
+      setBotName(trimmed)
+      setNameDraft(trimmed)
+      showToast(`'${trimmed}' 로 이름을 변경했어요`)
+    } catch (e) {
+      setNameDraft(botName)
+      showToast(e?.message ?? '이름 변경에 실패했습니다')
     }
-    const raw = readRaw(STORAGE_PREFIX + current)
-    if (raw == null) {
-      setNameDraft(current)
-      return
-    }
-    writeRaw(STORAGE_PREFIX + trimmed, raw)
-    remove(STORAGE_PREFIX + current)
-    navigate(`/app/bots/${encodeURIComponent(trimmed)}/canvas`, { replace: true })
-    showToast(`'${trimmed}' 로 이름을 변경했어요`)
-  }, [nameDraft, botId, navigate, showToast])
+  }, [nameDraft, botName, botId, showToast])
 
   const handleConfirmLeave = useCallback(() => {
     setConfirmLeaveOpen(false)
@@ -374,6 +370,7 @@ export default function BotWorkspaceLayout() {
         onEdit={(versionId, meta) => versionActionsRef.current?.edit?.(versionId, meta)}
         onDelete={(versionId) => versionActionsRef.current?.delete?.(versionId)}
         onClose={() => setVersionManagerOpen(false)}
+        canEdit={false}
       />
 
       {/* 버전 전환 확인 — 미저장 변경이 있을 때 */}
@@ -419,7 +416,7 @@ export default function BotWorkspaceLayout() {
         scenarios={simulatorScenarios}
         variables={simulatorVariables}
         apis={simulatorApis}
-        botName={decodeURIComponent(botId ?? '')}
+        botName={botName}
         launcherUi={simulatorLauncherUi}
       />
     </div>

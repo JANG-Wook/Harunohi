@@ -17,6 +17,7 @@ export default function VersionManagerModal({
   onEdit,
   onDelete,
   onClose,
+  canEdit = true, // false 면 이름/설명 수정 버튼 숨김(봇: 백엔드 미지원 — deferred)
 }) {
   const [editingVersion, setEditingVersion] = useState(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
@@ -78,7 +79,9 @@ export default function VersionManagerModal({
                   {v.description ? <p className="vmm__desc">{v.description}</p> : null}
                 </div>
                 <div className="vmm__actions">
-                  <IconButtonNormal icon={<Icon name="pencil" size={16} />} size="small" onClick={() => setEditingVersion(v)} aria-label="정보 수정" />
+                  {canEdit && (
+                    <IconButtonNormal icon={<Icon name="pencil" size={16} />} size="small" onClick={() => setEditingVersion(v)} aria-label="정보 수정" />
+                  )}
                   <IconButtonNormal
                     icon={<Icon name="trash" size={16} />}
                     size="small"

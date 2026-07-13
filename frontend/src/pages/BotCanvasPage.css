@@ -36,3 +36,13 @@
 .bot-canvas__flow .react-flow__controls-button:hover {
   background: var(--color-fill-alternative);
 }
+
+/* 서버에서 봇 로드/에러 대기 화면 */
+.bot-canvas__load {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-label-alternative);
+  font-size: var(--font-size-body-2);
+}

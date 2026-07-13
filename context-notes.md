@@ -78,8 +78,16 @@
 - E2E(실 백엔드): 가드 리다이렉트 → 로그인 → 빈 목록 → 생성(서버 영속, ULID 라우트) → 카드 표시 → 이름변경 → 삭제 → 토스트. 콘솔 에러 0.
 - **과도기 주의**: 캔버스(BotCanvasPage)는 아직 localStorage 를 읽음 → API 로 만든 봇의 캔버스는 빈 초기 상태로 열림. ②-b 에서 해소.
 
+## 2026-07-13 — 청크: ②-b 캔버스/버전 서버 전환 (직접 구현)
+- BotCanvasPage: `loadFromStorage`/`writeToStorage` 제거. 기본 export 래퍼에서 **async 서버 로드**(`loadBotFromServer`: getBot + listVersions + 각 버전 getVersion eager 로드 → 기존 initial 형태 조립) → 로딩/에러 게이트 후 CanvasInner에 `initial`·`botId(publicId)` props 전달. CanvasInner 내부 모델·로직은 대부분 유지.
+- 핸들러 remap(async): handleSave→createVersion(생성값 publicId를 버전 id로), handlePublish→publishVersion(현재버전), handleDeleteVersion→apiDeleteVersion, handleLoadVersion→ in-memory 전환 + apiSetCurrentVersion(fire-and-forget). handleEditVersion→ **no-op(false)**(백엔드 PATCH version 부재, 결정 B). handleApplyUI→ `saveBotUiPref`(localStorage `harunohi.botui.<botPublicId>`, 결정 A).
+- BotWorkspaceLayout: 봇 이름 서버 로드(getBot)·변경(patchBot, 라우트=publicId 불변), 저장/발행 콜백 async(await), VersionManagerModal `canEdit={false}`. VersionManagerModal 에 `canEdit` prop 추가(런처는 기본 true 유지).
+- 배포 버전 추적은 근사(status active면 현재 버전=배포본). 정밀 추적은 발행 UI(③)/deferred.
+- **검증 상태(정직)**: 읽기 경로 E2E OK — 새 봇(버전0) 기본 시나리오 렌더, API로 만든 서버 버전이 캔버스에 로드(버전 셀렉터 노출), 봇 이름 서버 로드. 콘솔 에러 0. 백엔드 createVersion/publish 201. **쓰기(저장/발행) UI E2E 는 미검증** — 앱의 기존 hasIncompleteStep 검증이 완성 안 된 웰컴 스텝 때문에 저장 버튼을 비활성화(회귀 아님). 완성 봇으로 저장→재로드→발행 왕복은 다음에 확인 필요(deferred).
+- 주의: 손으로 만든 최소 definitionJson(응답 필드 결핍)은 ChatMessagePreview 를 크래시시킴 — 실제 에디터가 만드는 완전한 응답은 정상. 테스트 데이터 특성.
+
 ## 다음 청크 후보
-1. 서브청크 ②-b: 캔버스/버전 전환(BotCanvasPage/BotWorkspaceLayout, definition_json 왕복) — 과도기 해소, 최우선.
+1. ②-b 쓰기 경로 UI E2E 마무리(완성 봇으로 저장→재로드→발행 왕복 확인).
 2. 서브청크 ③: 발행 UI(버전 발행/롤백 버튼 연동).
 3. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).

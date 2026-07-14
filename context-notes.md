@@ -92,8 +92,14 @@
 - 참고: 프론트 dev 서버(vite 5178)가 죽어 있으면 preview_start `{name:'Harunohi'}` 로 재기동(.claude/launch.json 존재). 백엔드 bootRun env 는 context-notes 상단 참조.
 - 로컬 DB에 테스트 봇 잔여(mojibake 이름) — 무해, 정리 보류.
 
+## 2026-07-13 — 청크: ③ 발행 UI (직접 구현)
+- BotWorkspaceLayout 탑바 actions 에 **발행 버튼** 추가(저장은 outlined 로 변경). 발행 확인 Alert(외부 노출 액션). 현재버전==배포본이면 '발행됨' 비활성, 버전없음/미저장/미완성 시 비활성.
+- E2E(실 백엔드): 저장→발행 버튼→확인 Alert→발행→토스트('배포되었습니다')→버튼 '발행됨' 비활성→**공개 배포 GET /api/public/bots/{id}/deployment 200 + snapshot 반영**. 재진입 시 status active→'발행됨' 유지(근사 로직). 콘솔 에러 0.
+- **롤백 UI 는 제외**(deferred) — 배포 이력 목록 필요.
+
 ## 다음 청크 후보
-1. 서브청크 ③: 발행 UI(레이아웃에 발행 버튼 연결 + 롤백; 백엔드/핸들러 완료).
+1. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용) — 파일럿 "방문자 대화" 시작.
+2. 발행 롤백 UI(배포 이력 + 롤백).
 3. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).
 3. 프론트: storage.js 뒤 API 클라이언트 + 로그인 화면 + 동기→비동기 전환(큰 청크).

@@ -96,6 +96,7 @@ export default function BotWorkspaceLayout() {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [versionManagerOpen, setVersionManagerOpen] = useState(false)
   const [pendingVersionId, setPendingVersionId] = useState(null)
+  const [confirmPublishOpen, setConfirmPublishOpen] = useState(false)
 
   /* 다이얼로그 상태 — 이탈 가드 + 토스트 */
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false)
@@ -136,6 +137,7 @@ export default function BotWorkspaceLayout() {
   )
 
   const handlePublish = useCallback(async () => {
+    setConfirmPublishOpen(false)
     const ok = await publisherRef.current?.()
     showToast(ok ? '배포되었습니다' : '배포에 실패했습니다')
   }, [showToast])
@@ -321,13 +323,31 @@ export default function BotWorkspaceLayout() {
             onClick={handleOpenSimulator}
           />
           <Button
-            variant="solid"
-            color="primary"
+            variant="outlined"
+            color="assistive"
             size="small"
             label="저장"
             disabled={!isDirty || incomplete}
             onClick={handleSave}
           />
+          {(() => {
+            // 현재 버전이 이미 배포본이면 "발행됨" 비활성. 버전 없음/미저장/미완성 시 발행 불가(저장 먼저)
+            const published =
+              !!versionInfo.currentVersionId &&
+              versionInfo.currentVersionId === versionInfo.deployedVersionId
+            const canPublish =
+              versionInfo.versions.length > 0 && !isDirty && !incomplete && !published
+            return (
+              <Button
+                variant="solid"
+                color="primary"
+                size="small"
+                label={published ? '발행됨' : '발행'}
+                disabled={!canPublish}
+                onClick={() => setConfirmPublishOpen(true)}
+              />
+            )
+          })()}
         </div>
       </header>
 
@@ -349,6 +369,24 @@ export default function BotWorkspaceLayout() {
             body="지금 나가면 변경한 내용이 사라집니다. 정말 나가시겠어요?"
             primaryAction={{ label: '나가기', variant: 'negative', onClick: handleConfirmLeave }}
             secondaryAction={{ label: '취소', onClick: () => setConfirmLeaveOpen(false) }}
+          />
+        </div>
+      )}
+
+      {/* 발행 확인 — 외부 노출(배포) 액션이라 1단계 확인 */}
+      {confirmPublishOpen && (
+        <div
+          className="bot-workspace__modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmPublishOpen(false)
+          }}
+        >
+          <Alert
+            platform="web"
+            title="이 버전을 발행할까요?"
+            body="현재 버전이 배포본이 되어, 이 봇의 대화방·위젯에 반영됩니다."
+            primaryAction={{ label: '발행', onClick: handlePublish }}
+            secondaryAction={{ label: '취소', onClick: () => setConfirmPublishOpen(false) }}
           />
         </div>
       )}

@@ -18,8 +18,8 @@
 
 ## P2. 발행 + 런타임 + 위젯
 - [~] 발행/롤백 플로우 — **백엔드 완료**(Flyway V2 bot_versions, 버전 CRUD·발행·롤백·배포이력, 공개 무인증 `GET /api/public/bots/{bot}/deployment`, 실DB 스모크 통과). 남음: 발행 UI(프론트)
-- [ ] 공개 챗룸 라우트 `/c/<channelId>` (배포 버전 로드 → ChatRoom + simulatorRuntime)
-- [ ] Vanilla JS iframe 위젯 스니펫 (채널 상세 URL/HTML 실동작)
+- [x] 공개 챗룸 라우트 `/c/:botPublicId` (배포 스냅샷 로드 → createSession + ChatRoom, SimulatorChat 재사용). 무인증(RequireAuth 밖) E2E 검증: 로그아웃 상태 접속→스타일된 챗룸 렌더, 콘솔 에러 0. **선행 1a 완료**: 저장 시 정의에 launcherUi(resolveChatUi) 포함(런처 없으면 기본값 폴백) → 공개 스냅샷이 UI 자급자족. 남음: 응답 있는 봇으로 버튼 대화 데모(SimulatorChat 재사용이라 저위험)
+- [ ] Vanilla JS iframe 위젯 스니펫 (채널 상세 URL/HTML 실동작) — 1c
 - [ ] API 호출 시크릿 서버 프록시
 - [ ] 검증: 외부 정적 HTML에 스니펫 삽입 → 위젯에서 실제 대화
 

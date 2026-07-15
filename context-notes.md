@@ -97,9 +97,16 @@
 - E2E(실 백엔드): 저장→발행 버튼→확인 Alert→발행→토스트('배포되었습니다')→버튼 '발행됨' 비활성→**공개 배포 GET /api/public/bots/{id}/deployment 200 + snapshot 반영**. 재진입 시 status active→'발행됨' 유지(근사 로직). 콘솔 에러 0.
 - **롤백 UI 는 제외**(deferred) — 배포 이력 목록 필요.
 
+## 2026-07-15 — 청크: 공개 챗룸 1a+1b (직접 구현)
+- **1a**: BotCanvasPage handleSave 가 저장 정의에 `launcherUi`(resolveChatUi) 포함. **버그 잡음**: 이 브라우저에 저장된 런처가 없으면(loadLauncher null) launcherUi 가 null → **defaultLauncherConfig() 폴백**으로 수정. 검증에서 처음 false 나와 발견.
+- **1b**: `pages/PublicChatPage.jsx` 신규 — `/c/:botId`(botPublicId), 무인증(RequireAuth 밖). getPublicDeployment(공개 무인증) → snapshotJson 파싱(scenarios/vars/apis/launcherUi) → createSession + SimulatorChat 재사용(런타임 소유: clickButton/submitForm/sendUtterance + api/sso auto-advance). `lib/botApi.getPublicDeployment` 추가. App.jsx 공개 라우트.
+- 검증: 로그아웃 상태 `/c/<id>` 접속 → /login 리다이렉트 안 됨(가드 제외 정상), 스타일된 ChatRoom 렌더(헤더·입력창), 콘솔 에러 0. 공개 배포 스냅샷 launcherUi true. (테스트 봇 응답 없어 "응답 없음" 메시지 — 버튼 대화는 SimulatorChat 재사용이라 검증됨.)
+- **테스트 주의**: versions 목록은 **최신순**(vers[0]=최신). 초기 검증에서 vers[last]=최초(launcherUi 없는 버전1) 읽어 오판했음.
+
 ## 다음 청크 후보
-1. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용) — 파일럿 "방문자 대화" 시작.
-2. 발행 롤백 UI(배포 이력 + 롤백).
+1. 1c: Vanilla JS iframe 위젯 스니펫 + 채널 모달 서버봇 연동 + 채널 상세 URL/HTML 을 /c/<botPublicId> 실동작으로.
+2. 응답 있는 봇으로 공개 대화 버튼 상호작용 데모.
+3. 발행 롤백 UI(배포 이력 + 롤백).
 3. 공개 챗룸 라우트 + 위젯 스니펫(공개 배포 API 사용).
 2. 런처/채널 스키마 추가(Flyway V2) + CRUD (현 schema 에 없음).
 3. 프론트: storage.js 뒤 API 클라이언트 + 로그인 화면 + 동기→비동기 전환(큰 청크).

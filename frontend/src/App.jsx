@@ -8,6 +8,7 @@ import LauncherListPage from './settings/LauncherListPage.jsx'
 import LauncherSettingsPage from './settings/LauncherSettingsPage.jsx'
 import ChannelListPage from './pages/ChannelListPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import PublicChatPage from './pages/PublicChatPage.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
 
 export default function App() {
@@ -15,6 +16,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/app/bots" replace />} />
       <Route path="/login" element={<LoginPage />} />
+      {/* 공개 대화방 — 무인증(위젯이 여는 화면). botPublicId 기반(채널 서버화 전까지 직결) */}
+      <Route path="/c/:botId" element={<PublicChatPage />} />
 
       {/* 콘솔 전체는 로그인 필수 — 봇 데이터가 서버 저장으로 전환됨 */}
       <Route element={<RequireAuth />}>

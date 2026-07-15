@@ -1,0 +1,30 @@
+/* 공개 대화방 — 위젯 iframe 안에서 챗룸이 화면을 채우도록 중앙 배치 */
+
+.public-chat {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-normal-alternative);
+}
+
+/* SimulatorChat(.sim-chat)는 고정 폭/높이라, 위젯 화면을 꽉 채우도록 확장 */
+.public-chat .sim-chat {
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  max-height: 720px;
+  border-radius: var(--spacing-16);
+}
+
+.public-chat__state {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-label-alternative);
+  font-size: var(--font-size-body-2);
+  background: var(--color-bg-normal-alternative);
+}

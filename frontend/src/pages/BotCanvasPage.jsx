@@ -26,7 +26,7 @@ import TriggerNode from '../canvas/nodes/TriggerNode.jsx'
 import { LauncherUiContext } from '../canvas/launcherUiContext.js'
 import { createDefaultBotVariables, createEmptyScenario, createEmptyStep, isStepComplete, makeDefaultScenarioWithWelcome } from '../lib/stepTypes.js'
 import { migrateVersionLinks } from '../lib/linkMigration.js'
-import { loadLauncher, DEFAULT_LAUNCHER_ID } from '../lib/launcherConfig.js'
+import { loadLauncher, DEFAULT_LAUNCHER_ID, defaultLauncherConfig } from '../lib/launcherConfig.js'
 import { resolveChatUi } from '../lib/chatUiStyle.js'
 import { readRaw, writeRaw } from '../lib/storage.js'
 import {
@@ -617,10 +617,15 @@ function CanvasInner({ botId, initial }) {
       apis: aps,
     } = stateRef.current
     const payload = versionPayload(scs, curScId, n, vars, aps)
+    // 위젯이 스타일된 챗룸을 렌더할 수 있게, 저장 시점 적용 런처의 해석 UI 를 정의에 포함(스냅샷 자급자족).
+    // 이 브라우저에 저장된 런처가 없으면 기본 런처 설정으로 폴백 → launcherUi 는 항상 존재.
+    const launcher = loadLauncher(appliedLauncherIdRef.current) ?? loadLauncher(DEFAULT_LAUNCHER_ID)
+    const launcherUiSnapshot = resolveChatUi(launcher?.config ?? defaultLauncherConfig())
+    const definition = { ...payload, launcherUi: launcherUiSnapshot }
     const name = (meta.name || '').trim() || `버전 ${vs.length + 1}`
     const description = (meta.description || '').trim()
     try {
-      const created = await createVersion(botId, { name, description, definition: payload })
+      const created = await createVersion(botId, { name, description, definition })
       const newVersion = { id: created.publicId, savedAt: created.createdAt, name, description, ...payload }
       setVersions([...vs, newVersion])
       setCurrentVersionId(created.publicId)

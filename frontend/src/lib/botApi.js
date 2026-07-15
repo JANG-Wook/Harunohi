@@ -115,3 +115,8 @@ export async function listDeployments(botPublicId) {
   const ws = await ensureWorkspace()
   return apiFetch(`/api/workspaces/${ws}/bots/${botPublicId}/deployments`)
 }
+
+/** 공개(무인증) 배포 조회 — 위젯/공개 챗룸이 발행된 스냅샷을 읽는다 */
+export async function getPublicDeployment(botPublicId) {
+  return apiFetch(`/api/public/bots/${botPublicId}/deployment`, { auth: false })
+}

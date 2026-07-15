@@ -1,36 +1,39 @@
 // 챗봇 채널 — 봇 + 챗봇 설정(런처)을 묶어 외부 노출하는 단위. localStorage 저장/로드 + 호출 URL/HTML 생성.
 //
-// 백엔드가 아직 없으므로 호출 URL/HTML 은 채널 id 기반 플레이스홀더다(공개 대화방 라우트 연결은 후속 작업).
+// 호출 URL/HTML 은 실제 공개 대화방 라우트 `/c/<botPublicId>` 를 가리킨다(위젯=iframe 임베드).
+// 채널 자체는 아직 클라이언트 전용 → URL 은 채널이 고른 봇의 publicId 로 직결(채널 서버화는 후속 V3).
 //
 // 저장 구조:
 //   localStorage 키: `harunohi.channel.<id>`
-//   값: { id, name, type, botId, launcherId, consultingEnabled, createdAt, updatedAt }
+//   값: { id, name, type, botId(=botPublicId), botName, launcherId, consultingEnabled, createdAt, updatedAt }
 
 import { readRaw, writeRaw, remove, keys } from './storage.js'
 
 const STORAGE_PREFIX = 'harunohi.channel.'
-const BOT_PREFIX = 'harunohi.bot.'
 
 /** 현재는 web 채널만 지원 — 향후 카카오/인스타 등 확장 자리 */
 export const CHANNEL_TYPES = [{ value: 'web', label: 'Web' }]
 
-/** 호출 URL/HTML 플레이스홀더 호스트 — 백엔드 연결 전까지 형태만 노출 */
-const EMBED_HOST = 'https://chat.harunohi.io'
-const WIDGET_CDN = 'https://cdn.harunohi.io/widget.js'
+/** 공개 대화방 서빙 오리진 — 운영은 VITE_PUBLIC_CHAT_ORIGIN 로 도메인 주입, 없으면 현재 오리진(데모/로컬) */
+function publicOrigin() {
+  const env = import.meta.env.VITE_PUBLIC_CHAT_ORIGIN
+  if (env) return env
+  return typeof window !== 'undefined' ? window.location.origin : ''
+}
 
 /** 채널 유형 값 → 라벨 */
 export function channelTypeLabel(type) {
   return CHANNEL_TYPES.find((t) => t.value === type)?.label ?? type ?? '—'
 }
 
-/** 대화방 호출 URL — 이 링크를 열면 해당 채널의 챗봇 대화방이 뜬다(예정) */
-export function channelChatUrl(id) {
-  return `${EMBED_HOST}/c/${id}`
+/** 대화방 호출 URL — 이 링크를 열면 봇의 공개 대화방이 뜬다 (botPublicId 직결) */
+export function channelChatUrl(botPublicId) {
+  return `${publicOrigin()}/c/${botPublicId}`
 }
 
-/** 대화방 호출 HTML — 사이트에 삽입하면 위젯이 뜬다(예정) */
-export function channelEmbedHtml(id) {
-  return `<script src="${WIDGET_CDN}" data-channel="${id}" async></script>`
+/** 대화방 호출 HTML — 사이트에 붙여넣으면 iframe 으로 대화방 위젯이 뜬다 */
+export function channelEmbedHtml(botPublicId) {
+  return `<iframe src="${publicOrigin()}/c/${botPublicId}" title="챗봇" style="width:400px;height:720px;border:0;border-radius:16px" allow="clipboard-write"></iframe>`
 }
 
 function keyFor(id) {
@@ -50,6 +53,7 @@ function normalize(parsed) {
     name: parsed.name ?? '',
     type: parsed.type ?? 'web',
     botId: parsed.botId ?? '',
+    botName: parsed.botName ?? '',
     launcherId: parsed.launcherId ?? '',
     consultingEnabled: !!parsed.consultingEnabled,
     createdAt: parsed.createdAt ?? null,
@@ -88,12 +92,13 @@ export function loadChannel(id) {
 }
 
 /** 채널 신규 생성 — 생성된 채널(런타임 형태) 반환 */
-export function createChannel({ name, type = 'web', botId, launcherId, consultingEnabled, nowIso }) {
+export function createChannel({ name, type = 'web', botId, botName, launcherId, consultingEnabled, nowIso }) {
   const entry = {
     id: newId(),
     name: (name ?? '').trim(),
     type,
     botId: botId ?? '',
+    botName: botName ?? '',
     launcherId: launcherId ?? '',
     consultingEnabled: !!consultingEnabled,
     createdAt: nowIso,
@@ -113,21 +118,4 @@ export function isChannelNameTaken(name, excludeId = null) {
   const trimmed = (name || '').trim()
   if (!trimmed) return false
   return loadChannelList().some((c) => c.name === trimmed && c.id !== excludeId)
-}
-
-/** 저장된 봇 목록을 셀렉트 옵션으로 — { value:id, label:이름 } (DashboardPage 키 규약과 동일) */
-export function loadBotOptions() {
-  const opts = []
-  for (const key of keys(BOT_PREFIX)) {
-    const botId = key.slice(BOT_PREFIX.length)
-    opts.push({ value: botId, label: decodeURIComponent(botId) })
-  }
-  opts.sort((a, b) => a.label.localeCompare(b.label, 'ko'))
-  return opts
-}
-
-/** 봇 id → 표시 이름. 없으면 '(삭제됨)' */
-export function botName(botId) {
-  if (!botId) return '—'
-  return loadBotOptions().some((o) => o.value === botId) ? decodeURIComponent(botId) : '(삭제됨)'
 }

@@ -26,7 +26,9 @@
 - [ ] **회원가입 공개** — register 무제한 공개. 파일럿은 초대제/도메인 제한 검토.
 - [ ] **비밀번호 재설정 / 이메일 인증 없음** — 파일럿 소수 사용자엔 후순위지만 기록.
 - [ ] **2-브라우저 봇 공유 검증** — 서버 영속 후 동일 계정 크로스-브라우저 확인 미수행(checklist P1 잔여).
-- [ ] **채널 모달 봇 드롭다운 서버 연동**(1c) — `channelConfig.loadBotOptions` 가 아직 localStorage(`harunohi.bot.*`)를 스캔 → 봇 서버 이관 후 비어 버그. botApi.listBots 로 교체 + 채널 상세 URL/HTML 을 botPublicId 기반 `/c/<botPublicId>` 실동작으로.
+- [x] ~~채널 모달 봇 드롭다운 서버 연동~~(1c) — botApi.listBots 로 교체, 채널에 botId(publicId)+botName 저장, URL/HTML=`origin/c/<botPublicId>` iframe 스니펫. 완료·검증.
+- [ ] **플로팅 런처 버튼 JS 위젯** — 현재 임베드는 iframe 직접 삽입. 고객사 사이트 우하단 플로팅 버튼→클릭 시 iframe 팝업 여는 Vanilla JS 스니펫(런처 버튼 디자인 활용)은 후속.
+- [ ] **채널 서버 영속화(V3) + 채널 id 기반 라우팅** — 현재 채널은 클라이언트 전용, URL 은 botPublicId 직결. 채널을 서버화하면 `/c/<channelId>` 로 채널 단위(상담 여부 등) 제어 가능.
 
 ## 프론트/런타임
 - [x] ~~②-b 쓰기 경로 UI E2E 검증~~ — 완성 봇으로 UI 저장→재로드 왕복 확인 완료(서버 버전 생성·재로드). 발행은 버튼 미연결이라 ③으로.

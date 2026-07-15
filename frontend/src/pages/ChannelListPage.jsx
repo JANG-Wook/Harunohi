@@ -19,9 +19,9 @@ import {
   createChannel,
   deleteChannel,
   isChannelNameTaken,
-  loadBotOptions,
   loadChannelList,
 } from '../lib/channelConfig.js'
+import { listBots } from '../lib/botApi.js'
 import {
   ensureDefaultLauncher,
   loadLauncherList,
@@ -112,17 +112,21 @@ export default function ChannelListPage() {
   }
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
 
-  /* 만들기 — 봇/런처 옵션 로드 후 모달 오픈. 런처는 기본값 보장 */
+  /* 만들기 — 모달 즉시 오픈 후 서버 봇/런처 옵션 로드. 런처는 기본값 보장 */
   const openCreate = () => {
     ensureDefaultLauncher(new Date().toISOString())
-    setBotOptions(loadBotOptions())
     setLauncherOptions(loadLauncherList().map((l) => ({ value: l.id, label: l.name })))
     setName('')
     setBotId('')
     setLauncherId('')
     setConsulting(false)
     setCreateError('')
+    setBotOptions([])
     setCreateOpen(true)
+    // 서버 봇 목록(비동기) — publicId 를 값으로, 이름을 라벨로
+    listBots()
+      .then((bots) => setBotOptions(bots.map((b) => ({ value: b.publicId, label: b.name }))))
+      .catch(() => setBotOptions([]))
   }
 
   const canSubmit = name.trim() && botId && launcherId
@@ -138,6 +142,7 @@ export default function ChannelListPage() {
       name: trimmed,
       type: 'web',
       botId,
+      botName: botOptions.find((o) => o.value === botId)?.label ?? '',
       launcherId,
       consultingEnabled: consulting,
       nowIso: new Date().toISOString(),
@@ -178,9 +183,8 @@ export default function ChannelListPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createOpen, detailTarget, deleteTarget, name, botId, launcherId, consulting])
 
-  /* 상세 — 봇/런처 이름 조회(삭제됐으면 표시) */
-  const resolveBotName = (id) =>
-    loadBotOptions().some((o) => o.value === id) ? decodeURIComponent(id) : '(삭제됨)'
+  /* 상세 — 봇 이름은 생성 시 저장한 값 사용(서버 재조회 없이), 런처는 로컬 목록 조회 */
+  const resolveBotName = (ch) => ch.botName || '(이름 없음)'
   const resolveLauncherName = (id) =>
     loadLauncherList().find((l) => l.id === id)?.name ?? '(삭제됨)'
 
@@ -218,7 +222,7 @@ export default function ChannelListPage() {
               </Typography>
               <div className="cc__card-meta">
                 <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
-                  사용 챗봇 / <span style={{ color: 'var(--color-label-normal)' }}>{resolveBotName(ch.botId)}</span>
+                  사용 챗봇 / <span style={{ color: 'var(--color-label-normal)' }}>{resolveBotName(ch)}</span>
                 </Typography>
                 <Typography variant="caption-1" color="var(--color-label-alternative)" as="span">
                   사용 설정 / <span style={{ color: 'var(--color-label-normal)' }}>{resolveLauncherName(ch.launcherId)}</span>
@@ -338,7 +342,7 @@ export default function ChannelListPage() {
                 </div>
                 <div className="cc__detail-row">
                   <span className="cc__detail-label">사용 챗봇</span>
-                  <span className="cc__detail-value">{resolveBotName(detailTarget.botId)}</span>
+                  <span className="cc__detail-value">{resolveBotName(detailTarget)}</span>
                 </div>
                 <div className="cc__detail-row">
                   <span className="cc__detail-label">사용 설정</span>
@@ -354,11 +358,11 @@ export default function ChannelListPage() {
                 </div>
                 <div className="cc__detail-row">
                   <span className="cc__detail-label">대화방 호출 URL</span>
-                  <CopyRow value={channelChatUrl(detailTarget.id)} onCopied={() => showToast('호출 URL을 복사했어요.')} />
+                  <CopyRow value={channelChatUrl(detailTarget.botId)} onCopied={() => showToast('호출 URL을 복사했어요.')} />
                 </div>
                 <div className="cc__detail-row">
                   <span className="cc__detail-label">대화방 호출 HTML</span>
-                  <CopyRow value={channelEmbedHtml(detailTarget.id)} onCopied={() => showToast('호출 HTML을 복사했어요.')} />
+                  <CopyRow value={channelEmbedHtml(detailTarget.botId)} onCopied={() => showToast('호출 HTML을 복사했어요.')} />
                 </div>
               </div>
             </div>

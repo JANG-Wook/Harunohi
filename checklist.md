@@ -4,9 +4,9 @@
 > 원칙: 청크 단위 진행. 각 항목 완료 시 [x] + 검증 방법 메모.
 
 ## P0. 기반 세팅
-- [x] 파일럿 계획 문서 3종 작성 (07-launch-plan / checklist / context-notes)
-- [ ] 레포 레이아웃 확정 — `backend/` 신설 위치 합의
-- [ ] 백엔드 리드 서브에이전트 스폰 방식 확정
+- [x] 파일럿 계획 문서 3종 작성 (07-launch-plan / checklist / context-notes) + deferred.md
+- [x] 레포 레이아웃 확정 — `backend/` 신설(frontend·db·docs 와 나란히)
+- [x] 백엔드 리드 서브에이전트 스폰 방식 확정 (SendMessage 로 컨텍스트 유지 재개)
 
 ## P1. 백엔드 기반 + 프론트 영속화
 - [x] 프론트 데이터 접근 추상화 계층 — `lib/storage.js` 어댑터 도입. launcherConfig·channelConfig + 소비처 3곳(BotCanvasPage·DashboardPage·BotWorkspaceLayout) 전환 완료. 동작 불변, 미리보기 검증 OK(런처/채널/봇목록/캔버스). 남은 `window.localStorage` 는 `useTheme.js`(UI 전용)뿐

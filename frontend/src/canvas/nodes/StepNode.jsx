@@ -6,6 +6,7 @@ import Icon from '../../design-system/components/Icon/Icon.jsx'
 import Typography from '../../design-system/components/Typography/Typography.jsx'
 import ApiNodePreview from '../ApiNodePreview.jsx'
 import ChatMessagePreview from '../ChatMessagePreview.jsx'
+import PreviewErrorBoundary from '../PreviewErrorBoundary.jsx'
 import './StepNode.css'
 
 /** API 노드가 등록된 API 목록과 시나리오 목록을 참조하기 위한 컨텍스트.
@@ -69,15 +70,17 @@ function StepNode({ data, selected }) {
       )}
 
       <div className={isApiMode ? 'step-node__api' : 'step-node__preview'}>
-        {isApiMode ? (
-          <ApiNodePreview
-            config={step.messageConfig}
-            registeredApis={registeredApis}
-            scenarios={scenarios}
-          />
-        ) : (
-          <ChatMessagePreview config={step.messageConfig} height="640px" compact />
-        )}
+        <PreviewErrorBoundary>
+          {isApiMode ? (
+            <ApiNodePreview
+              config={step.messageConfig}
+              registeredApis={registeredApis}
+              scenarios={scenarios}
+            />
+          ) : (
+            <ChatMessagePreview config={step.messageConfig} height="640px" compact />
+          )}
+        </PreviewErrorBoundary>
       </div>
     </div>
   )

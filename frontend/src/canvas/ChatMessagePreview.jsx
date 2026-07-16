@@ -6,6 +6,7 @@
 import { useMemo } from 'react'
 import ChatRoom from '../design-system/components/ChatRoom/ChatRoom.jsx'
 import {
+  createDefaultMessageConfig,
   defaultPerModeExtras,
   getImageUrl,
   hasImage,
@@ -26,12 +27,14 @@ const rich = (v) => (isRunsEmpty(v) ? '' : toRuns(v))
 const DEFAULT_HEIGHT = '780px'
 
 export default function ChatMessagePreview({ config, height = DEFAULT_HEIGHT, compact = false }) {
-  const { cfg, mode, texts, imageFile, carouselCards, form } = config
+  // 불완전/구형 정의(messageConfig 누락)는 기본값으로 폴백해 렌더 크래시를 막는다.
+  const safeConfig = config ?? createDefaultMessageConfig()
+  const { cfg, mode, texts, imageFile, carouselCards, form } = safeConfig
   // 적용된 런처(챗봇 설정)의 대화방 UI — 없으면 기본 챗룸
   const launcherUi = useLauncherUi()
 
   /* 모드별 message-level 부가 설정 (배너 + 퀵 버튼) */
-  const modeExtras = config.perMode?.[mode] ?? defaultPerModeExtras()
+  const modeExtras = safeConfig.perMode?.[mode] ?? defaultPerModeExtras()
   const { quickList, messageBannerOn, quickButtonOn, bannerFile } = modeExtras
 
   const isCarousel = mode === 'carousel'

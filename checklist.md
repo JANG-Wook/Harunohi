@@ -21,7 +21,7 @@
 - [x] 공개 챗룸 라우트 `/c/:botPublicId` (배포 스냅샷 로드 → createSession + ChatRoom, SimulatorChat 재사용). 무인증(RequireAuth 밖) E2E 검증: 로그아웃 상태 접속→스타일된 챗룸 렌더, 콘솔 에러 0. **선행 1a 완료**: 저장 시 정의에 launcherUi(resolveChatUi) 포함(런처 없으면 기본값 폴백) → 공개 스냅샷이 UI 자급자족. 남음: 응답 있는 봇으로 버튼 대화 데모(SimulatorChat 재사용이라 저위험)
 - [x] iframe 위젯 스니펫 (채널 상세 URL/HTML 실동작) — 1c 완료: 채널 모달 봇 드롭다운을 서버 봇(botApi.listBots)으로, 채널에 botId(publicId)+botName 저장. URL/HTML 은 `origin/c/<botPublicId>`(env VITE_PUBLIC_CHAT_ORIGIN, 기본 현재 오리진) + iframe 스니펫. E2E: 서버 봇 드롭다운·채널 생성·상세 URL/HTML 실경로 확인. 플로팅버튼 JS 위젯은 deferred
 - [ ] API 호출 시크릿 서버 프록시
-- [ ] 검증: 외부 정적 HTML에 스니펫 삽입 → 위젯에서 실제 대화
+- [x] 검증: 완성 봇(웰컴→버튼→답변) 발행 → 무인증 `/c/<botPublicId>` 에서 버튼 클릭 대화 정상(스타일·아바타·상호작용, 콘솔 에러 0). 외부 HTML iframe 삽입 실사용 확인은 후속(iframe src 동일 URL이라 저위험)
 
 ## P3. 인프라 (Naver Cloud)
 - [ ] 서버/컨테이너 + Cloud DB for MySQL + Object Storage

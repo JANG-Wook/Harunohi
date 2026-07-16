@@ -20,6 +20,7 @@
 - [~] 발행/롤백 플로우 — **백엔드 완료**(Flyway V2 bot_versions, 버전 CRUD·발행·롤백·배포이력, 공개 무인증 `GET /api/public/bots/{bot}/deployment`, 실DB 스모크 통과). 남음: 발행 UI(프론트)
 - [x] 공개 챗룸 라우트 `/c/:botPublicId` (배포 스냅샷 로드 → createSession + ChatRoom, SimulatorChat 재사용). 무인증(RequireAuth 밖) E2E 검증: 로그아웃 상태 접속→스타일된 챗룸 렌더, 콘솔 에러 0. **선행 1a 완료**: 저장 시 정의에 launcherUi(resolveChatUi) 포함(런처 없으면 기본값 폴백) → 공개 스냅샷이 UI 자급자족. 남음: 응답 있는 봇으로 버튼 대화 데모(SimulatorChat 재사용이라 저위험)
 - [x] iframe 위젯 스니펫 (채널 상세 URL/HTML 실동작) — 1c 완료: 채널 모달 봇 드롭다운을 서버 봇(botApi.listBots)으로, 채널에 botId(publicId)+botName 저장. URL/HTML 은 `origin/c/<botPublicId>`(env VITE_PUBLIC_CHAT_ORIGIN, 기본 현재 오리진) + iframe 스니펫. E2E: 서버 봇 드롭다운·채널 생성·상세 URL/HTML 실경로 확인. 플로팅버튼 JS 위젯은 deferred
+- [x] 대화 로그 저장 (sessions/session_messages) — 파일럿 성공기준 ⑤. 무인증 공개 대화방이 세션 시작 + history 증분을 서버에 적재. 신규 ChatSession/SessionMessage 엔티티(기존 V1 테이블 재사용, 마이그레이션 불필요), ChatLogService(최소 방어 상한: 세션당 500건·배치 50·본문 32KB·sender 화이트리스트), PublicChatLogController(무인증 2엔드포인트), 프론트 chatLogApi(프로미스 캐시로 방문당 1세션)+PublicChatPage 증분 전송. 실 MySQL E2E 검증(1세션·트랜스크립트 3건 정확 적재·한글 정상·방어 400/404·콘솔 에러 0). 남음: 로그 조회 UI, 세션 종료 처리, rate-limit(P4)
 - [ ] API 호출 시크릿 서버 프록시
 - [x] 검증: 완성 봇(웰컴→버튼→답변) 발행 → 무인증 `/c/<botPublicId>` 에서 버튼 클릭 대화 정상(스타일·아바타·상호작용, 콘솔 에러 0). 외부 HTML iframe 삽입 실사용 확인은 후속(iframe src 동일 URL이라 저위험)
 

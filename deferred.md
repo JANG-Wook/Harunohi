@@ -18,6 +18,9 @@
 - [ ] **appliedLauncherId 서버화** — 현재 클라이언트(`harunohi.botui.<botPublicId>`). 런처 서버화와 함께.
 - [ ] `status`/`intent_mode` **enum 검증** — 현재 자유 문자열.
 
+## 검증 완료 (2026-07-16)
+- [x] ~~대화 로그 저장(sessions/session_messages)~~ — 파일럿 성공기준 ⑤ 충족. 무인증 공개 대화방에서 세션 시작(POST `/api/public/bots/{id}/sessions` 201) + history 증분 적재(POST `/api/public/sessions/{sid}/messages` 204). 실 MySQL E2E: 방문당 1세션(chatLogApi 프로미스 캐시로 StrictMode 중복 제거), 트랜스크립트 3건(bot 웰컴→user-click "자주 묻는 질문"→bot 답변 "영업시간은 평일 9시~18시입니다.") 한 세션에 정확 적재, 한글 utf8mb4 정상. 최소 방어 상한 검증: sender 화이트리스트/빈 배열/배치 50/본문 32KB → 400, 없는 세션 → 404. 콘솔 에러 0. **JPA validate 통과**(신규 ChatSession/SessionMessage 엔티티 ↔ 기존 V1 테이블, `json` 컬럼 포함).
+
 ## 검증 완료 (2026-07-15)
 - [x] ~~완성 봇으로 공개 대화 버튼 상호작용 데모~~ — 웰컴→'자주 묻는 질문' 버튼 클릭→답변 응답 진행. 무인증 `/c/<botPublicId>` 에서 스타일(프라이머리 #0066FF)·아바타·말풍선·상호작용 전부 정상, 콘솔 에러 0. 파일럿 방문자 경험 관통 확인.
 
@@ -38,7 +41,10 @@
 - [x] ~~발행 UI(③)~~ — 발행 버튼+확인 Alert 완료, E2E 검증. (아래 롤백만 남음)
 - [ ] **발행 롤백 UI** — 배포 이력(deployments) 목록 + 이전 배포본으로 롤백 버튼(백엔드 rollback API 완료).
 - [ ] **공개 챗룸 라우트 + 위젯 스니펫**(Vanilla JS iframe) — 공개 배포 API 사용.
-- [ ] **위젯 대화 런타임** — JS 런타임(simulatorRuntime) 공유. 세션 기록(`session_messages`).
+- [x] ~~위젯 대화 런타임 + 세션 기록(`session_messages`)~~ — 공개 대화방이 서버에 대화 적재(2026-07-16 검증 완료 참고). 남은 후속은 아래 세 항목.
+- [ ] **대화 로그 조회 UI** — 적재는 되나 대시보드/봇 상세에서 세션·메시지를 볼 화면이 없음. 조회용 인증 API(`GET /api/workspaces/{ws}/bots/{bot}/sessions` 등) + 뷰 필요.
+- [ ] **세션 종료 처리** — 현재 status 항상 'active', ended_at NULL. 탭 종료(visibilitychange/pagehide) 또는 유휴 만료로 종료 표시 미구현.
+- [ ] **로그 전송 rate-limit** — 무인증 쓰기 엔드포인트. 세션당 500건/본문 32KB/배치 50 상한만 존재. IP/세션 빈도 제한은 P4 하드닝(위 보안 섹션과 함께).
 - [ ] 로컬 기존 봇(localStorage) → 서버 **마이그레이션 도구** — 현재 없음(수동 재작성).
 
 ## 파일럿 제외(정식 오픈)

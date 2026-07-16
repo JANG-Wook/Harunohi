@@ -15,6 +15,7 @@ import {
 import { callApi } from '../lib/apiCaller.js'
 import { runSsoFlow } from '../lib/ssoFlow.js'
 import { getPublicDeployment } from '../lib/botApi.js'
+import { startSession, appendMessages, toLogMessage } from '../lib/chatLogApi.js'
 import SimulatorChat from '../simulator/SimulatorChat.jsx'
 import './PublicChatPage.css'
 
@@ -52,13 +53,34 @@ export default function PublicChatPage() {
 
   if (error) return <div className="public-chat__state">{error}</div>
   if (!snapshot) return <div className="public-chat__state">불러오는 중입니다...</div>
-  return <PublicChatRuntime key={botId} snapshot={snapshot} />
+  return <PublicChatRuntime key={botId} snapshot={snapshot} botPublicId={botId} />
 }
 
 /** 로드 완료 후 세션/런타임을 소유하는 내부 컴포넌트 (SimulatorModal 의 세션 로직과 동일 패턴) */
-function PublicChatRuntime({ snapshot }) {
+function PublicChatRuntime({ snapshot, botPublicId }) {
   const { scenarios, variables, apis, launcherUi, botName } = snapshot
   const [session, setSession] = useState(() => createSession({ scenarios, variables, apis }))
+
+  /* 대화 로그 — 마운트 시 서버 세션 시작 후, history 증분만 전송(fire-and-forget) */
+  const [logSessionId, setLogSessionId] = useState(null)
+  const sentCountRef = useRef(0)
+  useEffect(() => {
+    let alive = true
+    startSession(botPublicId).then((id) => { if (alive) setLogSessionId(id) })
+    return () => { alive = false }
+  }, [botPublicId])
+  useEffect(() => {
+    if (!logSessionId) return
+    const history = session.history ?? []
+    if (history.length < sentCountRef.current) {
+      sentCountRef.current = history.length // 예기치 못한 축소(재시작 등) 시 중복 전송 방지
+      return
+    }
+    if (history.length === sentCountRef.current) return
+    const delta = history.slice(sentCountRef.current)
+    sentCountRef.current = history.length
+    appendMessages(logSessionId, delta.map(toLogMessage))
+  }, [session, logSessionId])
 
   /* API mode 응답 자동 진행 — responseId 바뀔 때 한 번만 */
   const lastApiIdRef = useRef(null)

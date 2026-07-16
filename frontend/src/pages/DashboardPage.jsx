@@ -304,6 +304,25 @@ export default function DashboardPage() {
                 <span
                   role="button"
                   tabIndex={0}
+                  aria-label="대화 로그 보기"
+                  className="dashboard__card-action dashboard__card-action--log"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(`/app/bots/${encodeURIComponent(bot.id)}/logs`)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      navigate(`/app/bots/${encodeURIComponent(bot.id)}/logs`)
+                    }
+                  }}
+                >
+                  <Icon name="chat" size={14} />
+                </span>
+                <span
+                  role="button"
+                  tabIndex={0}
                   aria-label="챗봇 이름 변경"
                   className="dashboard__card-action dashboard__card-action--edit"
                   onClick={(e) => {

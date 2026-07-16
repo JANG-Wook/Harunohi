@@ -126,6 +126,11 @@
   transition: background 120ms ease, color 120ms ease;
 }
 
+.dashboard__card-action--log:hover {
+  background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
+  color: var(--color-primary-normal);
+}
+
 .dashboard__card-action--edit:hover {
   background: color-mix(in srgb, var(--color-primary-normal) 12%, transparent);
   color: var(--color-primary-normal);

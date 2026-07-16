@@ -7,6 +7,7 @@ import BotCanvasPage from './pages/BotCanvasPage.jsx'
 import LauncherListPage from './settings/LauncherListPage.jsx'
 import LauncherSettingsPage from './settings/LauncherSettingsPage.jsx'
 import ChannelListPage from './pages/ChannelListPage.jsx'
+import ConversationLogPage from './pages/ConversationLogPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import PublicChatPage from './pages/PublicChatPage.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/app/bots" element={<DashboardPage />} />
           <Route path="/app/chatbot-ui/launcher" element={<LauncherListPage />} />
           <Route path="/app/chatbot-channels" element={<ChannelListPage />} />
+          <Route path="/app/bots/:botId/logs" element={<ConversationLogPage />} />
         </Route>
 
         <Route element={<BotWorkspaceLayout />}>

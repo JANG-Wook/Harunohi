@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import net.infobank.harunohi.controller.dto.ChatLogDtos.MessageItem;
+import net.infobank.harunohi.domain.Bot;
 import net.infobank.harunohi.domain.BotDeploymentVersion;
 import net.infobank.harunohi.domain.ChatSession;
 import net.infobank.harunohi.domain.SessionMessage;
+import net.infobank.harunohi.domain.User;
 import net.infobank.harunohi.repository.ChatSessionRepository;
 import net.infobank.harunohi.repository.SessionMessageRepository;
 
@@ -31,15 +33,18 @@ public class ChatLogService {
     private final ChatSessionRepository sessionRepository;
     private final SessionMessageRepository messageRepository;
     private final BotVersionService botVersionService;
+    private final BotService botService;
     private final PublicIdGenerator publicIdGenerator;
 
     public ChatLogService(ChatSessionRepository sessionRepository,
             SessionMessageRepository messageRepository,
             BotVersionService botVersionService,
+            BotService botService,
             PublicIdGenerator publicIdGenerator) {
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
         this.botVersionService = botVersionService;
+        this.botService = botService;
         this.publicIdGenerator = publicIdGenerator;
     }
 
@@ -90,6 +95,37 @@ public class ChatLogService {
         session.setLastActivityAt(now);
         sessionRepository.save(session);
     }
+
+    // ---------- 조회 (인증 · 테넌트 격리) ----------
+
+    /** 봇의 대화 세션 목록(최근 200) — 각 세션의 메시지 수 포함. */
+    @Transactional(readOnly = true)
+    public List<SessionWithCount> listSessions(String wsPublicId, User user, String botPublicId) {
+        Bot bot = botService.get(wsPublicId, user, botPublicId);
+        return sessionRepository.findTop200ByBotIdOrderByStartedAtDesc(bot.getId()).stream()
+                .map(s -> new SessionWithCount(s, messageRepository.countBySessionId(s.getId())))
+                .toList();
+    }
+
+    /** 한 세션의 메시지 전체(오름차순). 세션이 이 봇 소유가 아니면 404. */
+    @Transactional(readOnly = true)
+    public List<SessionMessage> listSessionMessages(String wsPublicId, User user, String botPublicId,
+            String sessionPublicId) {
+        Bot bot = botService.get(wsPublicId, user, botPublicId);
+        ChatSession session = sessionRepository.findByPublicId(sessionPublicId)
+                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionPublicId));
+        if (!session.getBotId().equals(bot.getId())) {
+            // 다른 봇/워크스페이스의 세션 접근 차단 (존재 노출 방지 위해 404).
+            throw new NotFoundException("Session not found: " + sessionPublicId);
+        }
+        return messageRepository.findBySessionIdOrderByIdAsc(session.getId());
+    }
+
+    /** 세션 목록 조회 결과 (세션 + 메시지 수). */
+    public record SessionWithCount(ChatSession session, long messageCount) {
+    }
+
+    // ---------- 내부 헬퍼 ----------
 
     /** content(JsonNode) → 저장 문자열. 비어 있으면 빈 객체, 크기 상한 초과면 400. */
     private String serializeContent(JsonNode content) {
